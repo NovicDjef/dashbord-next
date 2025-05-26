@@ -13,6 +13,8 @@ import {
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
+  IconMessage,
+  IconMessage2Bolt,
   IconReport,
   IconSearch,
   IconSettings,
@@ -35,14 +37,14 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Admin Novic",
+    email: "novic.dev",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
@@ -62,8 +64,13 @@ const data = {
     },
     {
       title: "Team",
-      url: "#",
+      url: "dashboard/team",
       icon: IconUsers,
+    },
+     {
+      title: "Chat",
+      url: "/dashboard/chat",
+      icon: IconMessage2Bolt,
     },
   ],
   navClouds: [
@@ -162,7 +169,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Kourcier Inc.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

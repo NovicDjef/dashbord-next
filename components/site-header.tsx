@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { ModeToggle } from "./ui/mode-toggle"
+import { ThemeSelector } from "./theme-selector"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 
 export function SiteHeader() {
   return (
@@ -13,16 +16,12 @@ export function SiteHeader() {
         />
         <h1 className="text-base font-medium">Documents</h1>
         <div className="ml-auto flex items-center gap-2">
-          <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
-            <a
-              href="https://github.com/shadcn-ui/ui/tree/main/apps/v4/app/(examples)/dashboard"
-              rel="noopener noreferrer"
-              target="_blank"
-              className="dark:text-foreground"
-            >
-              GitHub
-            </a>
-          </Button>
+          <ThemeSelector />
+          <ModeToggle />
+           <Avatar>
+            <AvatarImage src="https://avatars.githubusercontent.com/u/162555903?v=4" alt="@shadcn" />
+            <AvatarFallback>CN</AvatarFallback>
+          </Avatar>
         </div>
       </div>
     </header>
