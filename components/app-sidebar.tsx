@@ -64,7 +64,7 @@ const data = {
     },
     {
       title: "Team",
-      url: "dashboard/team",
+      url: "/dashboard/team",
       icon: IconUsers,
     },
      {
