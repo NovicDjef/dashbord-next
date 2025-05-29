@@ -106,6 +106,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { fetchRestaurant } from "@/services/restaurantService"
 
 
 export const schema = z.object({
@@ -328,11 +329,14 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function DataTable({
+export default function DataTable({
   data: initialData,
 }: {
   data: z.infer<typeof schema>[]
 }) {
+  React.useEffect(() => {
+    fetchRestaurant().then(setData).catch(console.error)
+  })
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =

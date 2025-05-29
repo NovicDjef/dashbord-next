@@ -38,7 +38,7 @@ import {
 const data = {
   user: {
     name: "Admin Novic",
-    email: "novic.dev",
+    email: "contact@novic.dev",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -48,20 +48,25 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "List Users",
+      url: "/dashboard/users",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
+      title: "List Restaurants",
+      url: "/dashboard/restaurant",
+      icon: IconListDetails,
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
+      title: "List Repas",
+      url: "/dashboard/repas",
+      icon: IconChartBar,
     },
+    // {
+    //   title: "Projects",
+    //   url: "#",
+    //   icon: IconFolder,
+    // },
     {
       title: "Team",
       url: "/dashboard/team",

@@ -106,6 +106,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { fetchRepas } from "@/services/repasService"
 
 
 export const schema = z.object({
@@ -328,11 +329,14 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function DataTable({
+export default function DataTable({
   data: initialData,
 }: {
   data: z.infer<typeof schema>[]
 }) {
+  React.useEffect(() => {
+    fetchRepas().then(setData).catch(console.error)
+  })
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -499,7 +503,7 @@ export function DataTable({
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
+                {/* {table.getRowModel().rows?.length ? (
                   <SortableContext
                     items={dataIds}
                     strategy={verticalListSortingStrategy}
@@ -517,7 +521,7 @@ export function DataTable({
                       No results.
                     </TableCell>
                   </TableRow>
-                )}
+                )} */}
               </TableBody>
             </Table>
           </DndContext>

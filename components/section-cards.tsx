@@ -11,12 +11,20 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { fetchUsers } from "@/services/userService";
+import { useRouter } from "next/navigation";
+import { fetchRestaurant } from "@/services/restaurantService";
+import { fetchRepas } from "@/services/repasService";
 
 export function SectionCards() {
     const [users, setUsers] = useState([]);
+    const [restaurant, setRestaurant] = useState([]);
+    const [repas, setRepas] = useState([]);
+    const router = useRouter()
 
     useEffect(() => {
     fetchUsers().then(setUsers).catch(console.error);
+    fetchRestaurant().then(setRestaurant).catch(console.error)
+    fetchRepas().then(setRepas).catch(console.error)
   }, []);
 
   return (
@@ -65,7 +73,7 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card> */}
-       <Card className="@container/card">
+       <Card className="@container/card" onClick={() => router.push("/dashboard/users")}>
         <CardHeader>
           <CardDescription>Total Utilisateurs</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
@@ -87,44 +95,44 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card className="@container/card" onClick={() => router.push("/dashboard/restaurant")}>
         <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
+          <CardDescription>Total Restaurants </CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+           {restaurant.length}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +12.5%
+                +{(restaurant.length)/100}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention <IconTrendingUp className="size-4" />
+            Nombre total de restaurants <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
+          <div className="text-muted-foreground">Mise à jour récente</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card">
+      <Card className="@container/card" onClick={() => router.push("/dashboard/repas")}>
         <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
+          <CardDescription>Total Repas</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {repas.length}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +4.5%
+              +{(repas.length)/100}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase <IconTrendingUp className="size-4" />
+            Nombre total repas <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
+          <div className="text-muted-foreground">Mise à jour il ya deux jours </div>
         </CardFooter>
       </Card>
     </div>
