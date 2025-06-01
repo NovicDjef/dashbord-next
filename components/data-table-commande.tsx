@@ -111,15 +111,15 @@ import {
 
 export const schema = z.object({
   id: z.number(),
-  name: z.string(),
-  phone: z.string(),
-  adresse: z.string(),
-  image: z.string(),
-  description: z.string(),
-  ratings: z.string(),
-  latitude: z.string(),
-  longitude: z.string(),
- createdAt: z.preprocess((val) => new Date(val as string), z.date()), // Notez le createdAt
+  quantity: z.string(),
+  prix: z.string(),
+  recommandation: z.string(),
+  position: z.string(),
+  telephone: z.string(),
+  status: z.string(),
+  userId: z.string(),
+  platsId: z.string(),
+  createdAt: z.preprocess((val) => new Date(val as string), z.date()), // Notez le createdAt
   updatedAt: z.preprocess((val) => new Date(val as string), z.date()), // Notez le updatedAt
 
 })
@@ -175,63 +175,70 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+  {
+    accessorKey: "id",
+    header: "Numero Commande",
+     cell: ({ row }) => (
+      <div className="truncate max-w-[180px] text-sm">{row.original.id}</div>
+    ),
+    enableHiding: false,
+  },
    {
-    accessorKey: "name",
-    header: "Nom restaurant",
+    accessorKey: "quantity",
+    header: "quantite plat",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
     enableHiding: false,
   },
   {
-    accessorKey: "image",
-    header: "Image restaurant",
+    accessorKey: "prix",
+    header: "Prix commande",
     cell: ({ row }) => (
       <div className="w-28">
-        <img src={row.original.image} alt={row.original.name} className="rounded-md object-cover w-full h-18" />
+        <img src={row.original.prix} alt={row.original.prix} className="rounded-md object-cover w-full h-18" />
       </div>
     ),
   },
-  {
-    accessorKey: "adress",
-    header: "Adresse",
+   {
+    accessorKey: "position",
+    header: "Position client",
     cell: ({ row }) => (
-      <div className="truncate max-w-[180px] text-sm">{row.original.adresse}</div>
+      <div className="truncate max-w-[180px] text-sm">{row.original.position}</div>
     ),
   },
   {
-    accessorKey: "description",
-    header: "Description",
+    accessorKey: "recommandation",
+    header: "recommandation client",
     cell: ({ row }) => (
-      <div className="truncate max-w-[220px] text-sm">{row.original.description}</div>
+      <div className="truncate max-w-[180px] text-sm">{row.original.recommandation}</div>
     ),
   },
   {
-    accessorKey: "rating",
-    header: "Note",
+    accessorKey: "telephone",
+    header: "Telephone",
     cell: ({ row }) => (
-      <Badge variant="secondary" className="text-sm">
-        {row.original.ratings || "N/A"} 
-        <IconStar className="text-amber-400" />
-      </Badge>
+      <div className="truncate max-w-[220px] text-sm">{row.original.telephone}</div>
     ),
   },
   {
-    accessorKey: "phone",
-    header: () => <div className="w-full text-center">Téléphone</div>,
-    cell: ({ row }) => (
-      <div className="text-center text-sm">{row.original.phone}</div>
-    ),
-  },
-  {
-    accessorKey: "latitude",
-    header: "Latitude",
-    cell: ({ row }) => <div className="text-sm">{row.original.latitude}</div>,
-  },
-  {
-    accessorKey: "longitude",
-    header: "Longitude",
-    cell: ({ row }) => <div className="text-sm">{row.original.longitude}</div>,
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-muted-foreground px-1.5">
+          {row.original.status === "Done" ? (
+            <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconLoader />
+          )}
+          {row.original.status}
+        </Badge>
+      ),
+    },
+ {
+    accessorKey: "userId",
+    header: "User ID",
+    cell: ({ row }) => <div className="text-sm">{row.original.userId}</div>,
   },
 {
   accessorKey: "createdAt", // Changé de createAt à createdAt
@@ -515,7 +522,7 @@ export function DataTable({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className="h-20 text-center"
                     >
                       No results.
                     </TableCell>
@@ -649,12 +656,12 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
         <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.name}
+          {item.quantity}
         </Button>
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.name}</DrawerTitle>
+          <DrawerTitle>{item.quantity}</DrawerTitle>
           <DrawerDescription>
             Showing total visitors for the last 6 months
           </DrawerDescription>
@@ -720,12 +727,12 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
           <form className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
               <Label htmlFor="header">User Name</Label>
-              <Input id="header" defaultValue={item.name} />
+              <Input id="header" defaultValue={item.quantity} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="type">Phone</Label>
-                <Select defaultValue={item.phone}>
+                <Select defaultValue={item.telephone}>
                   <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>
@@ -751,7 +758,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="status">Status</Label>
-                <Select defaultValue={item.name}>
+                <Select>
                   <SelectTrigger id="status" className="w-full">
                     <SelectValue placeholder="Select a status" />
                   </SelectTrigger>

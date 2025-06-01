@@ -52,7 +52,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import { toast } from "sonner"
 import { z } from "zod"
 
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -112,15 +111,9 @@ import {
 export const schema = z.object({
   id: z.number(),
   name: z.string(),
-  phone: z.string(),
-  adresse: z.string(),
-  image: z.string(),
-  description: z.string(),
-  ratings: z.string(),
-  latitude: z.string(),
-  longitude: z.string(),
- createdAt: z.preprocess((val) => new Date(val as string), z.date()), // Notez le createdAt
-  updatedAt: z.preprocess((val) => new Date(val as string), z.date()), // Notez le updatedAt
+  restaurantId: z.string(),
+  createdAt: z.preprocess((val) => new Date(val as string), z.date()), 
+  updatedAt: z.preprocess((val) => new Date(val as string), z.date()), 
 
 })
 
@@ -177,61 +170,18 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
    {
     accessorKey: "name",
-    header: "Nom restaurant",
+    header: "Nom plat",
     cell: ({ row }) => {
       return <TableCellViewer item={row.original} />
     },
     enableHiding: false,
   },
   {
-    accessorKey: "image",
-    header: "Image restaurant",
+    accessorKey: "restaurantId",
+    header: "restaurant ID",
     cell: ({ row }) => (
-      <div className="w-28">
-        <img src={row.original.image} alt={row.original.name} className="rounded-md object-cover w-full h-18" />
-      </div>
+      <div className="truncate max-w-[220px] text-sm">{row.original.restaurantId}</div>
     ),
-  },
-  {
-    accessorKey: "adress",
-    header: "Adresse",
-    cell: ({ row }) => (
-      <div className="truncate max-w-[180px] text-sm">{row.original.adresse}</div>
-    ),
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => (
-      <div className="truncate max-w-[220px] text-sm">{row.original.description}</div>
-    ),
-  },
-  {
-    accessorKey: "rating",
-    header: "Note",
-    cell: ({ row }) => (
-      <Badge variant="secondary" className="text-sm">
-        {row.original.ratings || "N/A"} 
-        <IconStar className="text-amber-400" />
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "phone",
-    header: () => <div className="w-full text-center">Téléphone</div>,
-    cell: ({ row }) => (
-      <div className="text-center text-sm">{row.original.phone}</div>
-    ),
-  },
-  {
-    accessorKey: "latitude",
-    header: "Latitude",
-    cell: ({ row }) => <div className="text-sm">{row.original.latitude}</div>,
-  },
-  {
-    accessorKey: "longitude",
-    header: "Longitude",
-    cell: ({ row }) => <div className="text-sm">{row.original.longitude}</div>,
   },
 {
   accessorKey: "createdAt", // Changé de createAt à createdAt
@@ -725,7 +675,7 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-3">
                 <Label htmlFor="type">Phone</Label>
-                <Select defaultValue={item.phone}>
+                <Select defaultValue={item.name}>
                   <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Select a type" />
                   </SelectTrigger>

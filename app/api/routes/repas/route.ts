@@ -1,4 +1,3 @@
-// app/api/plats/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import {
   createPlat,

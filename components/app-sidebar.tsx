@@ -48,18 +48,33 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "List Users",
+      title: "Liste Users",
       url: "/dashboard/users",
       icon: IconListDetails,
     },
     {
-      title: "List Restaurants",
+      title: "Liste Restaurants",
       url: "/dashboard/restaurant",
       icon: IconListDetails,
     },
     {
-      title: "List Repas",
+      title: "Liste Repas",
       url: "/dashboard/repas",
+      icon: IconChartBar,
+    },
+    {
+      title: "Liste Categorie",
+      url: "/dashboard/categorie",
+      icon: IconChartBar,
+    },
+    {
+      title: "Liste Menu",
+      url: "/dashboard/menu",
+      icon: IconChartBar,
+    },
+    {
+      title: "Liste commande",
+      url: "/dashboard/commande",
       icon: IconChartBar,
     },
     // {
