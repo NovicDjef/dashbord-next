@@ -77,20 +77,10 @@ const data = {
       url: "/dashboard/commande",
       icon: IconChartBar,
     },
-    // {
-    //   title: "Projects",
-    //   url: "#",
-    //   icon: IconFolder,
-    // },
     {
-      title: "Team",
-      url: "/dashboard/team",
-      icon: IconUsers,
-    },
-     {
-      title: "Chat",
-      url: "/dashboard/chat",
-      icon: IconMessage2Bolt,
+      title: "Liste Colis",
+      url: "/dashboa",
+      icon: IconFolder,
     },
   ],
   navClouds: [
@@ -159,6 +149,16 @@ const data = {
     },
   ],
   documents: [
+    {
+      name: "Team",
+      url: "/dashboard/team",
+      icon: IconUsers,
+    },
+     {
+      name: "Chat",
+      url: "/dashboard/chat",
+      icon: IconMessage2Bolt,
+    },
     {
       name: "Data Library",
       url: "#",

@@ -12,19 +12,19 @@ import {
 } from "@/components/ui/card"
 import { fetchUsers } from "@/services/userService";
 import { useRouter } from "next/navigation";
-import { fetchRestaurant } from "@/services/restaurantService";
-import { fetchRepas } from "@/services/repasService";
+import { fetchCommande } from "@/services/commandeService";
+import { fetchColis } from "@/services/colisService";
 
 export function SectionCards() {
     const [users, setUsers] = useState([]);
-    const [restaurant, setRestaurant] = useState([]);
-    const [repas, setRepas] = useState([]);
+    const [commande, setCommande] = useState([]);
+    const [colis, setColis] = useState([]);
     const router = useRouter()
 
     useEffect(() => {
     fetchUsers().then(setUsers).catch(console.error);
-    fetchRestaurant().then(setRestaurant).catch(console.error)
-    fetchRepas().then(setRepas).catch(console.error)
+    fetchCommande().then(setCommande).catch(console.error)
+    fetchColis().then(setColis).catch(console.error)
   }, []);
 
   return (
@@ -44,10 +44,10 @@ export function SectionCards() {
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month <IconTrendingUp className="size-4" />
+            montant total encaisse <IconTrendingUp className="size-4" />
           </div>
           <div className="text-muted-foreground">
-            Visitors for the last 6 months
+            Mise à jour des 3 dernier mois
           </div>
         </CardFooter>
       </Card>
@@ -95,44 +95,44 @@ export function SectionCards() {
           </div>
         </CardFooter>
       </Card>
-      <Card className="@container/card" onClick={() => router.push("/dashboard/restaurant")}>
+      <Card className="@container/card" onClick={() => router.push("/dashboard/commande")}>
         <CardHeader>
-          <CardDescription>Total Restaurants </CardDescription>
+          <CardDescription>Total commandes </CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-           {restaurant.length}
+           {commande.length}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-                +{(restaurant.length)/100}%
+                +{(commande.length)/100}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Nombre total de restaurants <IconTrendingUp className="size-4" />
+            Nombre total de commande effectuer <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Mise à jour récente</div>
+          <div className="text-muted-foreground">Mise à jour il y'a 3 mois</div>
         </CardFooter>
       </Card>
-      <Card className="@container/card" onClick={() => router.push("/dashboard/repas")}>
+      <Card className="@container/card" onClick={() => router.push("/dashboard/colis")}>
         <CardHeader>
-          <CardDescription>Total Repas</CardDescription>
+          <CardDescription>Total colis</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {repas.length}
+            {colis.length}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
               <IconTrendingUp />
-              +{(repas.length)/100}%
+              +{(colis.length)/100}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            Nombre total repas <IconTrendingUp className="size-4" />
+            Nombre total de colis expedier <IconTrendingUp className="size-4" />
           </div>
-          <div className="text-muted-foreground">Mise à jour il ya deux jours </div>
+          <div className="text-muted-foreground">Mise à jour il ya 90 jours </div>
         </CardFooter>
       </Card>
     </div>
