@@ -19,6 +19,16 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconShoppingCart,
+  IconBuildingStore,
+  IconChefHat,
+  IconCategory,
+  IconPackage,
+  IconGasStation,
+  IconMotorbike,
+  IconCurrencyEuro,
+  IconWallet,
+  IconClock
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -48,85 +58,118 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Liste Users",
-      url: "/dashboard/users",
-      icon: IconListDetails,
+      title: "Gestion",
+      url: "#",
+      icon: IconBuildingStore,
+      items: [
+        {
+          title: "Restaurants",
+          url: "/dashboard/restaurant",
+          icon: IconBuildingStore,
+        },
+        {
+          title: "Catégories",
+          url: "/dashboard/categorie",
+          icon: IconCategory,
+        },
+        {
+          title: "Repas & Menu",
+          url: "/dashboard/repas",
+          icon: IconChefHat,
+        },
+        {
+          title: "Utilisateurs",
+          url: "/dashboard/users",
+          icon: IconUsers,
+        },
+        {
+          title: "Horaires",
+          url: "/dashboard/horaires",
+          icon: IconClock,
+        },
+      ],
     },
     {
-      title: "Liste Restaurants",
-      url: "/dashboard/restaurant",
-      icon: IconListDetails,
+      title: "Commandes",
+      url: "#",
+      icon: IconShoppingCart,
+      items: [
+        {
+          title: "Toutes les commandes",
+          url: "/dashboard/commande",
+          icon: IconListDetails,
+        },
+        {
+          title: "Colis",
+          url: "/dashboard/colis",
+          icon: IconPackage,
+        },
+        {
+          title: "Gaz",
+          url: "/dashboard/gaz",
+          icon: IconGasStation,
+        },
+      ],
     },
     {
-      title: "Liste Repas",
-      url: "/dashboard/repas",
+      title: "Opérations",
+      url: "#",
+      icon: IconMotorbike,
+      items: [
+        {
+          title: "Livreurs",
+          url: "/dashboard/livreurs",
+          icon: IconMotorbike,
+        },
+        {
+          title: "Tarifs",
+          url: "/dashboard/tarifs",
+          icon: IconCurrencyEuro,
+        },
+      ],
+    },
+    {
+      title: "Wallet",
+      url: "/dashboard/wallet",
+      icon: IconWallet,
+    },
+    {
+      title: "Analytics",
+      url: "/dashboard",
       icon: IconChartBar,
-    },
-    {
-      title: "Liste Categorie",
-      url: "/dashboard/categorie",
-      icon: IconChartBar,
-    },
-    {
-      title: "Liste Menu",
-      url: "/dashboard/menu",
-      icon: IconChartBar,
-    },
-    {
-      title: "Liste commande",
-      url: "/dashboard/commande",
-      icon: IconChartBar,
-    },
-    {
-      title: "Liste Colis",
-      url: "/dashboa",
-      icon: IconFolder,
+      items: [
+        {
+          title: "Vue d'ensemble",
+          url: "/dashboard#commissions",
+        },
+        {
+          title: "Commissions",
+          url: "/dashboard#analytics",
+        },
+      ],
     },
   ],
-  navClouds: [
+  services: [
     {
-      title: "Capture",
-      icon: IconCamera,
+      title: "Services de Livraison",
+      icon: IconInnerShadowTop,
       isActive: true,
       url: "#",
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "Livraison Repas",
+          url: "/dashboard/commande",
+          icon: IconChefHat,
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
+          title: "Expédition Colis",
+          url: "/dashboard/colis",
+          icon: IconPackage,
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
+          title: "Livraison Gaz",
+          url: "/dashboard/gaz",
+          icon: IconGasStation,
         },
       ],
     },
@@ -150,29 +193,24 @@ const data = {
   ],
   documents: [
     {
-      name: "Team",
+      name: "Équipe",
       url: "/dashboard/team",
       icon: IconUsers,
     },
-     {
-      name: "Chat",
+    {
+      name: "Messages",
       url: "/dashboard/chat",
       icon: IconMessage2Bolt,
     },
     {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
+      name: "Rapports",
+      url: "/dashboard/reports",
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
+      name: "Statistiques",
+      url: "/dashboard/analytics",
+      icon: IconDatabase,
     },
   ],
 }
@@ -197,6 +235,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavDocuments items={data.services} title="Services" />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

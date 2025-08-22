@@ -1,7 +1,6 @@
-export async function fetchMenu() {
-  const res = await fetch('/api/routes/menu');
-  if (!res.ok) {
-    throw new Error('Erreur lors de la récupération des utilisateurs');
-  }
-  return res.json();
-}
+// Services temporaires pour maintenir la compatibilité
+import apiService from './Api';
+
+export const fetchMenu = () => {
+  return apiService.get('/menus').then(response => response.data).catch(() => []);
+};

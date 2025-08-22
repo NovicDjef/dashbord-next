@@ -1,6 +1,9 @@
 // app/dashboard/layout.tsx
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
+import { NotificationToast } from "@/components/notification-toast"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { Toaster } from "@/components/ui/toaster"
 import {
   SidebarInset,
   SidebarProvider,
@@ -25,9 +28,13 @@ export default function DashboardLayout({
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </div>
+        <NotificationToast />
+        <Toaster />
       </SidebarInset>
     </SidebarProvider>
   )

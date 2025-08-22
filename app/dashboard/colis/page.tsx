@@ -1,20 +1,30 @@
 "use client"
 
 import { DataTable } from '@/components/data-table-colis'
-import { fetchColis } from '@/services/colisService';
-import React, { useEffect, useState } from 'react'
+import { getColisAsync } from '@/redux/colisSlice';
+import React, { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux';
 
 export default function page() {
-
-  const [colis, setColis] = useState([]);
-
+ const dispatch = useDispatch();
+  const { colisList, status, error } = useSelector((state) => state.colis);
+  console.log("colis state:", { colisList, status, error });
+  
   useEffect(() => {
-    fetchColis().then(setColis).catch(console.error)
-  }, [])
+    dispatch(getColisAsync());
+  }, [dispatch])
+
+  if (status === 'loading') {
+    return <div className='m-4'>Chargement des colis...</div>;
+  }
+
+  if (status === 'failed') {
+    return <div className='m-4 text-red-500'>Erreur: {error}</div>;
+  }
 
   return (
     <div className='m-4'>
-     {colis.length >= 0 && <DataTable data={colis} />}
+     {colisList && colisList.length >= 0 && <DataTable data={colisList} />}
     </div>
   )
 }

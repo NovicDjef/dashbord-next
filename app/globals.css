@@ -227,3 +227,156 @@ body {
     @apply !rounded-none !shadow-none;
   }
 }
+
+/* Styles personnalisés pour Kourcier Dashboard */
+.kourcier-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.kourcier-card-hover {
+  @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-lg;
+}
+
+.kourcier-text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.kourcier-stats-card {
+  @apply relative overflow-hidden;
+}
+
+.kourcier-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.kourcier-table-row {
+  @apply hover:bg-muted/50 transition-colors duration-150;
+}
+
+.kourcier-badge {
+  @apply font-medium text-xs px-2.5 py-1 rounded-full;
+}
+
+.kourcier-sidebar-item {
+  @apply relative px-3 py-2 rounded-lg transition-all duration-200;
+}
+
+.kourcier-sidebar-item:hover {
+  @apply bg-accent text-accent-foreground;
+}
+
+.kourcier-sidebar-item.active {
+  @apply bg-primary text-primary-foreground font-medium;
+}
+
+/* Animations personnalisées */
+@keyframes kourcier-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+.kourcier-float {
+  animation: kourcier-float 3s ease-in-out infinite;
+}
+
+@keyframes kourcier-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.kourcier-pulse {
+  animation: kourcier-pulse 2s ease-in-out infinite;
+}
+
+/* Scrollbar personnalisé */
+.kourcier-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.kourcier-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kourcier-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.553 0.013 58.071);
+  border-radius: 3px;
+}
+
+.kourcier-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.453 0.013 58.071);
+}
+
+/* Support pour Firefox */
+.kourcier-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.553 0.013 58.071) transparent;
+}
+
+/* Amélioration des ombres */
+.kourcier-shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.kourcier-shadow-medium {
+  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 35px -7px rgba(0, 0, 0, 0.07);
+}
+
+/* États de chargement améliorés */
+.kourcier-loading {
+  background: linear-gradient(90deg, transparent, oklch(0.97 0.001 106.424), transparent);
+  background-size: 200% 100%;
+  animation: kourcier-loading 1.5s infinite;
+}
+
+@keyframes kourcier-loading {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Mode sombre amélioré */
+.dark .kourcier-loading {
+  background: linear-gradient(90deg, transparent, oklch(0.268 0.007 34.298), transparent);
+}
+
+/* Responsive design amélioré */
+@media (max-width: 768px) {
+  .kourcier-mobile-spacing {
+    @apply px-4 py-2;
+  }
+  
+  .kourcier-mobile-text {
+    @apply text-sm;
+  }
+}
+
+/* Indicateurs de statut */
+.kourcier-status-online {
+  @apply relative;
+}
+
+.kourcier-status-online::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border: 2px solid white;
+  border-radius: 50%;
+  animation: kourcier-pulse 2s ease-in-out infinite;
+}
+
+.dark .kourcier-status-online::after {
+  border-color: oklch(0.216 0.006 56.043);
+}

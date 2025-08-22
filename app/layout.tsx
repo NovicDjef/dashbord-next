@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { ActiveThemeProvider } from "@/components/active-theme"
+import { ReduxProvider } from "@/components/redux-provider"
 import { cookies } from "next/headers";
 import { cn } from "@/lib/utils";
 
@@ -43,18 +44,20 @@ export default async function RootLayout({
           isScaled ? "theme-scaled" : "",
         )}
       >
-        <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            enableColorScheme
-          >
-          <ActiveThemeProvider initialTheme={activeThemeValue}>
-            {children}
-          </ActiveThemeProvider>
-           
-          </ThemeProvider>
+        <ReduxProvider>
+          <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+              enableColorScheme
+            >
+            <ActiveThemeProvider initialTheme={activeThemeValue}>
+              {children}
+            </ActiveThemeProvider>
+             
+            </ThemeProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
