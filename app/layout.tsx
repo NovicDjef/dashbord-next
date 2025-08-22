@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 const META_THEME_COLORS = {
   light: "#ffffff",
-  dark: "#09090b",
+  dark: "#2a2435",
 }
 
 export const metadata: Metadata = {

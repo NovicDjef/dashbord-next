@@ -21,6 +21,35 @@ import apiService from "./Api";
     return apiService.get('/orders')
   }
 
+  export const getLivreursAsync = () => {
+    return apiService.get('/livreurs')
+  }
+
+  export const createLivreurAsync = (livreurData) => {
+    return apiService.post('/livreur/signup', livreurData)
+  }
+
+  export const updateLivreurAsync = (livreurId, livreurData) => {
+    return apiService.put(`/livreur/${livreurId}`, livreurData)
+  }
+
+  // APIs pour les utilisateurs
+  export const getUsersAsync = () => {
+    return apiService.get('/users')
+  }
+
+  export const createUserAsync = (userData) => {
+    return apiService.post('/signup', userData)
+  }
+
+  export const updateUserAsync = (userId, userData) => {
+    return apiService.put(`/users/${userId}`, userData)
+  }
+
+  export const resetUserPasswordAsync = (userId, newPassword) => {
+    return apiService.post(`/users/${userId}/reset-password`, { newPassword })
+  }
+
     export const getSomeHoraireAsync = () => {
     return apiService.get('/heures')
   }

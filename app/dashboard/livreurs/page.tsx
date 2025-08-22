@@ -34,21 +34,27 @@ import {
 } from "@/components/ui/select";
 import { getLivreursAsync } from "@/redux/livreurSlice";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { LivreurForm } from "@/components/livreur-form";
+import { LivreurEditForm } from "@/components/livreur-edit-form";
 
 interface Livreur {
-  id: string;
-  nom: string;
+  id: number;
+  username: string;
   prenom: string;
   telephone: string;
   email: string;
-  statut: 'actif' | 'inactif' | 'en_livraison' | 'pause';
-  zone: string;
-  vehicule: string;
+  disponible: boolean;
+  zone?: string;
+  typeVehicule: string;
+  plaqueVehicule?: string;
   note: number;
-  livraisons_effectuees: number;
-  commission_totale: number;
-  derniere_connexion: string;
-  photo?: string;
+  totalLivraisons: number;
+  totalGains: number;
+  gainsDisponibles: number;
+  createdAt: string;
+  updatedAt: string;
+  image?: string;
+  statut?: 'actif' | 'inactif' | 'en_livraison' | 'pause';
 }
 
 const statutConfig = {
@@ -63,8 +69,29 @@ export default function LivreursPage() {
   const { livreursList, status, error } = useSelector((state: any) => state.livreur);
   const [filterStatut, setFilterStatut] = useState<string>('all');
   const [filterZone, setFilterZone] = useState<string>('all');
-  const [filteredLivreurs, setFilteredLivreurs] = useState<Livreur[]>([]);
-  const loading = status === 'loading'; 
+  const [showLivreurForm, setShowLivreurForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [selectedLivreur, setSelectedLivreur] = useState<Livreur | null>(null);
+  const loading = status === 'loading';
+  
+  console.log("Livreurs Redux state:", livreursList);
+  
+  // Extraire le tableau de livreurs depuis la réponse API
+  const livreursArray = livreursList?.livreurs || [];
+  // Calculer les livreurs filtrés directement depuis Redux
+  const filteredLivreurs = livreursArray.filter((livreur: Livreur) => {
+    let matchStatut = false;
+    if (filterStatut === 'all') {
+      matchStatut = true;
+    } else if (filterStatut === 'actif') {
+      matchStatut = livreur.disponible === true;
+    } else if (filterStatut === 'inactif') {
+      matchStatut = livreur.disponible === false;
+    }
+    
+    const matchZone = filterZone === 'all' || livreur.zone === filterZone;
+    return matchStatut && matchZone;
+  }); 
 
 
   useEffect(() => {
@@ -75,21 +102,16 @@ export default function LivreursPage() {
   // Debug logs
   useEffect(() => {
     console.log('Livreurs Redux state:', { livreursList, status, error });
+    console.log('Filtered livreurs count:', filteredLivreurs.length);
   }, [livreursList, status, error]);
 
+  // Recharger la liste après création réussie
   useEffect(() => {
-    let filtered = livreursList || [];
-
-    if (filterStatut !== 'all') {
-      filtered = filtered.filter(l => l.statut === filterStatut);
+    if (status === 'succeeded' && !showLivreurForm && livreursList) {
+      // Recharger les livreurs seulement si nécessaire
+      console.log('Rechargement après création réussie');
     }
-
-    if (filterZone !== 'all') {
-      filtered = filtered.filter(l => l.zone === filterZone);
-    }
-
-    setFilteredLivreurs(filtered);
-  }, [livreursList, filterStatut, filterZone]);
+  }, [status, showLivreurForm]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -109,17 +131,28 @@ export default function LivreursPage() {
   };
 
   const calculateStats = () => {
-    const total = filteredLivreurs.length;
-    const actifs = filteredLivreurs.filter(l => l.statut === 'actif').length;
-    const enLivraison = filteredLivreurs.filter(l => l.statut === 'en_livraison').length;
-    const totalLivraisons = filteredLivreurs.reduce((sum, l) => sum + l.livraisons_effectuees, 0);
-    const totalCommissions = filteredLivreurs.reduce((sum, l) => sum + l.commission_totale, 0);
+    const total = livreursArray.length;
+    const actifs = livreursArray.filter((l: Livreur) => l.disponible === true).length;
+    const enLivraison = livreursArray.filter((l: Livreur) => l.statut === 'en_livraison').length;
+    const totalLivraisons = livreursArray.reduce((sum: number, l: Livreur) => sum + (l.totalLivraisons || 0), 0);
+    const totalCommissions = livreursArray.reduce((sum: number, l: Livreur) => sum + (l.totalGains || 0), 0);
 
     return { total, actifs, enLivraison, totalLivraisons, totalCommissions };
   };
 
   const stats = calculateStats();
-  const zones = [...new Set((livreursList || []).map(l => l.zone))];
+  const zones = [...new Set(livreursArray.map((l: Livreur) => l.zone).filter(zone => zone))];
+
+  // Fonctions pour gérer l'édition
+  const handleEditLivreur = (livreur: Livreur) => {
+    setSelectedLivreur(livreur);
+    setShowEditForm(true);
+  };
+
+  const handleCloseEditForm = () => {
+    setShowEditForm(false);
+    setSelectedLivreur(null);
+  };
 
   // Afficher une erreur si nécessaire
   if (error) {
@@ -164,7 +197,7 @@ export default function LivreursPage() {
             Gérez votre équipe de livreurs et suivez leurs performances
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowLivreurForm(true)}>
           <IconPlus className="h-4 w-4 mr-2" />
           Ajouter un livreur
         </Button>
@@ -227,10 +260,8 @@ export default function LivreursPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="actif">Actif</SelectItem>
-                <SelectItem value="en_livraison">En livraison</SelectItem>
-                <SelectItem value="pause">En pause</SelectItem>
-                <SelectItem value="inactif">Inactif</SelectItem>
+                <SelectItem value="actif">Disponible</SelectItem>
+                <SelectItem value="inactif">Indisponible</SelectItem>
               </SelectContent>
             </Select>
 
@@ -272,18 +303,18 @@ export default function LivreursPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLivreurs.map((livreur) => (
+                {filteredLivreurs.map((livreur: Livreur) => (
                   <TableRow key={livreur.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarImage src={livreur.photo} />
+                          <AvatarImage src={livreur.image} />
                           <AvatarFallback>
-                            {livreur.prenom[0]}{livreur.nom[0]}
+                            {livreur.prenom?.[0] || 'L'}{livreur.username?.[0] || 'L'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{livreur.prenom} {livreur.nom}</div>
+                          <div className="font-medium">{livreur.prenom} ({livreur.username})</div>
                           <div className="text-sm text-muted-foreground">ID: {livreur.id}</div>
                         </div>
                       </div>
@@ -301,43 +332,59 @@ export default function LivreursPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={statutConfig[livreur.statut].color}>
-                        {statutConfig[livreur.statut].label}
+                      <Badge className={livreur.disponible ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                        {livreur.disponible ? 'Disponible' : 'Indisponible'}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <IconMapPin className="h-3 w-3" />
-                        {livreur.zone}
+                        {livreur.zone || 'Non définie'}
                       </div>
                     </TableCell>
-                    <TableCell>{livreur.vehicule}</TableCell>
+                    <TableCell>
+                      <div>
+                        <div>{livreur.typeVehicule}</div>
+                        {livreur.plaqueVehicule && (
+                          <div className="text-xs text-muted-foreground">{livreur.plaqueVehicule}</div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        ⭐ {livreur.note.toFixed(1)}
+                        ⭐ {(livreur.note || 0).toFixed(1)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <IconPackage className="h-3 w-3" />
-                        {livreur.livraisons_effectuees}
+                        {livreur.totalLivraisons || 0}
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold text-green-600">
-                      {formatCurrency(livreur.commission_totale)}
+                      {formatCurrency(livreur.totalGains || 0)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <IconClock className="h-3 w-3" />
-                        {formatDate(livreur.derniere_connexion)}
+                        {formatDate(livreur.updatedAt)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          title="Voir les détails"
+                        >
                           <IconEye className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditLivreur(livreur)}
+                          title="Modifier les informations"
+                        >
                           <IconEdit className="h-4 w-4" />
                         </Button>
                       </div>
@@ -348,13 +395,29 @@ export default function LivreursPage() {
             </Table>
           </div>
           
-          {filteredLivreurs.length === 0 && (
+          {filteredLivreurs.length === 0 && !loading && (
             <div className="text-center py-8 text-muted-foreground">
-              Aucun livreur trouvé avec les filtres sélectionnés.
+              {livreursArray.length === 0 ? 
+                "Aucun livreur trouvé. Vérifiez votre connexion API." : 
+                "Aucun livreur trouvé avec les filtres sélectionnés."
+              }
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Formulaire de création de livreur */}
+      <LivreurForm
+        open={showLivreurForm}
+        onOpenChange={setShowLivreurForm}
+      />
+
+      {/* Formulaire d'édition de livreur */}
+      <LivreurEditForm
+        open={showEditForm}
+        onOpenChange={handleCloseEditForm}
+        livreur={selectedLivreur}
+      />
     </div>
   );
 }

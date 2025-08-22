@@ -18,6 +18,7 @@ import complementsSlice from "./complementsSlice";
 import {reducer as  slideSlice } from "./slideSlice";
 import {reducer as horaireSlice} from "./horaireSlice";
 import livreurSlice from "./livreurSlice";
+import usersSlice from "./usersSlice";
 import gazSlice from "./gazSlice";
 import gainSlice from "./gainSlice";
 import commissionsSlice from "./commissionsSlice";
@@ -43,6 +44,7 @@ export const store = configureStore({
     complements: complementsSlice,
     horaires: horaireSlice,
     livreur: livreurSlice,
+    users: usersSlice,
     gas: gazSlice,
     gains: gainSlice,
     commissions: commissionsSlice,

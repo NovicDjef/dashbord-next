@@ -12,8 +12,8 @@ const webStorage = {
 };
 
 const apiService = axios.create({
-  baseURL: 'http://192.168.1.86:3001',
-  // baseURL: 'https://api.novic.dev',
+  // baseURL: 'http://192.168.1.86:3001',
+  baseURL: 'https://api.novic.dev',
  
    timeout: 15000,
 

@@ -79,37 +79,55 @@
 }
 
 .dark {
-  --background: oklch(0.147 0.004 49.25);
+  /* Background principal - #2a2435 */
+  --background: oklch(0.175 0.034 305.15); /* #2a2435 */
   --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.216 0.006 56.043);
+  
+  /* Cards, sections, popovers - #030017 */
+  --card: oklch(0.045 0.036 276.34); /* #030017 */
   --card-foreground: oklch(0.985 0.001 106.423);
-  --popover: oklch(0.216 0.006 56.043);
+  --popover: oklch(0.045 0.036 276.34); /* #030017 */
   --popover-foreground: oklch(0.985 0.001 106.423);
-  --primary: oklch(0.923 0.003 48.717);
-  --primary-foreground: oklch(0.216 0.006 56.043);
-  --secondary: oklch(0.268 0.007 34.298);
+  
+  /* Primary colors */
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.985 0.001 106.423);
+  
+  /* Secondary basé sur #2a2435 */
+  --secondary: oklch(0.195 0.036 305.15); /* Légèrement plus clair que #2a2435 */
   --secondary-foreground: oklch(0.985 0.001 106.423);
-  --muted: oklch(0.268 0.007 34.298);
+  
+  /* Muted basé sur #030017 */
+  --muted: oklch(0.065 0.038 276.34); /* Légèrement plus clair que #030017 */
   --muted-foreground: oklch(0.709 0.01 56.259);
-  --accent: oklch(0.268 0.007 34.298);
+  
+  /* Accent basé sur #030017 */
+  --accent: oklch(0.065 0.038 276.34);
   --accent-foreground: oklch(0.985 0.001 106.423);
+  
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.553 0.013 58.071);
+  
+  /* Bordures et inputs basés sur les deux couleurs */
+  --border: oklch(0.125 0.037 290.75 / 40%); /* Mélange subtil */
+  --input: oklch(0.085 0.037 276.34 / 60%); /* Basé sur #030017 */
+  --ring: oklch(0.488 0.243 264.376); /* Ring primary */
+  
+  /* Charts */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.216 0.006 56.043);
+  
+  /* Sidebar utilise #030017 pour se distinguer du background */
+  --sidebar: oklch(0.045 0.036 276.34); /* #030017 */
   --sidebar-foreground: oklch(0.985 0.001 106.423);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.268 0.007 34.298);
+  --sidebar-accent: oklch(0.085 0.038 276.34);
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.553 0.013 58.071);
+  --sidebar-border: oklch(0.125 0.037 290.75 / 30%);
+  --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
 @layer base {
@@ -345,7 +363,7 @@ body {
 
 /* Mode sombre amélioré */
 .dark .kourcier-loading {
-  background: linear-gradient(90deg, transparent, oklch(0.268 0.007 34.298), transparent);
+  background: linear-gradient(90deg, transparent, oklch(0.065 0.038 276.34), transparent);
 }
 
 /* Responsive design amélioré */
@@ -378,5 +396,50 @@ body {
 }
 
 .dark .kourcier-status-online::after {
-  border-color: oklch(0.216 0.006 56.043);
+  border-color: oklch(0.045 0.036 276.34);
+}
+
+/* Styles supplémentaires pour le thème personnalisé #2a2435 + #030017 */
+.dark .kourcier-custom-card {
+  background: oklch(0.045 0.036 276.34); /* #030017 pour les cards */
+  border: 1px solid oklch(0.125 0.037 290.75 / 25%);
+}
+
+.dark .kourcier-custom-hover:hover {
+  background: oklch(0.085 0.038 276.34); /* Plus clair que #030017 */
+}
+
+.dark .kourcier-custom-border {
+  border-color: oklch(0.125 0.037 290.75 / 35%);
+}
+
+.dark .kourcier-section {
+  background: oklch(0.045 0.036 276.34); /* #030017 pour sections */
+}
+
+.dark .kourcier-panel {
+  background: oklch(0.045 0.036 276.34); /* #030017 pour panels */
+  border: 1px solid oklch(0.125 0.037 290.75 / 20%);
+}
+
+/* Amélioration des scrollbars pour le nouveau thème */
+.dark .kourcier-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.175 0.034 305.15); /* Basé sur #2a2435 */
+}
+
+.dark .kourcier-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.215 0.036 305.15); /* Plus clair que #2a2435 */
+}
+
+.dark .kourcier-scrollbar {
+  scrollbar-color: oklch(0.175 0.034 305.15) transparent;
+}
+
+/* Gradients personnalisés avec les nouvelles couleurs */
+.dark .kourcier-gradient-bg {
+  background: linear-gradient(135deg, oklch(0.175 0.034 305.15) 0%, oklch(0.045 0.036 276.34) 100%);
+}
+
+.dark .kourcier-gradient-border {
+  border-image: linear-gradient(135deg, oklch(0.175 0.034 305.15), oklch(0.045 0.036 276.34)) 1;
 }

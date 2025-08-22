@@ -6,7 +6,9 @@
       "Bash(npm run dev:*)",
       "Bash(npx prisma generate:*)",
       "Bash(npx tsc:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": []
