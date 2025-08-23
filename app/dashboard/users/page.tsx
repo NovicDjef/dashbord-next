@@ -1,11 +1,22 @@
 "use client"
 
-import { UsersManagement } from "@/components/users-management";
+import { DataTable } from '@/components/data-table'
+import React, { useEffect, useState } from 'react'
+import data from "../data.json"
+import { fetchUsers } from '@/services/userService';
+import { useSelector } from 'react-redux';
 
-export default function UsersPage() {
+export default function page() {
+
+  const users = useSelector((state) => state.users.usersList);
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
   return (
-    <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-      <UsersManagement />
+    <div className='m-4'>
+     {users.length > 0 && <DataTable data={users} />}
     </div>
-  );
+  )
 }
