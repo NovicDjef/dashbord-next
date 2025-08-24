@@ -2,7 +2,7 @@
 
 import { IconCirclePlusFilled, IconMail, IconChevronRight, type Icon } from "@tabler/icons-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
@@ -17,7 +17,8 @@ import {
 import * as Collapsible from "@radix-ui/react-collapsible"
 import { usePathname } from "next/navigation"
 
-export function NavMain({
+// Mémoriser le composant pour éviter les re-renders inutiles
+const NavMain = memo(function NavMain({
   items,
 }: {
   items: {
@@ -72,6 +73,7 @@ export function NavMain({
                                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                       : "hover:bg-muted"
                                   }
+                                  prefetch={true}
                                 >
                                   {subItem.icon && <subItem.icon />}
                                   <span>{subItem.title}</span>
@@ -97,6 +99,7 @@ export function NavMain({
                         ? "bg-primary text-primary-foreground hover:bg-primary/90"
                         : "hover:bg-muted"
                     }
+                    prefetch={true}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -109,4 +112,6 @@ export function NavMain({
       </SidebarGroupContent>
     </SidebarGroup>
   )
-}
+})
+
+export { NavMain }

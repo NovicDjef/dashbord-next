@@ -43,7 +43,7 @@ import apiService from "./Api";
   }
 
   export const updateUserAsync = (userId, userData) => {
-    return apiService.put(`/users/${userId}`, userData)
+    return apiService.patch(`/users/${userId}`, userData)
   }
 
   export const resetUserPasswordAsync = (userId, newPassword) => {

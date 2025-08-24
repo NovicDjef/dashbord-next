@@ -43,6 +43,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { RestaurantForm } from "@/components/restaurant-form";
+import { RestaurantDetailModal } from "@/components/restaurant-detail-modal";
+import { RestaurantEditForm } from "@/components/restaurant-edit-form";
 
 interface Restaurant {
   id: number;
@@ -100,7 +102,10 @@ export default function RestaurantPage() {
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [restaurantToEdit, setRestaurantToEdit] = useState<Restaurant | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [restaurantToDelete, setRestaurantToDelete] = useState<Restaurant | null>(null);
   
@@ -167,9 +172,24 @@ export default function RestaurantPage() {
     }
   };
 
-  const handleEdit = (restaurant: Restaurant) => {
+  const handleView = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
-    setIsFormOpen(true);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEdit = (restaurant: Restaurant) => {
+    setRestaurantToEdit(restaurant);
+    setIsEditFormOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedRestaurant(null);
+  };
+
+  const handleCloseEditForm = () => {
+    setIsEditFormOpen(false);
+    setRestaurantToEdit(null);
   };
 
   const handleDelete = async () => {
@@ -383,7 +403,12 @@ export default function RestaurantPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleView(restaurant)}
+                          title="Voir les détails"
+                        >
                           <IconEye className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -427,6 +452,20 @@ export default function RestaurantPage() {
         restaurant={selectedRestaurant}
         villes={mockVilles}
         loading={submitLoading}
+      />
+
+      {/* Modal de détail du restaurant */}
+      <RestaurantDetailModal
+        open={isDetailModalOpen}
+        onOpenChange={handleCloseDetailModal}
+        restaurant={selectedRestaurant}
+      />
+
+      {/* Formulaire d'édition du restaurant */}
+      <RestaurantEditForm
+        open={isEditFormOpen}
+        onOpenChange={handleCloseEditForm}
+        restaurant={restaurantToEdit}
       />
 
       {/* Dialog de suppression */}

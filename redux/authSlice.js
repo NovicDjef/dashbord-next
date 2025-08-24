@@ -64,11 +64,11 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.redirectTo = null; // Réinitialiser la redirection lors de la déconnexion
       webStorage.removeItem('userToken');
-      AsyncStorage.removeItem('userData');
+      webStorage.removeItem('userData');
     },
     updateUserProfile: (state, action) => {
       state.user = { ...state.user, ...action.payload };
-      AsyncStorage.setItem('userData', JSON.stringify(state.user));
+      webStorage.setItem('userData', JSON.stringify(state.user));
     },
     setRedirectTo: (state, action) => {
       state.redirectTo = action.payload;

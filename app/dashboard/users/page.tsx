@@ -37,6 +37,8 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { fetchAllUsersAsync } from '@/redux/authSlice';
 import { UserDetailModal } from "@/components/user-detail-modal";
+import { UserForm } from "@/components/user-form";
+import { UserEditForm } from "@/components/user-edit-form";
 
 interface User {
   id: string;
@@ -83,47 +85,74 @@ export default function UsersPage() {
   const dispatch = useDispatch();
   
   // Utiliser le bon sélecteur pour authSlice
-  const { usersList: users, usersListLoading: loading, usersListError: error } = useSelector((state: any) => state.auth.usersList);
+  const { usersList: users, usersListLoading: loading, usersListError: error } = useSelector((state: any) => state.Auth);
   
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
 
   useEffect(() => {
     console.log('🔄 Chargement des utilisateurs...');
     dispatch(fetchAllUsersAsync());
   }, [dispatch]);
 
+  // Debug des états Redux
+  useEffect(() => {
+    console.log('🔍 Redux State Debug:', { 
+      users, 
+      loading, 
+      error, 
+      usersLength: users?.length || 0 
+    });
+  }, [users, loading, error]);
+
   // Transformer les données de l'API en format attendu par le modal
   const transformUserData = (usersList: any[]): User[] => {
-    return usersList.map((item: any) => ({
-      id: item.id?.toString() || '',
-      username: item.username || item.nom || 'Utilisateur',
-      nom: item.nom || item.lastName || '',
-      prenom: item.prenom || item.firstName || '',
-      email: item.email || '',
-      telephone: item.telephone || item.phone || '',
-      adresse: item.adresse || item.address,
-      dateNaissance: item.dateNaissance || item.birthDate,
-      status: mapStatus(item.status || item.statut),
-      type: mapUserType(item.type || item.role),
-      dateInscription: item.createdAt || item.dateInscription || new Date().toISOString(),
-      dernierLogin: item.dernierLogin || item.lastLogin,
-      avatar: item.avatar || item.profileImage,
-      emailVerifie: item.emailVerifie || item.emailVerified || false,
-      telephoneVerifie: item.telephoneVerifie || item.phoneVerified || false,
-      totalCommandes: item.totalCommandes || item.orderCount,
-      totalDepenses: item.totalDepenses || item.totalSpent,
-      soldeWallet: item.soldeWallet || item.walletBalance,
-      noteClient: item.noteClient || item.rating,
-      preferences: item.preferences || {
-        notifications: true,
-        marketing: false,
-        newsletter: false
-      }
-    }));
+    console.log('🔄 Transformation des données utilisateurs:', usersList);
+    
+    if (!Array.isArray(usersList)) {
+      console.warn('⚠️ usersList n\'est pas un tableau:', usersList);
+      return [];
+    }
+    
+    return usersList.map((item: any) => {
+      console.log('🔄 Transformation de l\'utilisateur:', item);
+      
+      const transformed = {
+        id: item.id?.toString() || '',
+        username: item.username || item.nom || 'Utilisateur',
+        nom: item.nom || item.lastName || item.username || 'Nom inconnu',
+        prenom: item.prenom || item.firstName || item.username || 'Prénom inconnu',
+        email: item.email || '',
+        telephone: item.telephone || item.phone || '',
+        adresse: item.adresse || item.address,
+        dateNaissance: item.dateNaissance || item.birthDate,
+        status: mapStatus(item.status || item.statut || 'actif'),
+        type: mapUserType(item.type || item.role || 'client'),
+        dateInscription: item.createdAt || item.dateInscription || new Date().toISOString(),
+        dernierLogin: item.dernierLogin || item.lastLogin,
+        avatar: item.avatar || item.profileImage,
+        emailVerifie: item.emailVerifie || item.emailVerified || false,
+        telephoneVerifie: item.telephoneVerifie || item.phoneVerified || false,
+        totalCommandes: item.totalCommandes || item.orderCount || 0,
+        totalDepenses: item.totalDepenses || item.totalSpent || 0,
+        soldeWallet: item.soldeWallet || item.walletBalance || 0,
+        noteClient: item.noteClient || item.rating || 0,
+        preferences: item.preferences || {
+          notifications: true,
+          marketing: false,
+          newsletter: false
+        }
+      };
+      
+      console.log('✅ Utilisateur transformé:', transformed);
+      return transformed;
+    });
   };
 
   // Mapper les statuts
@@ -192,6 +221,16 @@ export default function UsersPage() {
     setSelectedUser(null);
   };
 
+  const handleEditUser = (user: User) => {
+    setUserToEdit(user);
+    setShowEditForm(true);
+  };
+
+  const handleCloseEditForm = () => {
+    setShowEditForm(false);
+    setUserToEdit(null);
+  };
+
   const formatDate = (date: string) => {
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
@@ -205,12 +244,11 @@ export default function UsersPage() {
   const calculateStats = () => {
     const total = filteredUsers.length;
     const actifs = filteredUsers.filter(u => u.status === 'actif').length;
-    const clients = filteredUsers.filter(u => u.type === 'client').length;
-    const livreurs = filteredUsers.filter(u => u.type === 'livreur').length;
-    const admins = filteredUsers.filter(u => u.type === 'admin').length;
-    const restaurants = filteredUsers.filter(u => u.type === 'restaurant').length;
+    const inactifs = filteredUsers.filter(u => u.status === 'inactif').length;
+    const suspendus = filteredUsers.filter(u => u.status === 'suspendu').length;
+    const verifies = filteredUsers.filter(u => u.status === 'verifie').length;
 
-    return { total, actifs, clients, livreurs, admins, restaurants };
+    return { total, actifs, inactifs, suspendus, verifies };
   };
 
   const stats = calculateStats();
@@ -252,24 +290,24 @@ export default function UsersPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <IconUsers className="h-6 w-6" />
-            Gestion des Utilisateurs
+            Gestion des Clients
           </h1>
           <p className="text-muted-foreground">
-            Gérez tous les utilisateurs de votre plateforme
+            Gérez tous les clients de votre plateforme
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowUserForm(true)}>
           <IconPlus className="h-4 w-4 mr-2" />
-          Nouvel utilisateur
+          Nouveau client
         </Button>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Utilisateurs
+              Total Clients
             </CardTitle>
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardHeader>
@@ -285,33 +323,25 @@ export default function UsersPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Clients
+              Inactifs
             </CardTitle>
-            <div className="text-2xl font-bold text-blue-600">{stats.clients}</div>
+            <div className="text-2xl font-bold text-gray-600">{stats.inactifs}</div>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Livreurs
+              Suspendus
             </CardTitle>
-            <div className="text-2xl font-bold text-orange-600">{stats.livreurs}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.suspendus}</div>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Restaurants
+              Vérifiés
             </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{stats.restaurants}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Admins
-            </CardTitle>
-            <div className="text-2xl font-bold text-purple-600">{stats.admins}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.verifies}</div>
           </CardHeader>
         </Card>
       </div>
@@ -358,7 +388,7 @@ export default function UsersPage() {
       {/* Tableau des utilisateurs */}
       <Card>
         <CardHeader>
-          <CardTitle>Utilisateurs ({filteredUsers.length})</CardTitle>
+          <CardTitle>Clients ({filteredUsers.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -455,6 +485,7 @@ export default function UsersPage() {
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => handleEditUser(user)}
                           title="Modifier l'utilisateur"
                         >
                           <IconEdit className="h-4 w-4" />
@@ -470,8 +501,8 @@ export default function UsersPage() {
           {filteredUsers.length === 0 && !loading && (
             <div className="text-center py-8 text-muted-foreground">
               {users && users.length === 0 ? 
-                "Aucun utilisateur trouvé. Vérifiez votre connexion API." : 
-                "Aucun utilisateur trouvé avec les filtres sélectionnés."
+                "Aucun client trouvé. Vérifiez votre connexion API." : 
+                "Aucun client trouvé avec les filtres sélectionnés."
               }
             </div>
           )}
@@ -483,6 +514,19 @@ export default function UsersPage() {
         open={showDetailModal}
         onOpenChange={handleCloseDetailModal}
         user={selectedUser}
+      />
+
+      {/* Modal de création d'utilisateur */}
+      <UserForm
+        open={showUserForm}
+        onOpenChange={setShowUserForm}
+      />
+
+      {/* Modal de modification d'utilisateur */}
+      <UserEditForm
+        open={showEditForm}
+        onOpenChange={handleCloseEditForm}
+        user={userToEdit}
       />
     </div>
   );

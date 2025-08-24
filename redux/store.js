@@ -5,7 +5,6 @@ import commandeSlice from './commandeSlice';
 import { reducer as menuReducer } from './menuSlice';
 import { reducer as repasReducer } from './repasSlice';
 import { restaurantReducer } from './restaurantSlice';
-import userSlice from './userSlice';
 import colisSlice from './colisSlice';
 import { reducer as categoriesSlice } from "./categoriesSlice";
 import favoritesSlice from './favoritesSlice';
@@ -26,13 +25,12 @@ import commissionsSlice from "./commissionsSlice";
 export const store = configureStore({
   reducer: {
     orders: ordersSlice,
-    user: userSlice,
     slide: slideSlice,
     repas: repasReducer,
     restaurants: restaurantReducer,
     menus: menuReducer,
     cart: cartReducer,
-    auth: authReducer, // Changé de "Auth" à "auth" pour cohérence
+    Auth: authReducer,
     commande: commandeSlice,
     colis: colisSlice,
     categories: categoriesSlice,

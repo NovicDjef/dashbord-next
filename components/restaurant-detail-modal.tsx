@@ -1,0 +1,294 @@
+"use client"
+
+import { 
+  IconX,
+  IconMapPin,
+  IconPhone,
+  IconStar,
+  IconClock,
+  IconUser,
+  IconMail,
+  IconTag,
+  IconPercentage,
+  IconCalendar,
+  IconImage
+} from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface RestaurantDetailModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  restaurant: any;
+}
+
+export function RestaurantDetailModal({ open, onOpenChange, restaurant }: RestaurantDetailModalProps) {
+  if (!restaurant) return null;
+
+  const formatDate = (date: string) => {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(date));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-12 w-12 bg-green-100 dark:bg-green-900 rounded-lg">
+              <IconTag className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <div className="text-xl font-bold">{restaurant.name}</div>
+              <div className="text-sm text-muted-foreground">
+                Détails du restaurant
+              </div>
+            </div>
+          </DialogTitle>
+          <DialogDescription>
+            Informations complètes du restaurant et de ses services.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Image du restaurant */}
+          {restaurant.image && (
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-center">
+                  <img
+                    src={`http://192.168.1.86:3001/${restaurant.image}`}
+                    alt={restaurant.name}
+                    className="max-w-full h-48 object-cover rounded-lg"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Informations principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <IconTag className="h-5 w-5" />
+                  Informations générales
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <IconPhone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Téléphone:</span>
+                    <span className="text-sm">{restaurant.phone}</span>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <IconMapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <span className="text-sm font-medium">Adresse:</span>
+                      <p className="text-sm text-muted-foreground">{restaurant.adresse}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <IconStar className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm font-medium">Note:</span>
+                    <span className="text-sm">{restaurant.ratings}/5</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <IconMapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Coordonnées:</span>
+                    <span className="text-sm">{restaurant.latitude}, {restaurant.longitude}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <IconPercentage className="h-5 w-5" />
+                  Commissions
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Admin:</span>
+                    <Badge variant="secondary">
+                      {(restaurant.adminCommissionPercent * 100).toFixed(1)}%
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Restaurant:</span>
+                    <Badge variant="default">
+                      {(restaurant.restaurantCommissionPercent * 100).toFixed(1)}%
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Description */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {restaurant.description}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Ville et Admin */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {restaurant.ville && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <IconMapPin className="h-5 w-5" />
+                    Ville
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Nom:</span>
+                    <span className="text-sm">{restaurant.ville.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Coordonnées:</span>
+                    <span className="text-sm">{restaurant.ville.latitude}, {restaurant.ville.longitude}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {restaurant.admin && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <IconUser className="h-5 w-5" />
+                    Administrateur
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <IconUser className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{restaurant.admin.username}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <IconMail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{restaurant.admin.email}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Catégories */}
+          {restaurant.categories && restaurant.categories.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <IconTag className="h-5 w-5" />
+                  Catégories ({restaurant.categories.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  {restaurant.categories.map((category: any) => (
+                    <div key={category.id} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                      {category.image && (
+                        <img
+                          src={`http://192.168.1.86:3001/${category.image}`}
+                          alt={category.name}
+                          className="w-12 h-12 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <div className="font-medium">{category.name}</div>
+                        <div className="text-sm text-muted-foreground">{category.description}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Créé le {formatDate(category.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Heures d'ouverture */}
+          {restaurant.heuresOuverture && restaurant.heuresOuverture.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <IconClock className="h-5 w-5" />
+                  Heures d'ouverture
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {restaurant.heuresOuverture.map((horaire: any) => (
+                    <div key={horaire.id} className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                      <span className="font-medium">{horaire.jour}</span>
+                      <span className="text-sm text-muted-foreground">{horaire.heures}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconCalendar className="h-5 w-5" />
+                Informations de création
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Créé le:</span>
+                <span className="text-sm text-muted-foreground">{formatDate(restaurant.createdAt)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Modifié le:</span>
+                <span className="text-sm text-muted-foreground">{formatDate(restaurant.updatedAt)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>
+            <IconX className="h-4 w-4 mr-2" />
+            Fermer
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
