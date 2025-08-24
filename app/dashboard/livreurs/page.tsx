@@ -36,6 +36,7 @@ import { getLivreursAsync } from "@/redux/livreurSlice";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { LivreurForm } from "@/components/livreur-form";
 import { LivreurEditForm } from "@/components/livreur-edit-form";
+import { LivreurDetailModal } from "@/components/livreur-detail-modal";
 
 interface Livreur {
   id: number;
@@ -71,6 +72,7 @@ export default function LivreursPage() {
   const [filterZone, setFilterZone] = useState<string>('all');
   const [showLivreurForm, setShowLivreurForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedLivreur, setSelectedLivreur] = useState<Livreur | null>(null);
   const loading = status === 'loading';
   
@@ -143,10 +145,20 @@ export default function LivreursPage() {
   const stats = calculateStats();
   const zones = [...new Set(livreursArray.map((l: Livreur) => l.zone).filter(zone => zone))];
 
-  // Fonctions pour gérer l'édition
+  // Fonctions pour gérer les actions
+  const handleViewLivreur = (livreur: Livreur) => {
+    setSelectedLivreur(livreur);
+    setShowDetailModal(true);
+  };
+
   const handleEditLivreur = (livreur: Livreur) => {
     setSelectedLivreur(livreur);
     setShowEditForm(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedLivreur(null);
   };
 
   const handleCloseEditForm = () => {
@@ -375,6 +387,7 @@ export default function LivreursPage() {
                         <Button 
                           variant="ghost" 
                           size="sm"
+                          onClick={() => handleViewLivreur(livreur)}
                           title="Voir les détails"
                         >
                           <IconEye className="h-4 w-4" />
@@ -410,6 +423,13 @@ export default function LivreursPage() {
       <LivreurForm
         open={showLivreurForm}
         onOpenChange={setShowLivreurForm}
+      />
+
+      {/* Modal de détail du livreur */}
+      <LivreurDetailModal
+        open={showDetailModal}
+        onOpenChange={handleCloseDetailModal}
+        livreur={selectedLivreur}
       />
 
       {/* Formulaire d'édition de livreur */}

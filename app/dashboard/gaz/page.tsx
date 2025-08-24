@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getGasOrdersAsync } from "@/redux/gazSlice";
+import { GazDetailModal } from "@/components/gaz-detail-modal";
 
 
 interface CommandeGaz {
@@ -72,6 +73,8 @@ export default function GazPage() {
   const [filterStatut, setFilterStatut] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterPeriod, setFilterPeriod] = useState<string>('all');
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCommande, setSelectedCommande] = useState<CommandeGaz | null>(null);
   const loading = status === 'loading';
 
   useEffect(() => {
@@ -160,6 +163,17 @@ export default function GazPage() {
   };
 
   const stats = calculateStats();
+
+  // Fonctions pour gérer les actions
+  const handleViewCommande = (commande: CommandeGaz) => {
+    setSelectedCommande(commande);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedCommande(null);
+  };
 
   if (loading) {
     return (
@@ -367,7 +381,12 @@ export default function GazPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewCommande(commande)}
+                        title="Voir les détails"
+                      >
                         <IconEye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -384,6 +403,13 @@ export default function GazPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de détail de la commande */}
+      <GazDetailModal
+        open={showDetailModal}
+        onOpenChange={handleCloseDetailModal}
+        commande={selectedCommande}
+      />
     </div>
   );
 }

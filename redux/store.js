@@ -32,7 +32,7 @@ export const store = configureStore({
     restaurants: restaurantReducer,
     menus: menuReducer,
     cart: cartReducer,
-    Auth: authReducer,
+    auth: authReducer, // Changé de "Auth" à "auth" pour cohérence
     commande: commandeSlice,
     colis: colisSlice,
     categories: categoriesSlice,
