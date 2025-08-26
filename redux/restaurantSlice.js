@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiService from '../services/Api';
+import { createSomeRestaurantAsync } from '@/services/routeApi';
 
 // Fetch all restaurants
 export const fetchRestaurantsData = createAsyncThunk(
@@ -20,7 +21,8 @@ export const createRestaurant = createAsyncThunk(
   'restaurants/createRestaurant',
   async (restaurantData, { rejectWithValue }) => {
     try {
-      const response = await apiService.post('/restaurant', restaurantData);
+      const response = await createSomeRestaurantAsync(restaurantData);
+      console.log('Réponse de la création redux:', response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

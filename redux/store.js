@@ -21,6 +21,7 @@ import usersSlice from "./usersSlice";
 import gazSlice from "./gazSlice";
 import gainSlice from "./gainSlice";
 import commissionsSlice from "./commissionsSlice";
+import adminAuthReducer from "./adminAuthSlice";
 
 export const store = configureStore({
   reducer: {
@@ -46,6 +47,7 @@ export const store = configureStore({
     gas: gazSlice,
     gains: gainSlice,
     commissions: commissionsSlice,
+    adminAuth: adminAuthReducer,
 
  },
   middleware: (getDefaultMiddleware) =>

@@ -54,6 +54,15 @@ import apiService from "./Api";
     return apiService.get('/heures')
   }
 
+  export const createSomeRestaurantAsync = (restaurantData) => {
+    return apiService.post('/restaurants', restaurantData)
+  }
+
+  // APIs d'authentification admin
+  export const adminSignInAsync = (email, password) => {
+    return apiService.post('/admin/login', { email, password })
+  }
+
   // Récupérer les horaires d'un restaurant spécifique
   export const getHorairesByRestaurant = (restaurantId) => {
     return apiService.get(`/restaurants/${restaurantId}/heures`)

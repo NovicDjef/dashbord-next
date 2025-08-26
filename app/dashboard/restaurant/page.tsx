@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { RestaurantForm } from "@/components/restaurant-form";
+import { RestaurantForm } from "@/components/restaurant-form-new";
 import { RestaurantDetailModal } from "@/components/restaurant-detail-modal";
 import { RestaurantEditForm } from "@/components/restaurant-edit-form";
 
@@ -443,15 +443,11 @@ export default function RestaurantPage() {
 
       {/* Formulaire de création/édition */}
       <RestaurantForm
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedRestaurant(null);
+        open={isFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setSelectedRestaurant(null);
         }}
-        onSubmit={handleCreateOrUpdate}
-        restaurant={selectedRestaurant}
-        villes={mockVilles}
-        loading={submitLoading}
       />
 
       {/* Modal de détail du restaurant */}

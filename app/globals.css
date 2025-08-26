@@ -443,3 +443,188 @@ body {
 .dark .kourcier-gradient-border {
   border-image: linear-gradient(135deg, oklch(0.175 0.034 305.15), oklch(0.045 0.036 276.34)) 1;
 }
+
+/* Animations pour les collapsibles du sidebar */
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    height: 0;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Navigation sidebar optimisée */
+.sidebar-nav-optimized {
+  /* Prefetch et cache optimisé */
+  will-change: transform, background-color;
+  
+  /* Animations fluides */
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebar-nav-optimized:hover {
+  transform: translateX(2px);
+}
+
+/* États actifs avec animation */
+.sidebar-nav-active {
+  position: relative;
+}
+
+.sidebar-nav-active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  background: var(--primary);
+  border-radius: 0 2px 2px 0;
+  transform: translateY(-50%);
+  animation: sidebar-active-indicator 200ms ease-out;
+}
+
+@keyframes sidebar-active-indicator {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
+  }
+}
+
+/* Optimisation des icônes */
+.sidebar-icon {
+  flex-shrink: 0;
+  transition: transform 150ms ease-out;
+}
+
+.sidebar-nav-optimized:hover .sidebar-icon {
+  transform: scale(1.1);
+}
+
+/* Gestion du focus pour l'accessibilité */
+.sidebar-nav-optimized:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Préchargement des ressources */
+.sidebar-prefetch {
+  &:hover::before {
+    content: '';
+    position: absolute;
+    visibility: hidden;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>');
+  }
+}
+
+/* Micro-animations pour le feedback utilisateur */
+.sidebar-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease-out, height 0.3s ease-out;
+  pointer-events: none;
+}
+
+.sidebar-ripple:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Optimisation des performances */
+.sidebar-performance {
+  contain: layout style paint;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
+}
+
+/* Responsive et mobile-first */
+@media (max-width: 768px) {
+  .sidebar-nav-optimized:hover {
+    transform: none; /* Désactive les animations hover sur mobile */
+  }
+  
+  .sidebar-nav-optimized:hover .sidebar-icon {
+    transform: none;
+  }
+}
+
+/* Indication de chargement pour la navigation */
+.sidebar-loading {
+  position: relative;
+}
+
+.sidebar-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+  background-size: 200% 100%;
+  animation: sidebar-shimmer 1s infinite;
+  pointer-events: none;
+}
+
+@keyframes sidebar-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* États de survol améliorés */
+.sidebar-hover-zone {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-hover-zone::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  background: transparent;
+  border-radius: 8px;
+  transition: background 150ms ease-out;
+  z-index: -1;
+}
+
+.sidebar-hover-zone:hover::before {
+  background: rgba(var(--primary-rgb, 0, 0, 0), 0.05);
+}

@@ -421,121 +421,277 @@ export default function RepasPage() {
 
       {/* Formulaire de création/édition */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedRepas ? "Modifier le repas" : "Nouveau repas"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedRepas 
-                ? "Modifiez les informations du repas ci-dessous"
-                : "Remplissez les informations pour créer un nouveau repas"
-              }
-            </DialogDescription>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <IconChefHat className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">
+                  {selectedRepas ? "Modifier le repas" : "Nouveau repas"}
+                </DialogTitle>
+                <DialogDescription className="text-sm mt-1">
+                  {selectedRepas 
+                    ? "Modifiez les informations du repas ci-dessous"
+                    : "Ajoutez un nouveau plat délicieux à votre menu"
+                  }
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            <div>
-              <Label htmlFor="name">Nom du repas *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Ex: Pizza Margherita"
-              />
+          <div className="space-y-6 py-4">
+            {/* Informations principales */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <IconChefHat className="h-4 w-4" />
+                Informations du repas
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1">
+                    Nom du repas *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Ex: Pizza Margherita, Burger Classic..."
+                    className="transition-all focus:ring-2 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-sm font-medium flex items-center gap-1">
+                    Prix (€) *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <div className="relative">
+                    <IconCurrencyEuro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.price || ""}
+                      onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                      placeholder="12.50"
+                      className="pl-10 transition-all focus:ring-2 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Prix affiché aux clients
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="Décrivez ce délicieux repas, ses ingrédients principaux, ce qui le rend spécial..."
+                  rows={3}
+                  className="transition-all focus:ring-2 focus:ring-blue-500/20 resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Une description appetissante augmente les ventes
+                </p>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="price">Prix (€) *</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={formData.price || ""}
-                onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                placeholder="12.50"
-              />
-            </div>
+            {/* Classification */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <IconCategory className="h-4 w-4" />
+                Classification
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="categoryId" className="text-sm font-medium flex items-center gap-1">
+                    Catégorie *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <Select value={formData.categoryId.toString()} onValueChange={(value) => setFormData({...formData, categoryId: parseInt(value)})}>
+                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map((category: any) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            {category.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label htmlFor="categoryId">Catégorie *</Label>
-              <Select value={formData.categoryId.toString()} onValueChange={(value) => setFormData({...formData, categoryId: parseInt(value)})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une catégorie" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories?.map((category: any) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
+                <div className="space-y-2">
+                  <Label htmlFor="restaurantId" className="text-sm font-medium flex items-center gap-1">
+                    Restaurant *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <Select value={formData.restaurantId.toString()} onValueChange={(value) => setFormData({...formData, restaurantId: parseInt(value)})}>
+                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                      <SelectValue placeholder="Sélectionner un restaurant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {restaurants?.map((restaurant: any) => (
+                        <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            {restaurant.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="disponible" className="text-sm font-medium">
+                  Statut de disponibilité
+                </Label>
+                <Select value={formData.disponible.toString()} onValueChange={(value) => setFormData({...formData, disponible: value === "true"})}>
+                  <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        Disponible
+                      </div>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="restaurantId">Restaurant *</Label>
-              <Select value={formData.restaurantId.toString()} onValueChange={(value) => setFormData({...formData, restaurantId: parseInt(value)})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un restaurant" />
-                </SelectTrigger>
-                <SelectContent>
-                  {restaurants?.map((restaurant: any) => (
-                    <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
-                      {restaurant.name}
+                    <SelectItem value="false">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        Indisponible
+                      </div>
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Décrivez ce repas..."
-                rows={3}
-              />
+            {/* Image */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <IconPhoto className="h-4 w-4" />
+                Image du repas
+              </h4>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="image" className="text-sm font-medium">
+                    URL de l'image
+                  </Label>
+                  <Input
+                    id="image"
+                    value={formData.image}
+                    onChange={(e) => setFormData({...formData, image: e.target.value})}
+                    placeholder="https://example.com/delicious-food.jpg"
+                    className="transition-all focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Une belle photo fait toute la différence pour attirer les clients
+                  </p>
+                </div>
+                
+                {formData.image && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Aperçu</Label>
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted border-2 border-dashed border-muted-foreground/25">
+                      <img 
+                        src={formData.image} 
+                        alt="Aperçu du repas"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <Label htmlFor="image">URL de l'image</Label>
-              <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="disponible">Disponibilité</Label>
-              <Select value={formData.disponible.toString()} onValueChange={(value) => setFormData({...formData, disponible: value === "true"})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Disponible</SelectItem>
-                  <SelectItem value="false">Indisponible</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Résumé et validation */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground">
+                Résumé
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+                  <p className="text-sm font-medium">Informations</p>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>• Nom: {formData.name || "Non défini"}</p>
+                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)}€` : "Non défini"}</p>
+                    <p>• Statut: {formData.disponible ? "Disponible" : "Indisponible"}</p>
+                  </div>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-muted/50 space-y-2">
+                  <p className="text-sm font-medium">Validation</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-shrink-0">
+                      {formData.name && formData.price > 0 && formData.categoryId && formData.restaurantId ? (
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      ) : (
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {formData.name && formData.price > 0 && formData.categoryId && formData.restaurantId
+                        ? "Formulaire valide, prêt à être soumis"
+                        : "Veuillez remplir tous les champs obligatoires"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+          <DialogFooter className="gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsFormOpen(false);
+                resetForm();
+                setSelectedRepas(null);
+              }}
+              className="transition-all"
+            >
               Annuler
             </Button>
             <Button 
               onClick={handleCreateOrUpdate} 
               disabled={submitLoading || !formData.name || formData.price <= 0 || !formData.categoryId || !formData.restaurantId}
+              className="min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white transition-all"
             >
               {submitLoading ? (
-                selectedRepas ? "Modification..." : "Création..."
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  {selectedRepas ? "Modification..." : "Création..."}
+                </div>
               ) : (
-                selectedRepas ? "Modifier" : "Créer"
+                <div className="flex items-center gap-2">
+                  {selectedRepas ? <IconEdit className="h-4 w-4" /> : <IconPlus className="h-4 w-4" />}
+                  {selectedRepas ? "Modifier" : "Créer"}
+                </div>
               )}
             </Button>
           </DialogFooter>

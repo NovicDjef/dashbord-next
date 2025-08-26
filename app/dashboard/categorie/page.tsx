@@ -391,75 +391,170 @@ export default function CategoriePage() {
 
       {/* Formulaire de création/édition */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedCategorie ? "Modifier la catégorie" : "Nouvelle catégorie"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedCategorie 
-                ? "Modifiez les informations de la catégorie ci-dessous"
-                : "Remplissez les informations pour créer une nouvelle catégorie"
-              }
-            </DialogDescription>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <IconCategory className="h-5 w-5 text-orange-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl">
+                  {selectedCategorie ? "Modifier la catégorie" : "Nouvelle catégorie"}
+                </DialogTitle>
+                <DialogDescription className="text-sm mt-1">
+                  {selectedCategorie 
+                    ? "Modifiez les informations de la catégorie ci-dessous"
+                    : "Créez une nouvelle catégorie pour organiser vos repas"
+                  }
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="name">Nom de la catégorie *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Ex: Petit déjeuner, Plats principaux..."
-              />
+          <div className="space-y-6 py-4">
+            {/* Informations principales */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <IconChefHat className="h-4 w-4" />
+                Informations principales
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1">
+                    Nom de la catégorie *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Ex: Petit déjeuner, Plats principaux..."
+                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="restaurantId" className="text-sm font-medium flex items-center gap-1">
+                    Restaurant *
+                    <span className="text-red-500">•</span>
+                  </Label>
+                  <Input
+                    id="restaurantId"
+                    type="number"
+                    value={formData.restaurantId || ""}
+                    onChange={(e) => setFormData({...formData, restaurantId: parseInt(e.target.value) || 0})}
+                    placeholder="ID du restaurant"
+                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="Décrivez cette catégorie et le type de repas qu'elle contient..."
+                  rows={3}
+                  className="transition-all focus:ring-2 focus:ring-orange-500/20 resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Une bonne description aide les clients à comprendre cette catégorie
+                </p>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Décrivez cette catégorie..."
-                rows={3}
-              />
+            {/* Image */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <IconPhoto className="h-4 w-4" />
+                Image de la catégorie
+              </h4>
+              
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="image" className="text-sm font-medium">
+                    URL de l'image
+                  </Label>
+                  <Input
+                    id="image"
+                    value={formData.image}
+                    onChange={(e) => setFormData({...formData, image: e.target.value})}
+                    placeholder="https://example.com/image.jpg"
+                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Ajoutez une image attrayante pour représenter cette catégorie
+                  </p>
+                </div>
+                
+                {formData.image && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Aperçu</Label>
+                    <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted border-2 border-dashed border-muted-foreground/25">
+                      <img 
+                        src={formData.image} 
+                        alt="Aperçu"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="image">URL de l'image</Label>
-              <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="restaurantId">ID du restaurant *</Label>
-              <Input
-                id="restaurantId"
-                type="number"
-                value={formData.restaurantId || ""}
-                onChange={(e) => setFormData({...formData, restaurantId: parseInt(e.target.value) || 0})}
-                placeholder="1"
-              />
+            {/* Validation */}
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
+              <div className="flex-shrink-0">
+                {formData.name && formData.restaurantId ? (
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                ) : (
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {formData.name && formData.restaurantId 
+                  ? "Formulaire valide, prêt à être soumis"
+                  : "Veuillez remplir tous les champs obligatoires (*)"}
+              </p>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+          <DialogFooter className="gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsFormOpen(false);
+                resetForm();
+                setSelectedCategorie(null);
+              }}
+              className="transition-all"
+            >
               Annuler
             </Button>
             <Button 
               onClick={handleCreateOrUpdate} 
-              disabled={submitLoading || !formData.name}
+              disabled={submitLoading || !formData.name || !formData.restaurantId}
+              className="min-w-[120px] bg-orange-600 hover:bg-orange-700 text-white transition-all"
             >
               {submitLoading ? (
-                selectedCategorie ? "Modification..." : "Création..."
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  {selectedCategorie ? "Modification..." : "Création..."}
+                </div>
               ) : (
-                selectedCategorie ? "Modifier" : "Créer"
+                <div className="flex items-center gap-2">
+                  {selectedCategorie ? <IconEdit className="h-4 w-4" /> : <IconPlus className="h-4 w-4" />}
+                  {selectedCategorie ? "Modifier" : "Créer"}
+                </div>
               )}
             </Button>
           </DialogFooter>

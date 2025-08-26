@@ -32,6 +32,16 @@ interface RestaurantDetailModalProps {
   restaurant: any;
 }
 
+// Fonction utilitaire pour formatter les devises en Franc CFA
+const formatCFA = (amount: number) => {
+  return new Intl.NumberFormat('fr-CM', {
+    style: 'currency',
+    currency: 'XAF',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
 export function RestaurantDetailModal({ open, onOpenChange, restaurant }: RestaurantDetailModalProps) {
   if (!restaurant) return null;
 
@@ -125,23 +135,43 @@ export function RestaurantDetailModal({ open, onOpenChange, restaurant }: Restau
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <IconPercentage className="h-5 w-5" />
-                  Commissions
+                  Commissions (Franc CFA)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Admin:</span>
-                    <Badge variant="secondary">
-                      {(restaurant.adminCommissionPercent * 100).toFixed(1)}%
-                    </Badge>
+                <div className="space-y-4">
+                  <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-orange-800">Commission Plateforme:</span>
+                      <div className="text-right">
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                          {(restaurant.adminCommissionPercent * 100).toFixed(1)}%
+                        </Badge>
+                        <div className="text-sm text-orange-600 mt-1">
+                          {formatCFA(restaurant.adminCommissionPercent * 1000000)} sur {formatCFA(1000000)}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Restaurant:</span>
-                    <Badge variant="default">
-                      {(restaurant.restaurantCommissionPercent * 100).toFixed(1)}%
-                    </Badge>
+                  <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-green-800">Commission Restaurant:</span>
+                      <div className="text-right">
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          {(restaurant.restaurantCommissionPercent * 100).toFixed(1)}%
+                        </Badge>
+                        <div className="text-sm text-green-600 mt-1">
+                          {formatCFA(restaurant.restaurantCommissionPercent * 1000000)} sur {formatCFA(1000000)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-sm text-blue-800">
+                    💡 <strong>Exemple:</strong> Sur une commande de {formatCFA(1000000)}, le restaurant recevra {formatCFA(restaurant.restaurantCommissionPercent * 1000000)} et la plateforme {formatCFA(restaurant.adminCommissionPercent * 1000000)}.
                   </div>
                 </div>
               </CardContent>
