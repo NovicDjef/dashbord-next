@@ -132,11 +132,25 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: oklch(var(--border));
+    outline-color: oklch(var(--ring) / 0.5);
   }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Missing Tailwind classes compatibility */
+.border-border {
+  border-color: oklch(var(--border));
+}
+
+.bg-muted\/50 {
+  background-color: oklch(var(--muted) / 0.5);
+}
+
+.hover\:bg-muted\/50:hover {
+  background-color: oklch(var(--muted) / 0.5);
 }
 
 
@@ -627,4 +641,1099 @@ body {
 
 .sidebar-hover-zone:hover::before {
   background: rgba(var(--primary-rgb, 0, 0, 0), 0.05);
+}
+
+/* ===== ANIMATIONS FUTURISTES KOURCIER ===== */
+
+/* Advanced futuristic animations */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.animate-matrix {
+  animation: matrix 20s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-rotate-slow {
+  animation: rotate-slow 15s linear infinite;
+}
+
+.animate-gradient {
+  animation: gradient-shift 8s ease infinite;
+  background-size: 400% 400%;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.8s ease-out forwards;
+}
+
+.animate-cyber-glitch {
+  animation: cyber-glitch 2s linear infinite;
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 1.5s ease-in-out infinite alternate;
+}
+
+.animate-float-slow {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg) translateZ(0); }
+  25% { transform: translateY(-15px) rotate(2deg) translateZ(0); }
+  75% { transform: translateY(-5px) rotate(-1deg) translateZ(0); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) translateZ(0); }
+  50% { transform: translateY(-10px) translateZ(0); }
+}
+
+@keyframes glow {
+  from { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    filter: brightness(1);
+  }
+  to { 
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(147, 51, 234, 0.4);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes matrix {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 
+      0 0 20px rgba(6, 182, 212, 0.4),
+      0 0 40px rgba(59, 130, 246, 0.2),
+      inset 0 0 20px rgba(147, 51, 234, 0.1);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 
+      0 0 40px rgba(6, 182, 212, 0.8),
+      0 0 80px rgba(59, 130, 246, 0.6),
+      inset 0 0 30px rgba(147, 51, 234, 0.3);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes slide-in {
+  from { 
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes cyber-glitch {
+  0%, 100% { 
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  10% { 
+    transform: translate(-2px, 2px);
+    filter: hue-rotate(90deg);
+  }
+  20% { 
+    transform: translate(-2px, -2px);
+    filter: hue-rotate(180deg);
+  }
+  30% { 
+    transform: translate(2px, 2px);
+    filter: hue-rotate(270deg);
+  }
+  40% { 
+    transform: translate(2px, -2px);
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes neon-pulse {
+  from {
+    text-shadow: 
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor,
+      0 0 40px #00ffff;
+  }
+  to {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px #00ffff,
+      0 0 35px #00ffff;
+  }
+}
+
+/* Futuristic glass morphism effects */
+.glass-morph {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-morph:hover {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.glass-morph-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Neon text effects */
+.neon-text {
+  text-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 30px currentColor;
+}
+
+.neon-text-cyan {
+  color: #06b6d4;
+  text-shadow: 
+    0 0 10px #06b6d4,
+    0 0 20px #06b6d4,
+    0 0 30px #06b6d4,
+    0 0 40px #00ffff;
+}
+
+.neon-text-purple {
+  color: #a855f7;
+  text-shadow: 
+    0 0 10px #a855f7,
+    0 0 20px #a855f7,
+    0 0 30px #a855f7,
+    0 0 40px #ff00ff;
+}
+
+.neon-border {
+  box-shadow: 
+    0 0 20px rgba(6, 182, 212, 0.5),
+    0 0 40px rgba(59, 130, 246, 0.3),
+    0 0 60px rgba(147, 51, 234, 0.2),
+    inset 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+/* Holographic effects */
+.holographic {
+  background: linear-gradient(
+    45deg,
+    #ff0080 0%,
+    #ff8c00 25%, 
+    #40e0d0 50%,
+    #9400d3 75%,
+    #ff1493 100%
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.holographic-border {
+  background: linear-gradient(
+    45deg,
+    #ff0080,
+    #ff8c00, 
+    #40e0d0,
+    #9400d3,
+    #ff1493
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+  padding: 2px;
+  border-radius: inherit;
+}
+
+.holographic-border > * {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: inherit;
+}
+
+/* Particle effects simulation with CSS */
+.particles {
+  position: relative;
+  overflow: hidden;
+}
+
+.particles::before,
+.particles::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(6, 182, 212, 0.8);
+  border-radius: 50%;
+  animation: particles 8s linear infinite;
+}
+
+.particles::before {
+  top: 20%;
+  left: 10%;
+  animation-delay: -2s;
+}
+
+.particles::after {
+  top: 60%;
+  right: 15%;
+  animation-delay: -4s;
+}
+
+@keyframes particles {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-500px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* 3D Transform Effects */
+.transform-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.hover-tilt:hover {
+  transform: rotateX(5deg) rotateY(5deg) translateZ(10px);
+  transition: transform 0.3s ease;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.card-3d:hover {
+  transform: translateY(-10px) rotateX(5deg) rotateY(2deg);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 50px rgba(59, 130, 246, 0.1);
+}
+
+/* Cyber Grid Background */
+.cyber-grid {
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: grid-move 20s linear infinite;
+}
+
+@keyframes grid-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
+/* Scan Line Effect */
+.scan-lines::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    transparent 90%,
+    rgba(6, 182, 212, 0.03) 100%
+  );
+  background-size: 100% 4px;
+  animation: scan 2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Energy Orb Effect */
+.energy-orb {
+  position: relative;
+}
+
+.energy-orb::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(6, 182, 212, 0.8) 0%,
+    rgba(59, 130, 246, 0.4) 30%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: energy-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes energy-pulse {
+  0%, 100% { 
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  50% { 
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.5;
+  }
+}
+
+/* Custom scrollbar for futuristic theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #0891b2, #3b82f6, #a855f7);
+  border-radius: 10px;
+  border: 2px solid rgba(15, 23, 42, 0.8);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #06b6d4, #6366f1, #c084fc);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+/* Loading Spinner Futuristic */
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(6, 182, 212, 0.3);
+  border-top: 3px solid #06b6d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  position: relative;
+}
+
+.loading-spinner::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 2px solid transparent;
+  border-top: 2px solid #a855f7;
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite reverse;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Futuristic Button Effects */
+.btn-futuristic {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(45deg, #0891b2, #3b82f6, #a855f7);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+  border: none;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.btn-futuristic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.btn-futuristic:hover::before {
+  left: 100%;
+}
+
+.btn-futuristic:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 25px rgba(6, 182, 212, 0.3),
+    0 0 30px rgba(59, 130, 246, 0.2);
+}
+
+/* Data Stream Effect */
+.data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-stream::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 98px,
+      rgba(6, 182, 212, 0.03) 100px,
+      rgba(6, 182, 212, 0.03) 102px,
+      transparent 104px
+    );
+  animation: data-flow 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes data-flow {
+  0% { transform: translateX(-100px); }
+  100% { transform: translateX(100px); }
+}
+
+/* ===== ANIMATIONS COSMIQUES & ATOMIQUES STYLE GITHUB ===== */
+
+/* Orbite atomique principale */
+.atomic-orbit {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  will-change: transform;
+}
+
+.atomic-orbit::before,
+.atomic-orbit::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 50%;
+  animation: atomic-rotation 15s linear infinite;
+}
+
+.atomic-orbit::before {
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  animation-delay: -5s;
+}
+
+.atomic-orbit::after {
+  width: 200px;
+  height: 100px;
+  margin: -50px 0 0 -100px;
+  animation: atomic-rotation-ellipse 20s linear infinite;
+  animation-delay: -2s;
+}
+
+@keyframes atomic-rotation {
+  from { transform: rotate(0deg) translateZ(0); }
+  to { transform: rotate(360deg) translateZ(0); }
+}
+
+@keyframes atomic-rotation-ellipse {
+  from { transform: rotate(0deg) scaleX(2) translateZ(0); }
+  to { transform: rotate(360deg) scaleX(2) translateZ(0); }
+}
+
+/* Électrons en mouvement */
+.electron {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #00d9ff 0%, #0099cc 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
+}
+
+.electron-1 {
+  animation: electron-orbit-1 10s linear infinite;
+}
+
+.electron-2 {
+  animation: electron-orbit-2 15s linear infinite;
+  animation-delay: -3s;
+}
+
+.electron-3 {
+  animation: electron-orbit-3 12s linear infinite;
+  animation-delay: -7s;
+}
+
+@keyframes electron-orbit-1 {
+  0% { transform: rotate(0deg) translateX(75px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(75px) rotate(-360deg); }
+}
+
+@keyframes electron-orbit-2 {
+  0% { transform: rotate(0deg) translateX(100px) rotate(0deg) scaleX(2); }
+  100% { transform: rotate(360deg) translateX(100px) rotate(-360deg) scaleX(2); }
+}
+
+@keyframes electron-orbit-3 {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg) rotateY(60deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg) rotateY(60deg); }
+}
+
+/* Noyau atomique */
+.atomic-nucleus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  background: radial-gradient(circle, #ff6b6b 0%, #e74c3c 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 20px rgba(255, 107, 107, 0.8),
+    inset 0 0 10px rgba(231, 76, 60, 0.5);
+  animation: nucleus-pulse 3s ease-in-out infinite;
+}
+
+@keyframes nucleus-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+  }
+  50% { 
+    transform: scale(1.2);
+    box-shadow: 0 0 30px rgba(255, 107, 107, 1);
+  }
+}
+
+/* Système planétaire */
+.planetary-system {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.planet-orbit {
+  position: absolute;
+  border: 1px dashed rgba(139, 69, 19, 0.2);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.planet-orbit-1 {
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  animation: planet-orbit-rotation 20s linear infinite;
+}
+
+.planet-orbit-2 {
+  width: 180px;
+  height: 180px;
+  margin: -90px 0 0 -90px;
+  animation: planet-orbit-rotation 30s linear infinite reverse;
+}
+
+.planet-orbit-3 {
+  width: 250px;
+  height: 250px;
+  margin: -125px 0 0 -125px;
+  animation: planet-orbit-rotation 45s linear infinite;
+}
+
+@keyframes planet-orbit-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.planet {
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.planet-1 {
+  width: 12px;
+  height: 12px;
+  top: -6px;
+  left: 54px;
+  background: radial-gradient(circle at 30% 30%, #4fc3f7, #0288d1);
+  animation: planet-spin 5s linear infinite;
+}
+
+.planet-2 {
+  width: 18px;
+  height: 18px;
+  top: -9px;
+  left: 81px;
+  background: radial-gradient(circle at 30% 30%, #81c784, #388e3c);
+  animation: planet-spin 8s linear infinite reverse;
+}
+
+.planet-3 {
+  width: 15px;
+  height: 15px;
+  top: -7.5px;
+  left: 117.5px;
+  background: radial-gradient(circle at 30% 30%, #ffb74d, #f57c00);
+  animation: planet-spin 12s linear infinite;
+}
+
+@keyframes planet-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Soleil central */
+.sun {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  background: radial-gradient(circle, #ffd54f 0%, #ff8f00 70%, #e65100 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 50px rgba(255, 213, 79, 0.8),
+    0 0 100px rgba(255, 143, 0, 0.4);
+  animation: sun-flare 4s ease-in-out infinite;
+}
+
+@keyframes sun-flare {
+  0%, 100% {
+    box-shadow: 
+      0 0 50px rgba(255, 213, 79, 0.8),
+      0 0 100px rgba(255, 143, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 70px rgba(255, 213, 79, 1),
+      0 0 120px rgba(255, 143, 0, 0.6),
+      0 0 150px rgba(230, 81, 0, 0.3);
+    transform: scale(1.05);
+  }
+}
+
+/* Étoiles scintillantes */
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle var(--duration, 2s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/* Comète traversante */
+.comet {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #ffffff 0%, #e3f2fd 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px rgba(255, 255, 255, 0.8),
+    -20px 0 20px rgba(255, 255, 255, 0.3),
+    -40px 0 30px rgba(255, 255, 255, 0.1);
+  animation: comet-trajectory 15s linear infinite;
+  z-index: 1;
+}
+
+@keyframes comet-trajectory {
+  0% {
+    top: -50px;
+    left: -50px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100vh;
+    left: 100vw;
+    opacity: 0;
+  }
+}
+
+/* Galaxie en spirale */
+.spiral-galaxy {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(75, 0, 130, 0.1) 0%,
+    rgba(138, 43, 226, 0.05) 30%,
+    transparent 70%
+  );
+  animation: galaxy-rotation 60s linear infinite;
+}
+
+.spiral-galaxy::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  margin: -100px 0 0 -100px;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent 0deg,
+    rgba(147, 51, 234, 0.3) 90deg,
+    transparent 180deg,
+    rgba(147, 51, 234, 0.2) 270deg,
+    transparent 360deg
+  );
+  animation: spiral-arms 30s linear infinite;
+}
+
+@keyframes galaxy-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spiral-arms {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+/* Particules quantiques */
+.quantum-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.quantum-particle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: rgba(0, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: quantum-movement var(--duration, 10s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes quantum-movement {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(var(--x, 100px), var(--y, 100px)) scale(2);
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--end-x, 200px), var(--end-y, 200px)) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* Ondes gravitationnelles */
+.gravitational-wave {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  margin: -200px 0 0 -200px;
+  animation: gravitational-pulse 8s ease-in-out infinite;
+}
+
+@keyframes gravitational-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.1;
+    border-color: rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.3;
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Trou noir */
+.black-hole {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(25, 25, 112, 0.8) 70%,
+    rgba(138, 43, 226, 0.4) 100%
+  );
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 1),
+    0 0 50px rgba(138, 43, 226, 0.6);
+  animation: black-hole-distortion 10s ease-in-out infinite;
+}
+
+@keyframes black-hole-distortion {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      inset 0 0 20px rgba(0, 0, 0, 1),
+      0 0 50px rgba(138, 43, 226, 0.6);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 
+      inset 0 0 30px rgba(0, 0, 0, 1),
+      0 0 80px rgba(138, 43, 226, 0.8),
+      0 0 120px rgba(75, 0, 130, 0.4);
+  }
+}
+
+/* Style GitHub Hero Background */
+.github-hero-bg {
+  background: 
+    radial-gradient(ellipse at top, rgba(13, 110, 253, 0.15), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(88, 28, 135, 0.1), transparent 50%),
+    linear-gradient(180deg, #0d1117 0%, #010409 100%);
+}
+
+/* GitHub Grid Pattern */
+.github-grid {
+  background-image: 
+    linear-gradient(rgba(110, 118, 129, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 118, 129, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0;
+  animation: grid-move-github 20s linear infinite;
+}
+
+@keyframes grid-move-github {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 20px; }
+}
+
+/* Phone Model Animations */
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(var(--tw-gradient-stops));
+}
+
+/* Earth Rotation Background */
+.earth-rotation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 800px;
+  height: 800px;
+  margin: -400px 0 0 -400px;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(34, 197, 94, 0.1) 0%,
+    rgba(59, 130, 246, 0.05) 40%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation: earth-spin 60s linear infinite;
+  z-index: -1;
+  will-change: transform;
+  opacity: 0.6;
+}
+
+.earth-rotation::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 600px;
+  height: 600px;
+  margin: -300px 0 0 -300px;
+  background: conic-gradient(
+    transparent 0deg,
+    rgba(34, 197, 94, 0.1) 60deg,
+    transparent 120deg,
+    rgba(59, 130, 246, 0.1) 180deg,
+    transparent 240deg,
+    rgba(34, 197, 94, 0.05) 300deg,
+    transparent 360deg
+  );
+  border-radius: 50%;
+  animation: continents-rotation 45s linear infinite reverse;
+}
+
+@keyframes earth-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes continents-rotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Enhanced Phone Frame Styles */
+.phone-frame {
+  background: linear-gradient(145deg, #1f2937, #0f172a);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.phone-screen {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(15, 23, 42, 0.9) 0%,
+    rgba(0, 0, 0, 1) 100%
+  );
+}
+
+/* Cosmic Connection Lines */
+.cosmic-connection {
+  position: relative;
+}
+
+.cosmic-connection::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.6) 25%,
+    rgba(147, 51, 234, 0.8) 50%,
+    rgba(34, 197, 94, 0.6) 75%,
+    transparent 100%
+  );
+  transform: translate(-50%, -50%);
+  animation: cosmic-pulse 3s ease-in-out infinite;
+}
+
+@keyframes cosmic-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scaleX(1.2);
+  }
+}
+
+/* Hover effects for phone models */
+.phone-model:hover {
+  transform: translateY(-10px) rotateX(5deg) rotateY(-5deg);
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.phone-model:hover .phone-screen {
+  box-shadow: 
+    0 0 30px rgba(59, 130, 246, 0.3),
+    inset 0 0 20px rgba(147, 51, 234, 0.1);
 }
