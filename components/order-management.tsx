@@ -375,7 +375,7 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
                   const typeInfo = typeConfig[order.type];
                   
                   return (
-                    <TableRow key={order.id} className="kourcier-table-row">
+                    <TableRow key={order.id} className="Koursier-table-row">
                       <TableCell className="font-medium">
                         {order.numeroCommande}
                       </TableCell>

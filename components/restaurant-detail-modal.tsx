@@ -26,7 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BASE_URL } from "@/services/urlApp";
 
 interface RestaurantDetailModalProps {
   open: boolean;

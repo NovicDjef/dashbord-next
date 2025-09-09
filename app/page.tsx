@@ -12,7 +12,6 @@ import {
   IconMapPin,
   IconPhone,
   IconMail,
-  IconBrandApple,
   IconBrandGooglePlay,
   IconArrowRight,
   IconUsers,
@@ -196,13 +195,13 @@ const PhoneShowcase = ({ className = "" }) => {
       </div>
 
       {/* Indicateur global de synchronisation */}
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+      {/* <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
         <div className="flex items-center space-x-2 text-gray-400 text-xs">
           <IconEye className="w-4 h-4" />
           <span>Démonstration en temps réel</span>
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
         </div>
-      </div>
+      </div> */}
 
       <style jsx>{`
         @keyframes moveAcross {
@@ -212,6 +211,236 @@ const PhoneShowcase = ({ className = "" }) => {
         }
       `}</style>
     </div>
+  )
+}
+
+// Composant HowItWorksSection avec animation séquentielle
+const HowItWorksSection = () => {
+  const [activeStep, setActiveStep] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  
+  const steps = [
+    {
+      id: 1,
+      title: "Choisissez votre service",
+      description: "Sélectionnez parmi nos restaurants partenaires, service de gaz domestique ou envoi de colis express",
+      icon: IconTarget,
+      color: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/30",
+      details: ["500+ restaurants", "Livraison gaz 24h/24", "Colis sécurisés"]
+    },
+    {
+      id: 2,
+      title: "Passez commande",
+      description: "Interface intuitive, paiement sécurisé et confirmation instantanée de votre commande",
+      icon: IconBolt,
+      color: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500/10", 
+      borderColor: "border-purple-500/30",
+      details: ["Paiement mobile", "Confirmation SMS", "Suivi temps réel"]
+    },
+    {
+      id: 3,
+      title: "Recevez rapidement",
+      description: "Suivez votre livreur en temps réel et recevez votre commande en toute sécurité",
+      icon: IconGift,
+      color: "from-green-500 to-emerald-500",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30", 
+      details: ["GPS en temps réel", "Notification arrivée", "Livraison sécurisée"]
+    }
+  ]
+
+  // Animation automatique des étapes toutes les 3 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length)
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  // Intersection Observer pour déclencher l'animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.3 }
+    )
+    
+    const element = document.getElementById('how-it-works')
+    if (element) observer.observe(element)
+    
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section id="how-it-works" className="py-32 relative bg-gradient-to-br from-gray-900/40 to-black/20 overflow-hidden">
+      {/* Background décoration */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-green-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+      </div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* En-tête animé */}
+        <div className="text-center mb-20">
+          <div className={`inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-500/30 text-blue-400 text-sm font-medium mb-8 transition-all duration-1000 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
+            <IconCircleDot className="w-4 h-4 mr-2 animate-pulse" />
+            Comment ça marche ?
+            <IconArrowDown className="w-4 h-4 ml-2" />
+          </div>
+          
+          <h2 className={`text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 transition-all duration-1000 delay-200 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
+            <span className="block mb-2">Trois étapes</span>
+            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 bg-clip-text text-transparent">
+              vers la perfection
+            </span>
+          </h2>
+          
+          <p className={`text-xl text-gray-300 max-w-3xl mx-auto transition-all duration-1000 delay-400 ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}>
+            Une expérience de livraison révolutionnaire en quelques clics
+          </p>
+        </div>
+
+        {/* Timeline avec étapes animées */}
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-3 gap-8 lg:gap-12 relative">
+            {/* Ligne de connexion */}
+            <div className="hidden lg:block absolute top-20 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 transition-all duration-1000 ease-out"
+                style={{
+                  width: `${((activeStep + 1) / steps.length) * 100}%`
+                }}
+              />
+            </div>
+
+            {steps.map((step, index) => (
+              <div key={step.id} className="relative">
+                {/* Étape principale */}
+                <div className={`relative transition-all duration-700 ${
+                  activeStep === index 
+                    ? 'scale-105 translate-y-0' 
+                    : activeStep > index 
+                      ? 'scale-100 translate-y-2 opacity-70' 
+                      : 'scale-95 translate-y-4 opacity-50'
+                }`}>
+                  
+                  {/* Badge numéro animé */}
+                  <div className={`w-16 h-16 mx-auto mb-8 rounded-full border-4 flex items-center justify-center relative transition-all duration-500 ${
+                    activeStep === index 
+                      ? `border-transparent bg-gradient-to-r ${step.color} shadow-2xl` 
+                      : activeStep > index
+                        ? 'border-green-500 bg-green-500'
+                        : 'border-gray-600 bg-gray-800'
+                  }`}>
+                    {activeStep > index ? (
+                      <IconCheck className="w-8 h-8 text-white animate-bounce" />
+                    ) : (
+                      <span className="text-2xl font-bold text-white">{step.id}</span>
+                    )}
+                    
+                    {/* Ring d'animation pour l'étape active */}
+                    {activeStep === index && (
+                      <>
+                        <div className="absolute inset-0 border-4 border-transparent rounded-full animate-ping" 
+                             style={{borderColor: 'rgba(59, 130, 246, 0.3)'}} />
+                        <div className="absolute -inset-4 border border-blue-400/20 rounded-full animate-pulse" />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Icône de service */}
+                  <div className={`w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+                    activeStep === index 
+                      ? `bg-gradient-to-r ${step.color} shadow-lg scale-110` 
+                      : `${step.bgColor} scale-100`
+                  }`}>
+                    <step.icon className="w-10 h-10 text-white" />
+                  </div>
+
+                  {/* Contenu de l'étape */}
+                  <div className="text-center space-y-4">
+                    <h3 className={`text-2xl font-bold transition-colors duration-500 ${
+                      activeStep === index ? 'text-white' : 'text-gray-400'
+                    }`}>
+                      {step.title}
+                    </h3>
+                    
+                    <p className="text-gray-300 leading-relaxed max-w-sm mx-auto">
+                      {step.description}
+                    </p>
+
+                    {/* Détails animés pour l'étape active */}
+                    <div className={`space-y-2 transition-all duration-500 ${
+                      activeStep === index 
+                        ? 'opacity-100 max-h-32 translate-y-0' 
+                        : 'opacity-0 max-h-0 translate-y-4 overflow-hidden'
+                    }`}>
+                      {step.details.map((detail, detailIndex) => (
+                        <div key={detailIndex} className="flex items-center justify-center space-x-2 text-sm">
+                          <div className={`w-1.5 h-1.5 rounded-full bg-gradient-to-r ${step.color}`} />
+                          <span className="text-gray-400">{detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Indicateur de progression pour mobile */}
+                  <div className="lg:hidden mt-6 flex justify-center">
+                    <div className="flex space-x-2">
+                      {steps.map((_, stepIndex) => (
+                        <div
+                          key={stepIndex}
+                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            stepIndex === activeStep 
+                              ? `bg-gradient-to-r ${step.color}` 
+                              : stepIndex < activeStep
+                                ? 'bg-green-500'
+                                : 'bg-gray-600'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Contrôles manuels */}
+          <div className="flex justify-center mt-16 space-x-4">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setActiveStep(index)}
+                className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                  activeStep === index 
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 scale-125' 
+                    : 'bg-gray-600 hover:bg-gray-500'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Indicateur de temps */}
+          {/* <div className="text-center mt-8">
+            <div className="inline-flex items-center space-x-2 text-gray-400 text-sm">
+              <IconRefresh className="w-4 h-4 animate-spin" />
+              <span>Animation automatique toutes les 3 secondes</span>
+            </div>
+          </div> */}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -329,22 +558,38 @@ const ProjectSection = ({
         </div>
       </div>
 
-      {/* CTA Button amélioré */}
-      <div className={`transition-all duration-700 delay-600 ${
+      {/* CTA Buttons - Style premium */}
+      <div className={`space-y-2 transition-all duration-700 delay-600 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}>
-        <a href={downloadUrl} target="_blank" rel="noopener noreferrer">
-          <button className={`group h-16 px-10 bg-gradient-to-r ${gradientColor} hover:shadow-2xl hover:shadow-${appType === 'client' ? 'green' : 'blue'}-500/30 text-white font-medium rounded-2xl transition-all duration-500 hover:scale-105 flex items-center space-x-4 text-lg`}>
-            <div className="flex items-center space-x-3">
-              <IconBrandGooglePlay className="w-8 h-8" />
-              <div className="text-left">
-                <div className="font-bold">Télécharger</div>
-                <div className="text-sm opacity-80">Google Play Store</div>
+        
+        {/* Bouton Android Premium */}
+        <div className="flex justify-start">
+          <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+            <div className="relative group">
+              <div className={`absolute inset-0 bg-gradient-to-r ${gradientColor.replace('500', '400').replace('600', '500')} rounded-lg blur opacity-30 group-hover:opacity-50 transition-opacity duration-300`}></div>
+              <div className="relative bg-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-lg px-4 py-3 hover:border-gray-600/50 transition-all duration-300 group-hover:scale-105">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-8 h-8 bg-gradient-to-br ${gradientColor} rounded-lg flex items-center justify-center shadow-lg`}>
+                    <IconBrandGooglePlay className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-white font-semibold text-sm">Télécharger</div>
+                    <div className="text-gray-400 text-xs">Google Play</div>
+                    <div className="flex items-center space-x-1 mt-1">
+                      <div className="flex text-yellow-400 text-xs">
+                        {'★'.repeat(5)}
+                      </div>
+                      <span className="text-xs text-gray-400">4.8</span>
+                    </div>
+                  </div>
+                  <IconArrowRight className={`w-4 h-4 ${appType === 'client' ? 'text-green-400' : 'text-blue-400'} group-hover:translate-x-1 transition-transform duration-300`} />
+                </div>
               </div>
             </div>
-            <IconExternalLink className="w-6 h-6 group-hover:translate-x-2 group-hover:scale-110 transition-all duration-300" />
-          </button>
-        </a>
+          </a>
+        </div>
+        
       </div>
     </div>
   )
@@ -465,13 +710,13 @@ const ProjectSection = ({
   )
 }
 
-export default function KourcierEnhancedLanding() {
+export default function KoursierEnhancedLanding() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [typedText, setTypedText] = useState("")
   const [currentServiceIndex, setCurrentServiceIndex] = useState(0)
   
-  const fullText = "Livraison instantanée, sécurisée et intelligente"
+  const fullText = "Commandez Vos repas, gaz domestique et envoyer vos colis dans la ville, faites-vous livrer instantanément, en toute sécurité et à moindre coût."
   const services = [
     {
       title: "Restaurants",
@@ -509,7 +754,7 @@ export default function KourcierEnhancedLanding() {
       } else {
         clearInterval(interval)
       }
-    }, 100)
+    }, 60)
     
     return () => clearInterval(interval)
   }, [])
@@ -584,7 +829,7 @@ export default function KourcierEnhancedLanding() {
               </div>
               <div>
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Kourcier
+                  Koursier
                 </span>
                 <div className="text-xs text-gray-400 font-medium">Atomic Delivery</div>
               </div>
@@ -613,6 +858,27 @@ export default function KourcierEnhancedLanding() {
               {mobileMenuOpen ? <IconX className="h-5 w-5" /> : <IconMenu2 className="h-5 w-5" />}
             </button>
           </div>
+
+          {/* Menu mobile amélioré */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-700 bg-gray-900/95 backdrop-blur-lg">
+              <div className="px-4 py-6 space-y-4">
+                {['Applications', 'Services', 'Comment ça marche', 'Contact'].map((item, index) => (
+                  <a key={index} href={`#${item.toLowerCase().replace(/\s+/g, '-')}`} 
+                     className="block text-gray-300 hover:text-white text-sm font-medium py-2 px-2 rounded-md hover:bg-gray-800 transition-all duration-300"
+                     onClick={() => setMobileMenuOpen(false)}>
+                    {item}
+                  </a>
+                ))}
+                <Link href="/dashboard">
+                  <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium px-6 py-2 rounded-full text-sm transition-all duration-300 hover:scale-105 shadow-lg flex items-center justify-center space-x-2 mt-4">
+                    <IconDevices className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -631,9 +897,9 @@ export default function KourcierEnhancedLanding() {
               </div>
 
               {/* Titre principal */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
                 <span className="block text-white mb-4">
-                  Kourcier révolutionne
+                  Koursier révolutionne
                 </span>
                 <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   vos livraisons
@@ -641,11 +907,11 @@ export default function KourcierEnhancedLanding() {
               </h1>
 
               {/* Texte tapé */}
-              <div className="text-xl text-gray-300 h-12 flex items-center">
-                <span className="font-light">
+              <div className="text-lg text-gray-300 min-h-16 flex items-start">
+                <p className="font-light leading-relaxed">
                   {typedText}
                   <span className="animate-pulse">|</span>
-                </span>
+                </p>
               </div>
 
               {/* Services grid */}
@@ -672,29 +938,64 @@ export default function KourcierEnhancedLanding() {
                 ))}
               </div>
 
-              {/* CTA Buttons améliorés */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a href="https://play.google.com/store/apps/details?id=com.novic.koursier" target="_blank" rel="noopener noreferrer">
-                  <button className="h-14 px-8 text-base font-medium bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-2xl group transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-green-500/25 w-full sm:w-auto flex items-center space-x-3">
-                    <IconUsers className="w-6 h-6" />
-                    <div className="text-left">
-                      <div className="font-bold">App Client</div>
-                      <div className="text-xs opacity-80">Commander</div>
-                    </div>
-                    <IconDownload className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-                  </button>
-                </a>
+              {/* CTA Buttons - Android uniquement */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* App Client */}
+                  <div className="text-center">
+                    
+                    <a href="https://play.google.com/store/apps/details?id=com.novic.koursier" target="_blank" rel="noopener noreferrer">
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                        <div className="relative bg-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 hover:border-green-500/30 transition-all duration-300 group-hover:scale-105">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-lg">
+                                <IconBrandGooglePlay className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <div className="text-white font-semibold text-sm">App Client</div>
+                                <div className="text-gray-400 text-xs">Google Play Store</div>
+                              </div>
+                            </div>
+                            <IconArrowRight className="w-5 h-5 text-green-400 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
 
-                <a href="https://play.google.com/store/apps/details?id=com.Lkoursier.app" target="_blank" rel="noopener noreferrer">
-                  <button className="h-14 px-8 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-blue-500/25 w-full sm:w-auto flex items-center space-x-3">
-                    <IconTruck className="w-6 h-6" />
-                    <div className="text-left">
-                      <div className="font-bold">App Livreur</div>
-                      <div className="text-xs opacity-80">Gagner de l'argent</div>
-                    </div>
-                    <IconZoomMoney className="w-5 h-5" />
-                  </button>
-                </a>
+                  {/* App Livreur */}
+                  <div className="text-center">
+                    
+                    <a href="https://play.google.com/store/apps/details?id=com.Lkoursier.app" target="_blank" rel="noopener noreferrer">
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                        <div className="relative bg-gray-900/90 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 hover:border-blue-500/30 transition-all duration-300 group-hover:scale-105">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                                <IconBrandGooglePlay className="w-6 h-6 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <div className="text-white font-semibold text-sm">App Livreur</div>
+                                <div className="text-gray-400 text-xs">Google Play Store</div>
+                              </div>
+                            </div>
+                            <IconArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Message informatif */}
+                <div className="text-center">
+                  <p className="text-gray-400 text-sm">
+                    🚀 Plus de <span className="text-green-400 font-semibold">50 000</span> téléchargements
+                  </p>
+                </div>
               </div>
 
               {/* Stats */}
@@ -738,7 +1039,7 @@ export default function KourcierEnhancedLanding() {
         {/* Client App Project avec carousel */}
         <ProjectSection
           index={1}
-          title="Kourcier Client"
+          title="Koursier Client"
           description="L'application ultime pour commander vos repas, gaz domestique et envoyer vos colis en quelques clics. Interface intuitive, paiement sécurisé et suivi en temps réel."
           appImages={clientImages}
           downloadUrl="https://play.google.com/store/apps/details?id=com.novic.koursier"
@@ -754,7 +1055,7 @@ export default function KourcierEnhancedLanding() {
         {/* Driver App Project avec carousel */}
         <ProjectSection
           index={2}
-          title="Kourcier Livreur"
+          title="Koursier Livreur"
           description="Rejoignez notre réseau de livreurs professionnels et générez des revenus flexibles. Gestion optimisée des commandes, navigation GPS intégrée et paiements instantanés."
           appImages={driverImages}
           downloadUrl="https://play.google.com/store/apps/details?id=com.Lkoursier.app"
@@ -769,54 +1070,8 @@ export default function KourcierEnhancedLanding() {
         />
       </section>
 
-      {/* Section Comment ça marche */}
-      <section id="comment-ça-marche" className="py-24 relative bg-gray-900/20">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Comment ça marche ?
-            </h2>
-            <p className="text-xl text-gray-400">
-              Trois étapes simples pour une expérience parfaite
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              {
-                step: "1",
-                title: "Choisissez",
-                description: "Sélectionnez votre restaurant, gaz ou service de colis",
-                icon: IconTarget,
-                color: "from-blue-500 to-cyan-500"
-              },
-              {
-                step: "2", 
-                title: "Commandez",
-                description: "Passez votre commande en quelques clics",
-                icon: IconBolt,
-                color: "from-purple-500 to-pink-500"
-              },
-              {
-                step: "3",
-                title: "Recevez",
-                description: "Suivez votre livraison en temps réel",
-                icon: IconGift,
-                color: "from-green-500 to-emerald-500"
-              }
-            ].map((step, index) => (
-              <div key={index} className="text-center group">
-                <div className={`w-20 h-20 bg-gradient-to-r ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg`}>
-                  <step.icon className="w-10 h-10 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-white mb-2">{step.step}</div>
-                <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
-                <p className="text-gray-400">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Section Comment ça marche - Version animée */}
+      <HowItWorksSection />
 
       {/* Section Services */}
       <section id="services" className="py-24 relative">
@@ -884,7 +1139,7 @@ export default function KourcierEnhancedLanding() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Rejoignez la révolution Kourcier
+              Rejoignez la révolution Koursier
             </h2>
             <p className="text-xl text-gray-400 mb-12">
               Prêt à transformer votre expérience de livraison ?
@@ -892,9 +1147,9 @@ export default function KourcierEnhancedLanding() {
             
             <div className="grid md:grid-cols-3 gap-8 mb-12">
               {[
-                { icon: IconPhone, title: "Téléphone", info: "+237 6XX XX XX XX", color: "text-green-400" },
-                { icon: IconMail, title: "Email", info: "contact@kourcier.com", color: "text-blue-400" },
-                { icon: IconMapPin, title: "Localisation", info: "Yaoundé, Cameroun", color: "text-purple-400" }
+                { icon: IconPhone, title: "Téléphone", info: "+237 690 089 951", color: "text-green-400" },
+                { icon: IconMail, title: "Email", info: "contact@Koursier.com", color: "text-blue-400" },
+                { icon: IconMapPin, title: "Localisation", info: "Douala, Cameroun", color: "text-purple-400" }
               ].map((contact, index) => (
                 <div key={index} className="text-center group">
                   <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-700 transition-all duration-300 group-hover:scale-110">
@@ -909,21 +1164,21 @@ export default function KourcierEnhancedLanding() {
             {/* CTA final amélioré */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <a href="https://play.google.com/store/apps/details?id=com.novic.koursier" target="_blank" rel="noopener noreferrer">
-                <button className="h-16 px-10 text-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl flex items-center space-x-4">
-                  <IconDownload className="w-6 h-6" />
+                <button className="h-12 px-6 text-base font-medium bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg flex items-center space-x-3">
+                  <IconDownload className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-bold">Commencer à commander</div>
-                    <div className="text-sm opacity-80">App Client Kourcier</div>
+                    <div className="font-semibold">Commander Maintenant</div>
+                    <div className="text-xs opacity-80">App Client Koursier</div>
                   </div>
                   <IconArrowRight className="w-5 h-5" />
                 </button>
               </a>
               <a href="https://play.google.com/store/apps/details?id=com.Lkoursier.app" target="_blank" rel="noopener noreferrer">
-                <button className="h-16 px-10 text-lg font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl flex items-center space-x-4">
-                  <IconTruck className="w-6 h-6" />
+                <button className="h-12 px-6 text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg flex items-center space-x-3">
+                  <IconTruck className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-bold">Devenir livreur</div>
-                    <div className="text-sm opacity-80">App Livreur Kourcier</div>
+                    <div className="font-semibold">Devenir livreur</div>
+                    <div className="text-xs opacity-80">App Livreur Koursier</div>
                   </div>
                   <IconZoomMoney className="w-5 h-5" />
                 </button>
@@ -942,7 +1197,7 @@ export default function KourcierEnhancedLanding() {
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <IconRocket className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Kourcier</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Koursier</span>
               </div>
               <p className="text-gray-400 text-sm mb-4">
                 La plateforme de livraison nouvelle génération qui connecte restaurants, 
@@ -953,7 +1208,7 @@ export default function KourcierEnhancedLanding() {
             {[
               {
                 title: "Applications",
-                links: ["App Client iOS", "App Client Android", "App Livreur iOS", "App Livreur Android"]
+                links: ["App Client Android", "App Livreur Android"]
               },
               {
                 title: "Services", 
@@ -980,9 +1235,9 @@ export default function KourcierEnhancedLanding() {
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-            <p className="text-gray-400 text-sm">
-              © 2025 Kourcier. Tous droits réservés. Construit avec précision atomique. 🚀
-            </p>
+            <a href="https://novic.dev" className="text-gray-400 text-sm">
+              © 2025 Koursier. Tous droits réservés. 🚀
+            </a>
           </div>
         </div>
       </footer>

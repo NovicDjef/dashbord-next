@@ -260,27 +260,27 @@ body {
   }
 }
 
-/* Styles personnalisés pour Kourcier Dashboard */
-.kourcier-gradient {
+/* Styles personnalisés pour Koursier Dashboard */
+.Koursier-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.kourcier-card-hover {
+.Koursier-card-hover {
   @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-lg;
 }
 
-.kourcier-text-gradient {
+.Koursier-text-gradient {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.kourcier-stats-card {
+.Koursier-stats-card {
   @apply relative overflow-hidden;
 }
 
-.kourcier-stats-card::before {
+.Koursier-stats-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -290,113 +290,113 @@ body {
   background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
 }
 
-.kourcier-table-row {
+.Koursier-table-row {
   @apply hover:bg-muted/50 transition-colors duration-150;
 }
 
-.kourcier-badge {
+.Koursier-badge {
   @apply font-medium text-xs px-2.5 py-1 rounded-full;
 }
 
-.kourcier-sidebar-item {
+.Koursier-sidebar-item {
   @apply relative px-3 py-2 rounded-lg transition-all duration-200;
 }
 
-.kourcier-sidebar-item:hover {
+.Koursier-sidebar-item:hover {
   @apply bg-accent text-accent-foreground;
 }
 
-.kourcier-sidebar-item.active {
+.Koursier-sidebar-item.active {
   @apply bg-primary text-primary-foreground font-medium;
 }
 
 /* Animations personnalisées */
-@keyframes kourcier-float {
+@keyframes Koursier-float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-2px); }
 }
 
-.kourcier-float {
-  animation: kourcier-float 3s ease-in-out infinite;
+.Koursier-float {
+  animation: Koursier-float 3s ease-in-out infinite;
 }
 
-@keyframes kourcier-pulse {
+@keyframes Koursier-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
 }
 
-.kourcier-pulse {
-  animation: kourcier-pulse 2s ease-in-out infinite;
+.Koursier-pulse {
+  animation: Koursier-pulse 2s ease-in-out infinite;
 }
 
 /* Scrollbar personnalisé */
-.kourcier-scrollbar::-webkit-scrollbar {
+.Koursier-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-.kourcier-scrollbar::-webkit-scrollbar-track {
+.Koursier-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.kourcier-scrollbar::-webkit-scrollbar-thumb {
+.Koursier-scrollbar::-webkit-scrollbar-thumb {
   background: oklch(0.553 0.013 58.071);
   border-radius: 3px;
 }
 
-.kourcier-scrollbar::-webkit-scrollbar-thumb:hover {
+.Koursier-scrollbar::-webkit-scrollbar-thumb:hover {
   background: oklch(0.453 0.013 58.071);
 }
 
 /* Support pour Firefox */
-.kourcier-scrollbar {
+.Koursier-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: oklch(0.553 0.013 58.071) transparent;
 }
 
 /* Amélioration des ombres */
-.kourcier-shadow-soft {
+.Koursier-shadow-soft {
   box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
 }
 
-.kourcier-shadow-medium {
+.Koursier-shadow-medium {
   box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 35px -7px rgba(0, 0, 0, 0.07);
 }
 
 /* États de chargement améliorés */
-.kourcier-loading {
+.Koursier-loading {
   background: linear-gradient(90deg, transparent, oklch(0.97 0.001 106.424), transparent);
   background-size: 200% 100%;
-  animation: kourcier-loading 1.5s infinite;
+  animation: Koursier-loading 1.5s infinite;
 }
 
-@keyframes kourcier-loading {
+@keyframes Koursier-loading {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
 /* Mode sombre amélioré */
-.dark .kourcier-loading {
+.dark .Koursier-loading {
   background: linear-gradient(90deg, transparent, oklch(0.065 0.038 276.34), transparent);
 }
 
 /* Responsive design amélioré */
 @media (max-width: 768px) {
-  .kourcier-mobile-spacing {
+  .Koursier-mobile-spacing {
     @apply px-4 py-2;
   }
   
-  .kourcier-mobile-text {
+  .Koursier-mobile-text {
     @apply text-sm;
   }
 }
 
 /* Indicateurs de statut */
-.kourcier-status-online {
+.Koursier-status-online {
   @apply relative;
 }
 
-.kourcier-status-online::after {
+.Koursier-status-online::after {
   content: '';
   position: absolute;
   top: -2px;
@@ -406,55 +406,55 @@ body {
   background: #10b981;
   border: 2px solid white;
   border-radius: 50%;
-  animation: kourcier-pulse 2s ease-in-out infinite;
+  animation: Koursier-pulse 2s ease-in-out infinite;
 }
 
-.dark .kourcier-status-online::after {
+.dark .Koursier-status-online::after {
   border-color: oklch(0.045 0.036 276.34);
 }
 
 /* Styles supplémentaires pour le thème personnalisé #2a2435 + #030017 */
-.dark .kourcier-custom-card {
+.dark .Koursier-custom-card {
   background: oklch(0.045 0.036 276.34); /* #030017 pour les cards */
   border: 1px solid oklch(0.125 0.037 290.75 / 25%);
 }
 
-.dark .kourcier-custom-hover:hover {
+.dark .Koursier-custom-hover:hover {
   background: oklch(0.085 0.038 276.34); /* Plus clair que #030017 */
 }
 
-.dark .kourcier-custom-border {
+.dark .Koursier-custom-border {
   border-color: oklch(0.125 0.037 290.75 / 35%);
 }
 
-.dark .kourcier-section {
+.dark .Koursier-section {
   background: oklch(0.045 0.036 276.34); /* #030017 pour sections */
 }
 
-.dark .kourcier-panel {
+.dark .Koursier-panel {
   background: oklch(0.045 0.036 276.34); /* #030017 pour panels */
   border: 1px solid oklch(0.125 0.037 290.75 / 20%);
 }
 
 /* Amélioration des scrollbars pour le nouveau thème */
-.dark .kourcier-scrollbar::-webkit-scrollbar-thumb {
+.dark .Koursier-scrollbar::-webkit-scrollbar-thumb {
   background: oklch(0.175 0.034 305.15); /* Basé sur #2a2435 */
 }
 
-.dark .kourcier-scrollbar::-webkit-scrollbar-thumb:hover {
+.dark .Koursier-scrollbar::-webkit-scrollbar-thumb:hover {
   background: oklch(0.215 0.036 305.15); /* Plus clair que #2a2435 */
 }
 
-.dark .kourcier-scrollbar {
+.dark .Koursier-scrollbar {
   scrollbar-color: oklch(0.175 0.034 305.15) transparent;
 }
 
 /* Gradients personnalisés avec les nouvelles couleurs */
-.dark .kourcier-gradient-bg {
+.dark .Koursier-gradient-bg {
   background: linear-gradient(135deg, oklch(0.175 0.034 305.15) 0%, oklch(0.045 0.036 276.34) 100%);
 }
 
-.dark .kourcier-gradient-border {
+.dark .Koursier-gradient-border {
   border-image: linear-gradient(135deg, oklch(0.175 0.034 305.15), oklch(0.045 0.036 276.34)) 1;
 }
 
@@ -643,7 +643,7 @@ body {
   background: rgba(var(--primary-rgb, 0, 0, 0), 0.05);
 }
 
-/* ===== ANIMATIONS FUTURISTES KOURCIER ===== */
+/* ===== ANIMATIONS FUTURISTES Koursier ===== */
 
 /* Advanced futuristic animations */
 .animate-float {

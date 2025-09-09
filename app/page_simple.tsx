@@ -97,7 +97,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <span className="text-2xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Kourcier
+                  Koursier
                 </span>
                 <div className="text-xs text-cyan-300/60 font-medium tracking-wider">NEXT-GEN DELIVERY</div>
               </div>
@@ -196,7 +196,7 @@ export default function LandingPage() {
 
             {/* Hero Description */}
             <p className="text-xl sm:text-2xl text-white/70 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-              <span className="text-cyan-300 font-semibold">KOURCIER</span> connecte 
+              <span className="text-cyan-300 font-semibold">Koursier</span> connecte 
               <span className="text-blue-300 font-medium">restaurants</span>, 
               <span className="text-purple-300 font-medium">livreurs</span> et 
               <span className="text-pink-300 font-medium">clients</span> dans un écosystème intelligent.

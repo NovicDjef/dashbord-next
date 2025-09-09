@@ -346,7 +346,7 @@ export default function RepasPage() {
               </TableHeader>
               <TableBody>
                 {filteredRepas?.map((repas) => (
-                  <TableRow key={repas.id} className="kourcier-table-row">
+                  <TableRow key={repas.id} className="Koursier-table-row">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">

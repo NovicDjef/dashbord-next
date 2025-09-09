@@ -123,7 +123,7 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
         <div className="relative">
           <PhoneModel
             image={clientImage}
-            alt="Kourcier Client App"
+            alt="Koursier Client App"
             className="w-44 md:w-52 lg:w-60"
             delay={300}
           />
@@ -144,7 +144,7 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
         <div className="relative">
           <PhoneModel
             image={driverImage}
-            alt="Kourcier Driver App"
+            alt="Koursier Driver App"
             className="w-44 md:w-52 lg:w-60"
             delay={600}
           />

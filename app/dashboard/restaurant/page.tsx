@@ -341,7 +341,7 @@ export default function RestaurantPage() {
               </TableHeader>
               <TableBody>
                 {filteredRestaurants?.map((restaurant) => (
-                  <TableRow key={restaurant.id} className="kourcier-table-row">
+                  <TableRow key={restaurant.id} className="Koursier-table-row">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">

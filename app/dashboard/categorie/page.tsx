@@ -330,7 +330,7 @@ export default function CategoriePage() {
               </TableHeader>
               <TableBody>
                 {filteredCategories?.map((categorie) => (
-                  <TableRow key={categorie.id} className="kourcier-table-row">
+                  <TableRow key={categorie.id} className="Koursier-table-row">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">

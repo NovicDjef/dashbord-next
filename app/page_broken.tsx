@@ -98,7 +98,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <span className="text-2xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Kourcier
+                  Koursier
                 </span>
                 <div className="text-xs text-cyan-300/60 font-medium tracking-wider">NEXT-GEN DELIVERY</div>
               </div>
@@ -197,7 +197,7 @@ export default function LandingPage() {
 
             {/* Hero Description */}
             <p className="text-xl sm:text-2xl text-white/70 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-              <span className="text-cyan-300 font-semibold">KOURCIER</span> connecte 
+              <span className="text-cyan-300 font-semibold">Koursier</span> connecte 
               <span className="text-blue-300 font-medium">restaurants</span>, 
               <span className="text-purple-300 font-medium">livreurs</span> et 
               <span className="text-pink-300 font-medium">clients</span> dans un écosystème intelligent.
@@ -310,7 +310,7 @@ export default function LandingPage() {
                   </div>
                   <div className="ml-6">
                     <h3 className="text-3xl font-black bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent mb-2">
-                      KOURCIER CLIENT
+                      Koursier CLIENT
                     </h3>
                     <p className="text-cyan-200/80 font-semibold tracking-wide">
                       L'app pour commander facilement
@@ -320,7 +320,7 @@ export default function LandingPage() {
 
                 {/* Description */}
                 <p className="text-white/80 text-lg mb-8 leading-relaxed">
-                  L'application client Kourcier offre <span className="text-cyan-300 font-semibold">bien plus que la simple livraison de repas</span>. 
+                  L'application client Koursier offre <span className="text-cyan-300 font-semibold">bien plus que la simple livraison de repas</span>. 
                   Elle permet de découvrir tous les restaurants de votre ville, 
                   de passer commande en quelques clics, et propose également des services innovants.
                 </p>
@@ -403,7 +403,7 @@ export default function LandingPage() {
                   </div>
                   <div className="ml-6">
                     <h3 className="text-3xl font-black bg-gradient-to-r from-purple-300 to-pink-400 bg-clip-text text-transparent mb-2">
-                      KOURCIER LIVREUR
+                      Koursier LIVREUR
                     </h3>
                     <p className="text-purple-200/80 font-semibold tracking-wide">
                       L'app pour devenir livreur professionnel
@@ -428,7 +428,7 @@ export default function LandingPage() {
                   <div className="flex items-start space-x-4">
                     <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">1</div>
                     <div>
-                      <p className="text-white/80"><span className="text-purple-300 font-medium">Téléchargez</span> l'application Kourcier Livreur</p>
+                      <p className="text-white/80"><span className="text-purple-300 font-medium">Téléchargez</span> l'application Koursier Livreur</p>
                     </div>
                   </div>
                   
@@ -544,7 +544,7 @@ export default function LandingPage() {
                     <IconUsers className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">Kourcier Client</h3>
+                    <h3 className="text-xl font-bold text-foreground">Koursier Client</h3>
                     <p className="text-sm text-muted-foreground">Commandez vos repas favoris</p>
                   </div>
                 </div>
@@ -576,7 +576,7 @@ export default function LandingPage() {
                     <IconTruck className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-foreground">Kourcier Livreur</h3>
+                    <h3 className="text-xl font-bold text-foreground">Koursier Livreur</h3>
                     <p className="text-sm text-muted-foreground">Gagnez en livrant des repas</p>
                   </div>
                 </div>
@@ -610,7 +610,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Pourquoi choisir Kourcier ?
+              Pourquoi choisir Koursier ?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               Une plateforme conçue pour l'efficacité, la sécurité et la satisfaction de tous.
@@ -680,7 +680,7 @@ export default function LandingPage() {
                   <IconMail className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Email</h3>
-                <p className="text-muted-foreground">contact@kourcier.com</p>
+                <p className="text-muted-foreground">contact@Koursier.com</p>
               </div>
 
               <div className="text-center">
@@ -704,7 +704,7 @@ export default function LandingPage() {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                   <IconChefHat className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold text-foreground">Kourcier</span>
+                <span className="text-xl font-bold text-foreground">Koursier</span>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
                 La plateforme de livraison nouvelle génération qui connecte restaurants, 
@@ -745,7 +745,7 @@ export default function LandingPage() {
 
           <div className="border-t border-border mt-8 pt-8 text-center">
             <p className="text-sm text-muted-foreground">
-              © 2025 Kourcier. Tous droits réservés. Conçu avec ❤️ pour révolutionner la livraison.
+              © 2025 Koursier. Tous droits réservés. Conçu avec ❤️ pour révolutionner la livraison.
             </p>
           </div>
         </div>
