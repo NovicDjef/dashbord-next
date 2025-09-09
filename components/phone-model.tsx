@@ -118,13 +118,13 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
       </div>
       
       {/* Phone Models Container */}
-      <div className="relative flex items-center justify-center space-x-8 lg:space-x-16">
+      <div className="relative flex items-center justify-center space-x-4 lg:space-x-8">
         {/* Client App Phone */}
         <div className="relative">
           <PhoneModel
             image={clientImage}
             alt="Kourcier Client App"
-            className="w-48 md:w-56 lg:w-64"
+            className="w-44 md:w-52 lg:w-60"
             delay={300}
           />
           
@@ -137,7 +137,7 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
           </div>
           
           {/* Orbital Ring */}
-          <div className="absolute top-1/2 left-1/2 w-80 h-80 -translate-x-1/2 -translate-y-1/2 border border-blue-500/10 rounded-full animate-spin" style={{animationDuration: '20s'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 border border-blue-500/10 rounded-full animate-spin" style={{animationDuration: '20s'}}></div>
         </div>
         
         {/* Driver App Phone */}
@@ -145,7 +145,7 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
           <PhoneModel
             image={driverImage}
             alt="Kourcier Driver App"
-            className="w-48 md:w-56 lg:w-64"
+            className="w-44 md:w-52 lg:w-60"
             delay={600}
           />
           
@@ -158,7 +158,7 @@ export function PhoneShowcase({ clientImage, driverImage, className }: PhoneShow
           </div>
           
           {/* Orbital Ring */}
-          <div className="absolute top-1/2 left-1/2 w-80 h-80 -translate-x-1/2 -translate-y-1/2 border border-green-500/10 rounded-full animate-spin" style={{animationDuration: '25s', animationDirection: 'reverse'}}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 -translate-x-1/2 -translate-y-1/2 border border-green-500/10 rounded-full animate-spin" style={{animationDuration: '25s', animationDirection: 'reverse'}}></div>
         </div>
       </div>
       
