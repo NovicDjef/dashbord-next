@@ -17,8 +17,11 @@ import {
   IconTrash, 
   IconEye,
   IconCurrencyEuro,
-  IconChefHat
+  IconChefHat,
+  IconCategory,
+  IconPhoto
 } from "@tabler/icons-react";
+import { BASE_URL } from "@/services/urlApp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -219,7 +222,7 @@ export default function RepasPage() {
 
   const getImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-food.jpg";
-    return imagePath.startsWith('http') ? imagePath : `https://api.novic.dev/${imagePath}`;
+    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
   };
 
   if (loading && !repas) {
@@ -424,8 +427,8 @@ export default function RepasPage() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <IconChefHat className="h-5 w-5 text-blue-600" />
+              <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                <IconChefHat className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <DialogTitle className="text-xl">
@@ -460,7 +463,7 @@ export default function RepasPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Ex: Pizza Margherita, Burger Classic..."
-                    className="transition-all focus:ring-2 focus:ring-blue-500/20"
+                    className="transition-all focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
@@ -479,7 +482,7 @@ export default function RepasPage() {
                       value={formData.price || ""}
                       onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                       placeholder="12.50"
-                      className="pl-10 transition-all focus:ring-2 focus:ring-blue-500/20"
+                      className="pl-10 transition-all focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -498,7 +501,7 @@ export default function RepasPage() {
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Décrivez ce délicieux repas, ses ingrédients principaux, ce qui le rend spécial..."
                   rows={3}
-                  className="transition-all focus:ring-2 focus:ring-blue-500/20 resize-none"
+                  className="transition-all focus:ring-2 focus:ring-primary/20 resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
                   Une description appetissante augmente les ventes
@@ -520,14 +523,14 @@ export default function RepasPage() {
                     <span className="text-red-500">•</span>
                   </Label>
                   <Select value={formData.categoryId.toString()} onValueChange={(value) => setFormData({...formData, categoryId: parseInt(value)})}>
-                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories?.map((category: any) => (
                         <SelectItem key={category.id} value={category.id.toString()}>
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                            <div className="w-2 h-2 rounded-full bg-primary"></div>
                             {category.name}
                           </div>
                         </SelectItem>
@@ -542,7 +545,7 @@ export default function RepasPage() {
                     <span className="text-red-500">•</span>
                   </Label>
                   <Select value={formData.restaurantId.toString()} onValueChange={(value) => setFormData({...formData, restaurantId: parseInt(value)})}>
-                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Sélectionner un restaurant" />
                     </SelectTrigger>
                     <SelectContent>
@@ -564,7 +567,7 @@ export default function RepasPage() {
                   Statut de disponibilité
                 </Label>
                 <Select value={formData.disponible.toString()} onValueChange={(value) => setFormData({...formData, disponible: value === "true"})}>
-                  <SelectTrigger className="transition-all focus:ring-2 focus:ring-blue-500/20">
+                  <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -576,7 +579,7 @@ export default function RepasPage() {
                     </SelectItem>
                     <SelectItem value="false">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <div className="w-2 h-2 rounded-full bg-destructive"></div>
                         Indisponible
                       </div>
                     </SelectItem>
@@ -602,7 +605,7 @@ export default function RepasPage() {
                     value={formData.image}
                     onChange={(e) => setFormData({...formData, image: e.target.value})}
                     placeholder="https://example.com/delicious-food.jpg"
-                    className="transition-all focus:ring-2 focus:ring-blue-500/20"
+                    className="transition-all focus:ring-2 focus:ring-primary/20"
                   />
                   <p className="text-xs text-muted-foreground">
                     Une belle photo fait toute la différence pour attirer les clients
@@ -651,7 +654,7 @@ export default function RepasPage() {
                       {formData.name && formData.price > 0 && formData.categoryId && formData.restaurantId ? (
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       ) : (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-destructive rounded-full"></div>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -680,7 +683,7 @@ export default function RepasPage() {
             <Button 
               onClick={handleCreateOrUpdate} 
               disabled={submitLoading || !formData.name || formData.price <= 0 || !formData.categoryId || !formData.restaurantId}
-              className="min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white transition-all"
+              className="min-w-[120px] transition-all"
             >
               {submitLoading ? (
                 <div className="flex items-center gap-2">

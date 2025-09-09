@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { BASE_URL } from '@/services/urlApp';
 
 // Web Storage utility pour remplacer AsyncStorage
 const webStorage = {
@@ -12,10 +13,8 @@ const webStorage = {
 };
 
 const apiService = axios.create({
-  baseURL: 'http://192.168.1.86:3001',
-  // baseURL: 'https://api.novic.dev',
- 
-   timeout: 15000,
+  baseURL: BASE_URL,
+  timeout: 15000,
 
   headers: {
     'Content-Type': 'application/json', 

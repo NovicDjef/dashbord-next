@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"
+import { BASE_URL } from "@/services/urlApp";
 import { useForm } from "react-hook-form";
 import { 
   IconUpload, 
@@ -135,7 +136,7 @@ export function RestaurantForm({
       if (restaurant.image) {
         setImagePreview(restaurant.image.startsWith('http') 
           ? restaurant.image 
-          : `https://api.novic.dev/${restaurant.image}`);
+          : `${BASE_URL}/${restaurant.image}`);
       }
       
       if (restaurant.heuresOuverture && restaurant.heuresOuverture.length > 0) {

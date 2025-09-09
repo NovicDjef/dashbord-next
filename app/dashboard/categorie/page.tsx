@@ -10,6 +10,7 @@ import {
   clearError 
 } from "@/redux/categoriesSlice";
 import { fetchRepas } from "@/redux/repasSlice";
+import { fetchRestaurantsData } from "@/redux/restaurantSlice";
 import { 
   IconPlus, 
   IconEdit, 
@@ -19,6 +20,7 @@ import {
   IconChefHat,
   IconCategory
 } from "@tabler/icons-react";
+import { BASE_URL } from "@/services/urlApp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +55,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Categorie {
   id: number;
@@ -86,6 +95,7 @@ export default function CategoriePage() {
   const dispatch = useDispatch();
   const { data: categories, status, error } = useSelector((state: any) => state.categories);
   const { data: repas } = useSelector((state: any) => state.repas);
+  const { data: restaurants } = useSelector((state: any) => state.restaurants);
   
   const [filteredCategories, setFilteredCategories] = useState<Categorie[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -108,6 +118,7 @@ export default function CategoriePage() {
   useEffect(() => {
     dispatch(fetchCategoriesData());
     dispatch(fetchRepas());
+    dispatch(fetchRestaurantsData());
   }, [dispatch]);
 
   useEffect(() => {
@@ -199,7 +210,7 @@ export default function CategoriePage() {
 
   const getImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-category.jpg";
-    return imagePath.startsWith('http') ? imagePath : `https://api.novic.dev/${imagePath}`;
+    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
   };
 
   const getCategorieRepas = (categorieId: number) => {
@@ -394,8 +405,8 @@ export default function CategoriePage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <IconCategory className="h-5 w-5 text-orange-600" />
+              <div className="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+                <IconCategory className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <DialogTitle className="text-xl">
@@ -430,7 +441,7 @@ export default function CategoriePage() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Ex: Petit déjeuner, Plats principaux..."
-                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
+                    className="transition-all focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
 
@@ -439,14 +450,21 @@ export default function CategoriePage() {
                     Restaurant *
                     <span className="text-red-500">•</span>
                   </Label>
-                  <Input
-                    id="restaurantId"
-                    type="number"
-                    value={formData.restaurantId || ""}
-                    onChange={(e) => setFormData({...formData, restaurantId: parseInt(e.target.value) || 0})}
-                    placeholder="ID du restaurant"
-                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
-                  />
+                  <Select value={formData.restaurantId.toString()} onValueChange={(value) => setFormData({...formData, restaurantId: parseInt(value)})}>
+                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
+                      <SelectValue placeholder="Sélectionner un restaurant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {restaurants?.map((restaurant: any) => (
+                        <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            {restaurant.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -460,7 +478,7 @@ export default function CategoriePage() {
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   placeholder="Décrivez cette catégorie et le type de repas qu'elle contient..."
                   rows={3}
-                  className="transition-all focus:ring-2 focus:ring-orange-500/20 resize-none"
+                  className="transition-all focus:ring-2 focus:ring-primary/20 resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
                   Une bonne description aide les clients à comprendre cette catégorie
@@ -485,7 +503,7 @@ export default function CategoriePage() {
                     value={formData.image}
                     onChange={(e) => setFormData({...formData, image: e.target.value})}
                     placeholder="https://example.com/image.jpg"
-                    className="transition-all focus:ring-2 focus:ring-orange-500/20"
+                    className="transition-all focus:ring-2 focus:ring-primary/20"
                   />
                   <p className="text-xs text-muted-foreground">
                     Ajoutez une image attrayante pour représenter cette catégorie
@@ -517,7 +535,7 @@ export default function CategoriePage() {
                 {formData.name && formData.restaurantId ? (
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 ) : (
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
                 )}
               </div>
               <p className="text-sm text-muted-foreground">
@@ -543,7 +561,7 @@ export default function CategoriePage() {
             <Button 
               onClick={handleCreateOrUpdate} 
               disabled={submitLoading || !formData.name || !formData.restaurantId}
-              className="min-w-[120px] bg-orange-600 hover:bg-orange-700 text-white transition-all"
+              className="min-w-[120px] transition-all"
             >
               {submitLoading ? (
                 <div className="flex items-center gap-2">

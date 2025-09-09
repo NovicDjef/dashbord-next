@@ -1,5 +1,6 @@
 "use client"
 
+import { BASE_URL } from "@/services/urlApp";
 import { 
   IconX,
   IconMapPin,
@@ -25,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BASE_URL } from "@/services/urlApp";
 
 interface RestaurantDetailModalProps {
   open: boolean;
@@ -82,7 +84,7 @@ export function RestaurantDetailModal({ open, onOpenChange, restaurant }: Restau
               <CardContent className="p-4">
                 <div className="flex items-center justify-center">
                   <img
-                    src={`http://192.168.1.86:3001/${restaurant.image}`}
+                    src={`${BASE_URL}/${restaurant.image}`}
                     alt={restaurant.name}
                     className="max-w-full h-48 object-cover rounded-lg"
                   />
@@ -250,7 +252,7 @@ export function RestaurantDetailModal({ open, onOpenChange, restaurant }: Restau
                     <div key={category.id} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
                       {category.image && (
                         <img
-                          src={`http://192.168.1.86:3001/${category.image}`}
+                          src={`${BASE_URL}/${category.image}`}
                           alt={category.name}
                           className="w-12 h-12 object-cover rounded-lg"
                         />

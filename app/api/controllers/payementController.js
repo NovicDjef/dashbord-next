@@ -260,6 +260,7 @@ import {PaymentOperation, RandomGenerator, Signature} from '@hachther/mesomb';
 import { PrismaClient } from '@prisma/client';
 
 import axios from 'axios'; 
+import { API_ENDPOINTS } from '@/services/urlApp';
 
 import dotenv from 'dotenv';
 
@@ -328,8 +329,8 @@ export default {
         email,
         phone,
         description,
-        callback: 'https://votre-site.com/callback', // URL de callback
-        return_url: 'https://votre-site.com/return', // URL de retour après paiement
+        callback: API_ENDPOINTS.payment.callback, // URL de callback
+        return_url: API_ENDPOINTS.payment.returnUrl, // URL de retour après paiement
         channels: [mode_payement] // Mode de paiement sous forme de tableau
       };
   
@@ -342,7 +343,7 @@ export default {
       }
   
       // Appel à l'API Notch Pay
-      const payementResponse = await axios.post('https://api.notchpay.co/payments/initialize', paymentData, {
+      const payementResponse = await axios.post(API_ENDPOINTS.payment.initialize, paymentData, {
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',

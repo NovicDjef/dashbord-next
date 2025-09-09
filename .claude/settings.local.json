@@ -8,7 +8,8 @@
       "Bash(npx tsc:*)",
       "Bash(rm:*)",
       "Bash(mkdir:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

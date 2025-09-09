@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { BASE_URL } from "@/services/urlApp";
 import { 
   fetchRestaurantsData, 
   createRestaurant, 
@@ -224,7 +225,7 @@ export default function RestaurantPage() {
 
   const getImageUrl = (imagePath?: string) => {
     if (!imagePath) return "/placeholder-restaurant.jpg";
-    return imagePath.startsWith('http') ? imagePath : `https://api.novic.dev/${imagePath}`;
+    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
   };
 
   if (loading) {

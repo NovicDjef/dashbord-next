@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { API_ENDPOINTS } from "@/services/urlApp";
 import { 
   IconCurrency,
   IconTruck,
@@ -84,7 +85,7 @@ export default function TarifsPage() {
   const loadTarifs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('https://api.novic.dev/tarifs');
+      const response = await fetch(API_ENDPOINTS.tarifs);
       const data = await response.json();
       
       if (data.success) {
@@ -147,7 +148,7 @@ export default function TarifsPage() {
         }
       };
 
-      const response = await fetch('https://api.novic.dev/tarifs', {
+      const response = await fetch(API_ENDPOINTS.tarifs, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
