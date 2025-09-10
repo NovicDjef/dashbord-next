@@ -258,80 +258,83 @@ export default function CategoriePage() {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Catégories
-            </CardTitle>
-            <div className="text-2xl font-bold">{categories?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Repas
-            </CardTitle>
-            <div className="text-2xl font-bold text-orange-600">{repas?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Catégories Actives
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{categories?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Restaurants
-            </CardTitle>
-            <div className="text-2xl font-bold text-blue-600">
-              {categories ? new Set(categories.map(c => c.restaurantId)).size : 0}
-            </div>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="koursier-stats-card koursier-metric-card">
+          <div className="koursier-stats-label">Total Catégories</div>
+          <div className="koursier-stats-value">{categories?.length || 0}</div>
+          <div className="koursier-stats-change positive">
+            Toutes catégories
+          </div>
+        </div>
+        <div className="koursier-stats-card koursier-metric-card">
+          <div className="koursier-stats-label">Total Repas</div>
+          <div className="koursier-stats-value text-orange-600 dark:text-orange-400">
+            {repas?.length || 0}
+          </div>
+          <div className="koursier-stats-change positive">
+            Tous repas
+          </div>
+        </div>
+        <div className="koursier-stats-card koursier-metric-card">
+          <div className="koursier-stats-label">Catégories Actives</div>
+          <div className="koursier-stats-value koursier-trend-up">
+            {categories?.length || 0}
+          </div>
+          <div className="koursier-stats-change positive">
+            100% actives
+          </div>
+        </div>
+        <div className="koursier-stats-card koursier-metric-card">
+          <div className="koursier-stats-label">Restaurants</div>
+          <div className="koursier-stats-value koursier-trend-up">
+            {categories ? new Set(categories.map(c => c.restaurantId)).size : 0}
+          </div>
+          <div className="koursier-stats-change positive">
+            Unique restaurants
+          </div>
+        </div>
       </div>
 
       {/* Recherche */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Rechercher</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
+      <div className="koursier-chart-container">
+        <h3 className="koursier-heading-4 mb-4">Rechercher</h3>
+        <div className="koursier-search-container max-w-md">
+          <input
+            type="text"
             placeholder="Rechercher par nom, description ou restaurant..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="koursier-search-input"
           />
-        </CardContent>
-      </Card>
+          <IconCategory className="koursier-search-icon" />
+        </div>
+      </div>
 
       {/* Liste des catégories */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Catégories ({filteredCategories?.length || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Restaurant</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Repas</TableHead>
-                  <TableHead>Créée le</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCategories?.map((categorie) => (
-                  <TableRow key={categorie.id} className="Koursier-table-row">
-                    <TableCell>
+      <div className="koursier-chart-container">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="koursier-heading-3">Catégories</h3>
+          <div className="koursier-badge koursier-badge-info">
+            {filteredCategories?.length || 0} catégorie{filteredCategories?.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+        
+        <div className="overflow-x-auto koursier-scrollable">
+          <table className="koursier-data-table">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>Restaurant</th>
+                <th>Description</th>
+                <th>Repas</th>
+                <th>Créée le</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCategories?.map((categorie) => (
+                <tr key={categorie.id} className="koursier-interactive">
+                  <td>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={getImageUrl(categorie.image)} />

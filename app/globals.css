@@ -1737,3 +1737,453 @@ body {
     0 0 30px rgba(59, 130, 246, 0.3),
     inset 0 0 20px rgba(147, 51, 234, 0.1);
 }
+
+/* ===== DASHBOARD ENHANCED STYLES FOR DATA READABILITY ===== */
+
+/* Enhanced Table Styles for Better Data Presentation */
+.koursier-data-table {
+  @apply w-full border-collapse bg-card rounded-lg overflow-hidden shadow-sm;
+}
+
+.koursier-data-table thead {
+  @apply bg-gradient-to-r from-primary/10 to-secondary/10;
+}
+
+.koursier-data-table th {
+  @apply text-left font-semibold text-xs text-muted-foreground uppercase tracking-wider py-4 px-6 border-b border-border/50;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
+}
+
+.koursier-data-table td {
+  @apply py-4 px-6 border-b border-border/30 text-sm font-medium text-foreground;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.koursier-data-table tbody tr {
+  @apply transition-all duration-200 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5;
+}
+
+.koursier-data-table tbody tr:hover {
+  @apply shadow-sm scale-[1.005];
+  transform-origin: center;
+}
+
+.koursier-data-table tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+/* Enhanced Cards with Better Visual Hierarchy */
+.koursier-stats-card {
+  @apply bg-gradient-to-br from-card via-card to-muted/10 border border-border/40 rounded-xl p-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden;
+}
+
+.koursier-stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.koursier-stats-card:hover::before {
+  opacity: 1;
+}
+
+.koursier-stats-value {
+  @apply text-3xl font-bold text-foreground mb-2;
+}
+
+.koursier-stats-label {
+  @apply text-sm font-medium text-muted-foreground uppercase tracking-wide;
+}
+
+.koursier-stats-change {
+  @apply text-xs font-medium px-2 py-1 rounded-full;
+}
+
+.koursier-stats-change.positive {
+  @apply bg-green-500/10 text-green-600 dark:text-green-400;
+}
+
+.koursier-stats-change.negative {
+  @apply bg-red-500/10 text-red-600 dark:text-red-400;
+}
+
+/* Enhanced Form Controls */
+.koursier-form-input {
+  @apply w-full h-11 px-4 py-3 rounded-lg border border-input bg-background text-sm placeholder:text-muted-foreground;
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:border-primary/50;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+  @apply transition-all duration-200;
+}
+
+.koursier-form-input:focus {
+  @apply shadow-sm scale-[1.02];
+  transform-origin: center;
+}
+
+.koursier-form-label {
+  @apply text-sm font-semibold text-foreground mb-2 flex items-center gap-1;
+}
+
+.koursier-form-required {
+  @apply text-destructive;
+}
+
+/* Enhanced Button System */
+.koursier-btn {
+  @apply inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  @apply disabled:pointer-events-none disabled:opacity-50;
+}
+
+.koursier-btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md hover:scale-[1.02];
+}
+
+.koursier-btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border/60;
+}
+
+.koursier-btn-ghost {
+  @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+.koursier-btn-sm {
+  @apply h-8 px-3 text-xs;
+}
+
+.koursier-btn-md {
+  @apply h-10 px-4 py-2;
+}
+
+.koursier-btn-lg {
+  @apply h-12 px-6 text-base;
+}
+
+/* Enhanced Loading States */
+.koursier-skeleton {
+  @apply bg-gradient-to-r from-muted via-muted/50 to-muted animate-pulse rounded;
+}
+
+.koursier-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.koursier-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: shimmer-animation 2s infinite;
+}
+
+@keyframes shimmer-animation {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Enhanced Badge System */
+.koursier-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors;
+}
+
+.koursier-badge-success {
+  @apply bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/20;
+}
+
+.koursier-badge-warning {
+  @apply bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20;
+}
+
+.koursier-badge-error {
+  @apply bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20;
+}
+
+.koursier-badge-info {
+  @apply bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20;
+}
+
+.koursier-badge-neutral {
+  @apply bg-gray-500/10 text-gray-700 dark:text-gray-400 border border-gray-500/20;
+}
+
+/* Enhanced Search and Filter Components */
+.koursier-search-container {
+  @apply relative flex-1;
+}
+
+.koursier-search-input {
+  @apply w-full h-10 pl-10 pr-4 rounded-lg border border-input bg-background text-sm;
+  @apply placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  @apply transition-all duration-200;
+}
+
+.koursier-search-icon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none;
+}
+
+/* Enhanced Modal and Dialog Styles */
+.koursier-modal-overlay {
+  @apply fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out;
+  @apply data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0;
+}
+
+.koursier-modal-content {
+  @apply fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%];
+  @apply gap-4 border bg-background p-6 shadow-lg duration-200;
+  @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0;
+  @apply data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95;
+  @apply data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%];
+  @apply data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg;
+}
+
+/* Enhanced Avatar System */
+.koursier-avatar {
+  @apply relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-border/50;
+  @apply hover:border-border transition-colors duration-200;
+}
+
+.koursier-avatar-lg {
+  @apply h-16 w-16;
+}
+
+.koursier-avatar-sm {
+  @apply h-8 w-8;
+}
+
+.koursier-avatar-status {
+  @apply absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background;
+}
+
+.koursier-avatar-status.online {
+  @apply bg-green-500;
+}
+
+.koursier-avatar-status.offline {
+  @apply bg-gray-400;
+}
+
+.koursier-avatar-status.busy {
+  @apply bg-red-500;
+}
+
+.koursier-avatar-status.away {
+  @apply bg-yellow-500;
+}
+
+/* Enhanced Typography Hierarchy */
+.koursier-heading-1 {
+  @apply text-3xl font-bold tracking-tight text-foreground;
+}
+
+.koursier-heading-2 {
+  @apply text-2xl font-semibold tracking-tight text-foreground;
+}
+
+.koursier-heading-3 {
+  @apply text-xl font-semibold text-foreground;
+}
+
+.koursier-heading-4 {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.koursier-body {
+  @apply text-sm text-foreground leading-relaxed;
+}
+
+.koursier-caption {
+  @apply text-xs text-muted-foreground;
+}
+
+.koursier-label {
+  @apply text-sm font-medium text-foreground;
+}
+
+/* Enhanced Progress Indicators */
+.koursier-progress {
+  @apply relative h-2 w-full overflow-hidden rounded-full bg-secondary;
+}
+
+.koursier-progress-indicator {
+  @apply h-full w-full flex-1 bg-primary transition-all duration-500;
+}
+
+/* Micro-interactions and Feedback */
+.koursier-interactive {
+  @apply cursor-pointer transition-all duration-200;
+}
+
+.koursier-interactive:hover {
+  @apply scale-[1.02];
+}
+
+.koursier-interactive:active {
+  @apply scale-[0.98];
+}
+
+/* Enhanced Scrollbar for Data Tables */
+.koursier-scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
+
+.koursier-scrollable::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.koursier-scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.koursier-scrollable::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.koursier-scrollable::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Data Visualization Enhancements */
+.koursier-chart-container {
+  @apply bg-card rounded-lg p-6 border border-border/50 shadow-sm;
+}
+
+.koursier-metric-card {
+  @apply bg-gradient-to-br from-card to-muted/5 rounded-lg p-4 border border-border/40;
+  @apply hover:shadow-md transition-all duration-300 hover:border-border/60;
+}
+
+.koursier-trend-up {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.koursier-trend-down {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.koursier-trend-neutral {
+  @apply text-gray-600 dark:text-gray-400;
+}
+
+/* Enhanced Navigation */
+.koursier-nav-item {
+  @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200;
+  @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+.koursier-nav-item.active {
+  @apply bg-primary/10 text-primary border border-primary/20;
+}
+
+.koursier-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  background: hsl(var(--primary));
+  border-radius: 0 2px 2px 0;
+  transform: translateY(-50%);
+}
+
+/* Responsive Optimizations */
+@media (max-width: 768px) {
+  .koursier-data-table {
+    @apply text-xs;
+  }
+  
+  .koursier-data-table th,
+  .koursier-data-table td {
+    @apply py-3 px-4;
+  }
+  
+  .koursier-stats-card {
+    @apply p-4;
+  }
+  
+  .koursier-stats-value {
+    @apply text-2xl;
+  }
+}
+
+/* Print Optimizations */
+@media print {
+  .koursier-data-table,
+  .koursier-stats-card,
+  .koursier-chart-container {
+    @apply shadow-none border border-gray-300 break-inside-avoid;
+  }
+  
+  .koursier-data-table thead {
+    @apply bg-gray-100;
+  }
+  
+  .koursier-interactive:hover {
+    @apply scale-100;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .koursier-data-table th {
+    @apply border-foreground/30;
+  }
+  
+  .koursier-data-table td {
+    @apply border-foreground/20;
+  }
+  
+  .koursier-stats-card {
+    @apply border-foreground/40;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .koursier-data-table tbody tr,
+  .koursier-stats-card,
+  .koursier-btn,
+  .koursier-interactive {
+    @apply transition-none;
+  }
+  
+  .koursier-shimmer::after {
+    animation: none;
+  }
+}
+
+/* Focus Management for Accessibility */
+.koursier-focus-visible:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
