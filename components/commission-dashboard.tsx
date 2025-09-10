@@ -125,7 +125,6 @@ export function CommissionDashboard() {
     return {
       total: deliveries.reduce((sum, d) => sum + d.earnings.commissionAdmin, 0),
       completed: deliveries.filter(d => d.status === 'LIVREE').length,
-      pending: deliveries.filter(d => d.status === 'EN_ATTENTE').length,
       cancelled: deliveries.filter(d => d.status === 'ANNULEE').length,
       totalRevenue: deliveries.reduce((sum, d) => sum + d.earnings.prixCommande, 0)
     };
@@ -169,90 +168,87 @@ export function CommissionDashboard() {
   return (
     <div className="space-y-6">
       {/* En-tête avec statistiques */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <IconTrendingUp className="h-5 w-5" />
-            Tableau de Bord des Commissions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-              <div className="text-2xl font-bold text-green-700">{formatCurrency(filteredStats.total)}</div>
-              <div className="text-sm text-green-600">Total Commissions Admin</div>
+      <div className="koursier-stats-card">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-primary/10 rounded-xl">
+            <IconTrendingUp className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="koursier-heading-2">Tableau de Bord des Commissions</h1>
+        </div>
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+              <div className="koursier-stats-value text-green-600">{formatCurrency(filteredStats.total)}</div>
+              <div className="koursier-stats-label text-green-500/80">Total Commissions Admin</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-              <div className="text-2xl font-bold text-purple-700">{formatCurrency(filteredStats.totalRevenue)}</div>
-              <div className="text-sm text-purple-600">Chiffre d'Affaires Total</div>
+            <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+              <div className="koursier-stats-value text-purple-600">{formatCurrency(filteredStats.totalRevenue)}</div>
+              <div className="koursier-stats-label text-purple-500/80">Chiffre d'Affaires Total</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-              <div className="text-2xl font-bold text-blue-700">{filteredStats.completed}</div>
-              <div className="text-sm text-blue-600">Livraisons Complétées</div>
+            <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+              <div className="koursier-stats-value text-blue-600">{filteredStats.completed}</div>
+              <div className="koursier-stats-label text-blue-500/80">Livraisons Complétées</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-700">{filteredStats.pending}</div>
-              <div className="text-sm text-yellow-600">En attente</div>
-            </div>
-            <div className="text-center p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg">
-              <div className="text-2xl font-bold text-red-700">{filteredStats.cancelled}</div>
-              <div className="text-sm text-red-600">Annulées</div>
+            <div className="koursier-metric-card bg-gradient-to-br from-red-500/5 to-red-600/10">
+              <div className="koursier-stats-value text-red-600">{filteredStats.cancelled}</div>
+              <div className="koursier-stats-label text-red-500/80">Annulées</div>
             </div>
           </div>
           
           {/* Commissions par type de service */}
           {stats && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-4">Commissions par Type de Service</h3>
+            <div>
+              <h3 className="koursier-heading-3 mb-6">Commissions par Type de Service</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <IconPizza className="h-5 w-5 text-orange-600" />
-                    <span className="font-medium">Repas</span>
+                <div className="koursier-metric-card">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="p-2 bg-orange-500/10 rounded-lg">
+                      <IconPizza className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <span className="koursier-label">Repas</span>
                   </div>
-                  <div className="text-xl font-bold text-orange-600">
+                  <div className="koursier-stats-value text-orange-600">
                     {formatCurrency(stats.commissionsByType.REPAS)}
                   </div>
                 </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <IconPackage className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Colis</span>
+                <div className="koursier-metric-card">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                      <IconPackage className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <span className="koursier-label">Colis</span>
                   </div>
-                  <div className="text-xl font-bold text-blue-600">
+                  <div className="koursier-stats-value text-blue-600">
                     {formatCurrency(stats.commissionsByType.COLIS)}
                   </div>
                 </div>
-                <div className="text-center p-4 border rounded-lg">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <IconGasStation className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Gaz</span>
+                <div className="koursier-metric-card">
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    <div className="p-2 bg-green-500/10 rounded-lg">
+                      <IconGasStation className="h-6 w-6 text-green-600" />
+                    </div>
+                    <span className="koursier-label">Gaz</span>
                   </div>
-                  <div className="text-xl font-bold text-green-600">
+                  <div className="koursier-stats-value text-green-600">
                     {formatCurrency(stats.commissionsByType.GAZ)}
                   </div>
                 </div>
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <CardTitle className="text-lg">Filtres</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <IconDownload className="h-4 w-4 mr-2" />
-                Exporter
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="koursier-stats-card">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
+          <h2 className="koursier-heading-3">Filtres</h2>
+          <button className="koursier-btn koursier-btn-secondary koursier-btn-sm">
+            <IconDownload className="h-4 w-4 mr-2" />
+            Exporter
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger>
                 <SelectValue placeholder="Type de service" />
@@ -272,7 +268,6 @@ export function CommissionDashboard() {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="LIVREE">Livré</SelectItem>
-                <SelectItem value="EN_ATTENTE">En attente</SelectItem>
                 <SelectItem value="EN_COURS">En cours</SelectItem>
                 <SelectItem value="ANNULEE">Annulé</SelectItem>
               </SelectContent>
@@ -289,87 +284,98 @@ export function CommissionDashboard() {
                 <SelectItem value="month">30 derniers jours</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tableau des livraisons */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Historique des Livraisons ({filteredDeliveries.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID Livraison</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Montant Commande</TableHead>
-                  <TableHead>Commission Admin</TableHead>
-                  <TableHead>Gain Livreur</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      <div className="koursier-stats-card">
+        <h2 className="koursier-heading-3 mb-6">Historique des Livraisons ({filteredDeliveries.length})</h2>
+        <div className="koursier-scrollable overflow-x-auto">
+          <table className="koursier-data-table">
+            <thead>
+              <tr>
+                <th>ID Livraison</th>
+                <th>Type</th>
+                <th>Client</th>
+                <th>Montant Commande</th>
+                <th>Commission Admin</th>
+                <th>Gain Livreur</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
                 {filteredDeliveries.slice(0, 50).map((delivery) => {
                   const TypeIcon = typeConfig[delivery.typeLivraison as keyof typeof typeConfig]?.icon || IconPackage;
                   const typeInfo = typeConfig[delivery.typeLivraison as keyof typeof typeConfig];
                   const statusInfo = statusConfig[delivery.status as keyof typeof statusConfig] || statusConfig['EN_ATTENTE'];
                   
                   return (
-                    <TableRow key={delivery.id}>
-                      <TableCell className="font-medium">#{delivery.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <TypeIcon className="h-4 w-4" />
+                    <tr key={delivery.id}>
+                      <td className="font-bold text-primary">#{delivery.id}</td>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${typeInfo?.color?.includes('orange') ? 'bg-orange-500/10' : typeInfo?.color?.includes('blue') ? 'bg-blue-500/10' : 'bg-green-500/10'}`}>
+                            <TypeIcon className="h-4 w-4" />
+                          </div>
                           {typeInfo && (
-                            <Badge className={typeInfo.color}>
+                            <span className={`koursier-badge ${
+                              typeInfo.color.includes('orange') ? 'koursier-badge-warning' :
+                              typeInfo.color.includes('blue') ? 'koursier-badge-info' :
+                              'koursier-badge-success'
+                            }`}>
                               {typeInfo.label}
-                            </Badge>
+                            </span>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="koursier-label">
                         {delivery.details?.client?.username || 'Client inconnu'}
-                      </TableCell>
-                      <TableCell>{formatCurrency(delivery.earnings.prixCommande)}</TableCell>
-                      <TableCell className="font-semibold text-green-600">
+                      </td>
+                      <td className="font-semibold">{formatCurrency(delivery.earnings.prixCommande)}</td>
+                      <td className="font-bold koursier-trend-up">
                         {formatCurrency(delivery.earnings.commissionAdmin)}
-                      </TableCell>
-                      <TableCell className="font-semibold text-blue-600">
+                      </td>
+                      <td className="font-bold text-blue-600">
                         {formatCurrency(delivery.earnings.gainLivreur)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={statusInfo.color}>
+                      </td>
+                      <td>
+                        <span className={`koursier-badge ${
+                          statusInfo.color.includes('green') ? 'koursier-badge-success' :
+                          statusInfo.color.includes('red') ? 'koursier-badge-error' :
+                          statusInfo.color.includes('blue') ? 'koursier-badge-info' :
+                          'koursier-badge-neutral'
+                        }`}>
                           {statusInfo.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                        </span>
+                      </td>
+                      <td className="koursier-caption">
                         {formatDate(delivery.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">
+                      </td>
+                      <td>
+                        <button className="koursier-btn koursier-btn-ghost koursier-btn-sm">
                           <IconEye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                        </button>
+                      </td>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {filteredDeliveries.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucune livraison trouvée avec les filtres sélectionnés.
+            </tbody>
+          </table>
+        </div>
+        
+        {filteredDeliveries.length === 0 && (
+          <div className="text-center py-12">
+            <div className="koursier-heading-4 text-muted-foreground mb-2">
+              Aucune livraison trouvée
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="koursier-body text-muted-foreground">
+              Aucune livraison ne correspond aux filtres sélectionnés.
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
