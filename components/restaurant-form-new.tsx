@@ -80,6 +80,17 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
 
   const [errors, setErrors] = useState<any>({});
 
+  // État pour les horaires
+  const [horaires, setHoraires] = useState([
+    { jour: "Lundi", heures: "09:00-18:00" },
+    { jour: "Mardi", heures: "09:00-18:00" },
+    { jour: "Mercredi", heures: "09:00-18:00" },
+    { jour: "Jeudi", heures: "09:00-18:00" },
+    { jour: "Vendredi", heures: "09:00-18:00" },
+    { jour: "Samedi", heures: "09:00-18:00" },
+    { jour: "Dimanche", heures: "Fermé" }
+  ]);
+
   // Liste des villes du Cameroun
   const villes = [
     { id: 1, name: "Douala", region: "Littoral" },
@@ -94,7 +105,7 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
     { id: 10, name: "Kribi", region: "Sud" }
   ];
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -109,6 +120,30 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
         [field]: null
       }));
     }
+  };
+
+  // Gestion des horaires
+  const handleHoraireChange = (index: number, newHeures: string) => {
+    const newHoraires = [...horaires];
+    newHoraires[index].heures = newHeures;
+    setHoraires(newHoraires);
+  };
+
+  const setAllHoraires = (heures: string) => {
+    const newHoraires = horaires.map(h => ({ ...h, heures }));
+    setHoraires(newHoraires);
+  };
+
+  const resetHoraires = () => {
+    setHoraires([
+      { jour: "Lundi", heures: "09:00-18:00" },
+      { jour: "Mardi", heures: "09:00-18:00" },
+      { jour: "Mercredi", heures: "09:00-18:00" },
+      { jour: "Jeudi", heures: "09:00-18:00" },
+      { jour: "Vendredi", heures: "09:00-18:00" },
+      { jour: "Samedi", heures: "09:00-18:00" },
+      { jour: "Dimanche", heures: "Fermé" }
+    ]);
   };
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +286,8 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
         adminId: admin?.id || 1, // Utiliser l'ID de l'admin connecté
         adminCommissionPercent: parseFloat(formData.adminCommissionPercent),
         restaurantCommissionPercent: parseFloat(formData.restaurantCommissionPercent),
-        image: imageUrl // Utiliser l'URL de l'image uploadée
+        image: imageUrl, // Utiliser l'URL de l'image uploadée
+        heuresOuverture: horaires
       };
 
       console.log('🔄 Création du restaurant:', restaurantData);
@@ -277,9 +313,10 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
         image: ""
       });
 
-      // Réinitialiser les états d'image
+      // Réinitialiser les états d'image et horaires
       setSelectedImageFile(null);
       setImagePreview("");
+      resetHoraires();
       setCurrentStep(1);
       onOpenChange(false);
 
@@ -687,6 +724,124 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
       case 4:
         return (
           <div className="space-y-6">
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-blue-700">
+                  <IconClock className="h-5 w-5" />
+                  Horaires d'ouverture
+                </CardTitle>
+                <p className="text-sm text-blue-600 mt-2">
+                  Définissez les horaires de votre restaurant pour chaque jour de la semaine
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Actions rapides */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("09:00-18:00")}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    <IconClock className="h-3 w-3 mr-1" />
+                    9h-18h pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("08:00-22:00")}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    <IconClock className="h-3 w-3 mr-1" />
+                    8h-22h pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("Fermé")}
+                    className="border-red-300 text-red-700 hover:bg-red-100"
+                  >
+                    <IconX className="h-3 w-3 mr-1" />
+                    Fermé pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={resetHoraires}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                  >
+                    <IconTrash className="h-3 w-3 mr-1" />
+                    Réinitialiser
+                  </Button>
+                </div>
+
+                {/* Grille des horaires */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {horaires.map((horaire, index) => (
+                    <div key={horaire.jour} className="bg-white p-4 rounded-lg border border-blue-200 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <Label className="font-semibold text-blue-700">{horaire.jour}</Label>
+                        </div>
+                        <Select 
+                          value={horaire.heures} 
+                          onValueChange={(value) => handleHoraireChange(index, value)}
+                        >
+                          <SelectTrigger className="w-full border-blue-200 focus:border-blue-400">
+                            <SelectValue placeholder="Sélectionner les heures" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Fermé">Fermé</SelectItem>
+                            <SelectItem value="00:00-23:59">24h/24</SelectItem>
+                            <SelectItem value="06:00-22:00">6h00 - 22h00</SelectItem>
+                            <SelectItem value="07:00-23:00">7h00 - 23h00</SelectItem>
+                            <SelectItem value="08:00-20:00">8h00 - 20h00</SelectItem>
+                            <SelectItem value="08:00-22:00">8h00 - 22h00</SelectItem>
+                            <SelectItem value="09:00-18:00">9h00 - 18h00</SelectItem>
+                            <SelectItem value="09:00-21:00">9h00 - 21h00</SelectItem>
+                            <SelectItem value="10:00-22:00">10h00 - 22h00</SelectItem>
+                            <SelectItem value="11:00-23:00">11h00 - 23h00</SelectItem>
+                            <SelectItem value="12:00-14:00;19:00-22:00">12h00-14h00 ; 19h00-22h00</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {horaire.heures !== "Fermé" && (
+                          <div className="text-xs text-green-600 font-medium">
+                            ✓ Ouvert {horaire.heures}
+                          </div>
+                        )}
+                        {horaire.heures === "Fermé" && (
+                          <div className="text-xs text-red-500 font-medium">
+                            ✕ Fermé
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-blue-600 font-medium text-sm">
+                      💡 Conseil :
+                    </div>
+                    <div className="text-blue-700 text-sm">
+                      Utilisez les boutons rapides pour définir les mêmes horaires pour tous les jours, puis modifiez individuellement si nécessaire. Vous pourrez modifier ces horaires plus tard depuis la gestion du restaurant.
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
             <Card className="border-purple-200 bg-purple-50/50">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2 text-purple-700">
@@ -751,6 +906,24 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
                           <p className="text-lg font-bold text-green-700">{formatCFA(restaurantCommissionCFA)}</p>
                         </div>
                         <p className="text-xs text-gray-600">*Exemple sur une commande de {formatCFA(1000000)}</p>
+                      </div>
+                    </div>
+
+                    {/* Horaires */}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-800 flex items-center gap-2">
+                        <IconClock className="h-4 w-4" />
+                        🕐 Horaires d'ouverture
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        {horaires.map((horaire) => (
+                          <div key={horaire.jour} className="flex justify-between p-2 bg-blue-50 rounded">
+                            <span className="font-medium">{horaire.jour}</span>
+                            <span className={horaire.heures === "Fermé" ? "text-red-500" : "text-green-600"}>
+                              {horaire.heures}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

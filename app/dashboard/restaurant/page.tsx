@@ -18,7 +18,11 @@ import {
   IconMapPin,
   IconPhone,
   IconClock,
-  IconStar
+  IconStar,
+  IconBuildingStore,
+  IconCheck,
+  IconCategory,
+  IconSearch
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,16 +235,14 @@ export default function RestaurantPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="h-8 bg-muted rounded w-1/3 animate-pulse" />
-        <Card className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 bg-muted rounded" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
+        <div className="koursier-stats-card">
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="koursier-skeleton h-12 rounded koursier-shimmer" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -250,197 +252,228 @@ export default function RestaurantPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold">Gestion des Restaurants</h1>
-          <p className="text-muted-foreground">
+          <h1 className="koursier-heading-1">Gestion des Restaurants</h1>
+          <p className="koursier-body text-muted-foreground">
             Gérez les restaurants partenaires de votre plateforme
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
+        <button className="koursier-btn koursier-btn-primary koursier-btn-md" onClick={() => setIsFormOpen(true)}>
           <IconPlus className="h-4 w-4 mr-2" />
           Nouveau restaurant
-        </Button>
+        </button>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Restaurants
-            </CardTitle>
-            <div className="text-2xl font-bold">{restaurants?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Restaurants Actifs
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{restaurants?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Moyenne Notes
-            </CardTitle>
-            <div className="text-2xl font-bold text-yellow-600">
-              {restaurants?.length > 0 
-                ? (restaurants.reduce((sum, r) => sum + (r.ratings || 4.5), 0) / restaurants.length).toFixed(1)
-                : "0.0"
-              }
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-blue-500/10 rounded-xl">
+              <IconBuildingStore className="h-6 w-6 text-blue-600" />
             </div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Catégories
-            </CardTitle>
-            <div className="text-2xl font-bold text-blue-600">
-              {restaurants?.reduce((sum, r) => sum + (r.categories?.length || 0), 0) || 0}
+            <div>
+              <div className="koursier-stats-value text-blue-600">{restaurants?.length || 0}</div>
+              <div className="koursier-stats-label text-blue-500/80">Total Restaurants</div>
             </div>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-green-500/10 rounded-xl">
+              <IconCheck className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-green-600">{restaurants?.length || 0}</div>
+              <div className="koursier-stats-label text-green-500/80">Restaurants Actifs</div>
+            </div>
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-yellow-500/10 rounded-xl">
+              <IconStar className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-yellow-600">
+                {restaurants?.length > 0 
+                  ? (restaurants.reduce((sum, r) => sum + (r.ratings || 4.5), 0) / restaurants.length).toFixed(1)
+                  : "0.0"
+                }
+              </div>
+              <div className="koursier-stats-label text-yellow-500/80">Moyenne Notes</div>
+            </div>
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-purple-500/10 rounded-xl">
+              <IconCategory className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-purple-600">
+                {restaurants?.reduce((sum, r) => sum + (r.categories?.length || 0), 0) || 0}
+              </div>
+              <div className="koursier-stats-label text-purple-500/80">Total Catégories</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Recherche */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Rechercher</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Rechercher par nom, adresse ou ville..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </CardContent>
-      </Card>
-
       {/* Liste des restaurants */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Restaurants ({filteredRestaurants?.length || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Restaurant</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Localisation</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Catégories</TableHead>
-                  <TableHead>Créé le</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      <div className="koursier-stats-card">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+          <h2 className="koursier-heading-3">Restaurants ({filteredRestaurants?.length || 0})</h2>
+          <div className="koursier-search-container max-w-md">
+            <IconSearch className="koursier-search-icon" />
+            <input
+              className="koursier-search-input"
+              placeholder="Rechercher par nom, adresse ou ville..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="koursier-scrollable overflow-x-auto">
+          <table className="koursier-data-table">
+            <thead>
+              <tr>
+                <th>Restaurant</th>
+                <th>Contact</th>
+                <th>Localisation</th>
+                <th>Note</th>
+                <th>Commission</th>
+                <th>Catégories</th>
+                <th>Créé le</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
                 {filteredRestaurants?.map((restaurant) => (
-                  <TableRow key={restaurant.id} className="Koursier-table-row">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={getImageUrl(restaurant.image)} />
-                          <AvatarFallback>{restaurant.name[0]}</AvatarFallback>
-                        </Avatar>
+                  <tr key={restaurant.id}>
+                    <td>
+                      <div className="flex items-center gap-4">
+                        <div className="koursier-avatar relative overflow-hidden rounded-full border-2 border-primary/10">
+                          {restaurant.image ? (
+                            <img 
+                              src={getImageUrl(restaurant.image)} 
+                              alt={restaurant.name}
+                              className="w-12 h-12 object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div 
+                            className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary font-bold text-lg" 
+                            style={{display: restaurant.image ? 'none' : 'flex'}}
+                          >
+                            {restaurant.name[0]?.toUpperCase()}
+                          </div>
+                        </div>
                         <div>
-                          <div className="font-medium">{restaurant.name}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {restaurant.description}
+                          <div className="koursier-label font-semibold">{restaurant.name}</div>
+                          <div className="koursier-caption text-muted-foreground">
+                            {restaurant.description.length > 16 ? `${restaurant.description.substring(0, 16)}...` : restaurant.description}
                           </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <IconPhone className="h-3 w-3" />
-                          {restaurant.phone}
+                    </td>
+                    <td>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="p-1.5 bg-green-500/10 rounded-md">
+                            <IconPhone className="h-3 w-3 text-green-600" />
+                          </div>
+                          <span className="font-medium">{restaurant.phone}</span>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="koursier-caption text-muted-foreground pl-6">
                           {restaurant.admin?.email}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm">
-                          <IconMapPin className="h-3 w-3" />
-                          {restaurant.adresse}
+                    </td>
+                    <td>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="p-1.5 bg-blue-500/10 rounded-md">
+                            <IconMapPin className="h-3 w-3 text-blue-600" />
+                          </div>
+                          <span className="font-medium">{restaurant.adresse}</span>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="koursier-caption text-muted-foreground pl-6">
                           {restaurant.ville?.name}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 rounded-lg">
                         <IconStar className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span>{restaurant.ratings?.toFixed(1) || "4.5"}</span>
+                        <span className="font-bold text-yellow-600">{restaurant.ratings?.toFixed(1) || "4.5"}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm">
-                          Admin: {(restaurant.adminCommissionPercent * 100).toFixed(0)}%
+                    </td>
+                    <td>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="koursier-badge koursier-badge-success text-xs">
+                            Admin: {(restaurant.adminCommissionPercent * 100).toFixed(0)}%
+                          </span>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Restaurant: {(restaurant.restaurantCommissionPercent * 100).toFixed(0)}%
+                        <div className="flex items-center gap-2">
+                          <span className="koursier-badge koursier-badge-info text-xs">
+                            Restaurant: {(restaurant.restaurantCommissionPercent * 100).toFixed(0)}%
+                          </span>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
+                    </td>
+                    <td>
+                      <span className="koursier-badge koursier-badge-neutral">
                         {restaurant.categories?.length || 0} catégories
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                      </span>
+                    </td>
+                    <td className="koursier-caption">
                       {formatDate(restaurant.createdAt)}
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td>
                       <div className="flex items-center gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
+                        <button 
+                          className="koursier-btn koursier-btn-ghost koursier-btn-sm"
                           onClick={() => handleView(restaurant)}
                           title="Voir les détails"
                         >
                           <IconEye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
+                        </button>
+                        <button 
+                          className="koursier-btn koursier-btn-ghost koursier-btn-sm"
                           onClick={() => handleEdit(restaurant)}
                         >
                           <IconEdit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
+                        </button>
+                        <button 
+                          className="koursier-btn koursier-btn-ghost koursier-btn-sm"
                           onClick={() => openDeleteDialog(restaurant)}
                         >
                           <IconTrash className="h-4 w-4 text-red-500" />
-                        </Button>
+                        </button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {(!filteredRestaurants || filteredRestaurants.length === 0) && (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "Aucun restaurant trouvé pour cette recherche." : (loading ? "Chargement..." : "Aucun restaurant enregistré.")}
+            </tbody>
+          </table>
+        </div>
+        
+        {(!filteredRestaurants || filteredRestaurants.length === 0) && (
+          <div className="text-center py-12">
+            <div className="koursier-heading-4 text-muted-foreground mb-2">
+              {searchTerm ? "Aucun restaurant trouvé" : (loading ? "Chargement..." : "Aucun restaurant enregistré")}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="koursier-body text-muted-foreground">
+              {searchTerm ? "Aucun restaurant ne correspond à votre recherche." : "Commencez par ajouter votre premier restaurant."}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Formulaire de création/édition */}
       <RestaurantForm

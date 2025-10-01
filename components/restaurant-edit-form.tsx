@@ -10,7 +10,10 @@ import {
   IconDeviceFloppy,
   IconEdit,
   IconPercentage,
-  IconFileText
+  IconFileText,
+  IconCategory,
+  IconPlus,
+  IconTrash
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +57,16 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
     restaurantCommissionPercent: ""
   });
 
+  const [horaires, setHoraires] = useState([
+    { jour: "Lundi", heures: "09:00-18:00" },
+    { jour: "Mardi", heures: "09:00-18:00" },
+    { jour: "Mercredi", heures: "09:00-18:00" },
+    { jour: "Jeudi", heures: "09:00-18:00" },
+    { jour: "Vendredi", heures: "09:00-18:00" },
+    { jour: "Samedi", heures: "09:00-18:00" },
+    { jour: "Dimanche", heures: "Fermé" }
+  ]);
+
   const [errors, setErrors] = useState<any>({});
 
   // Liste des villes (vous devrez adapter selon votre API)
@@ -78,6 +91,15 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
         adminCommissionPercent: restaurant.adminCommissionPercent?.toString() || "",
         restaurantCommissionPercent: restaurant.restaurantCommissionPercent?.toString() || ""
       });
+
+      // Remplir les horaires avec les données du restaurant ou valeurs par défaut
+      if (restaurant.heuresOuverture && restaurant.heuresOuverture.length > 0) {
+        const restaurantHoraires = restaurant.heuresOuverture.map(h => ({
+          jour: h.jour,
+          heures: h.heures
+        }));
+        setHoraires(restaurantHoraires);
+      }
     }
   }, [restaurant, open]);
 
@@ -93,6 +115,52 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
         ...prev,
         [field]: null
       }));
+    }
+  };
+
+  // Gestion des horaires
+  const handleHoraireChange = (index: number, newHeures: string) => {
+    const newHoraires = [...horaires];
+    newHoraires[index].heures = newHeures;
+    setHoraires(newHoraires);
+  };
+
+  const setAllHoraires = (heures: string) => {
+    const newHoraires = horaires.map(h => ({ ...h, heures }));
+    setHoraires(newHoraires);
+  };
+
+  const resetHoraires = () => {
+    setHoraires([
+      { jour: "Lundi", heures: "09:00-18:00" },
+      { jour: "Mardi", heures: "09:00-18:00" },
+      { jour: "Mercredi", heures: "09:00-18:00" },
+      { jour: "Jeudi", heures: "09:00-18:00" },
+      { jour: "Vendredi", heures: "09:00-18:00" },
+      { jour: "Samedi", heures: "09:00-18:00" },
+      { jour: "Dimanche", heures: "Fermé" }
+    ]);
+  };
+
+  // Fonction pour sauvegarder les horaires via API
+  const saveHoraires = async (restaurantId: number) => {
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}/heures/bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ horaires })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la sauvegarde des horaires');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API horaires:', error);
+      throw error;
     }
   };
 
@@ -171,6 +239,15 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
 
       // Simuler la modification pour l'instant
       await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Sauvegarder les horaires
+      try {
+        await saveHoraires(restaurant.id);
+        console.log('✅ Horaires sauvegardés');
+      } catch (horaireError) {
+        console.error('⚠️ Erreur lors de la sauvegarde des horaires:', horaireError);
+        // Ne pas bloquer la fermeture pour une erreur d'horaires
+      }
 
       // Fermer le modal
       onOpenChange(false);
@@ -330,6 +407,199 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
                     className={errors.longitude ? 'border-red-500' : ''}
                   />
                   {errors.longitude && <p className="text-sm text-red-500">{errors.longitude}</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Catégories */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconCategory className="h-5 w-5" />
+                Catégories du restaurant
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {restaurant?.categories && restaurant.categories.length > 0 ? (
+                  <>
+                    <div className="text-sm text-muted-foreground mb-3">
+                      Ce restaurant propose {restaurant.categories.length} catégorie{restaurant.categories.length > 1 ? 's' : ''}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {restaurant.categories.map((category: any) => (
+                        <div key={category.id} className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+                          <div className="flex items-center gap-3">
+                            {category.image ? (
+                              <div className="w-12 h-12 rounded-lg overflow-hidden bg-purple-500/10">
+                                <img 
+                                  src={category.image} 
+                                  alt={category.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center text-purple-600 font-bold" style={{display: 'none'}}>
+                                  {category.name[0]?.toUpperCase()}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg flex items-center justify-center text-purple-600 font-bold">
+                                {category.name[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <div className="koursier-label font-semibold text-purple-700">{category.name}</div>
+                              {category.description && (
+                                <div className="koursier-caption text-muted-foreground">
+                                  {category.description.length > 50 ? `${category.description.substring(0, 50)}...` : category.description}
+                                </div>
+                              )}
+                            </div>
+                            <span className="koursier-badge koursier-badge-info text-xs">
+                              ID: {category.id}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <div className="text-blue-600 font-medium text-sm">
+                          💡 Info :
+                        </div>
+                        <div className="text-blue-700 text-sm">
+                          La gestion des catégories se fait depuis la page dédiée. Vous pouvez ajouter, modifier ou supprimer des catégories dans la section "Catégories".
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="koursier-heading-4 text-muted-foreground mb-2">
+                      Aucune catégorie
+                    </div>
+                    <div className="koursier-body text-muted-foreground mb-4">
+                      Ce restaurant n'a pas encore de catégories définies.
+                    </div>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <div className="text-yellow-700 text-sm">
+                        🔧 Rendez-vous dans la section "Catégories" pour ajouter des catégories à ce restaurant.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Horaires d'ouverture */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <IconClock className="h-5 w-5" />
+                Horaires d'ouverture
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Actions rapides */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("09:00-18:00")}
+                  >
+                    <IconClock className="h-3 w-3 mr-1" />
+                    9h-18h pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("08:00-22:00")}
+                  >
+                    <IconClock className="h-3 w-3 mr-1" />
+                    8h-22h pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setAllHoraires("Fermé")}
+                  >
+                    <IconX className="h-3 w-3 mr-1" />
+                    Fermé pour tous
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={resetHoraires}
+                  >
+                    <IconTrash className="h-3 w-3 mr-1" />
+                    Réinitialiser
+                  </Button>
+                </div>
+
+                {/* Grille des horaires */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {horaires.map((horaire, index) => (
+                    <div key={horaire.jour} className="koursier-metric-card">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-primary"></div>
+                          <Label className="koursier-label font-semibold">{horaire.jour}</Label>
+                        </div>
+                        <Select 
+                          value={horaire.heures} 
+                          onValueChange={(value) => handleHoraireChange(index, value)}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Sélectionner les heures" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Fermé">Fermé</SelectItem>
+                            <SelectItem value="00:00-23:59">24h/24</SelectItem>
+                            <SelectItem value="06:00-22:00">6h00 - 22h00</SelectItem>
+                            <SelectItem value="07:00-23:00">7h00 - 23h00</SelectItem>
+                            <SelectItem value="08:00-20:00">8h00 - 20h00</SelectItem>
+                            <SelectItem value="08:00-22:00">8h00 - 22h00</SelectItem>
+                            <SelectItem value="09:00-18:00">9h00 - 18h00</SelectItem>
+                            <SelectItem value="09:00-21:00">9h00 - 21h00</SelectItem>
+                            <SelectItem value="10:00-22:00">10h00 - 22h00</SelectItem>
+                            <SelectItem value="11:00-23:00">11h00 - 23h00</SelectItem>
+                            <SelectItem value="12:00-14:00;19:00-22:00">12h00-14h00 ; 19h00-22h00</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {horaire.heures !== "Fermé" && (
+                          <div className="text-xs text-muted-foreground">
+                            ✓ Ouvert {horaire.heures}
+                          </div>
+                        )}
+                        {horaire.heures === "Fermé" && (
+                          <div className="text-xs text-red-500">
+                            ✕ Fermé
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="text-blue-600 font-medium text-sm">
+                      💡 Conseil :
+                    </div>
+                    <div className="text-blue-700 text-sm">
+                      Utilisez les boutons rapides pour définir les mêmes horaires pour tous les jours, puis modifiez individuellement si nécessaire.
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

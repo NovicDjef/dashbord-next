@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { 
   fetchCategoriesData, 
@@ -9,29 +9,14 @@ import {
   deleteCategory,
   clearError 
 } from "@/redux/categoriesSlice";
-import { fetchRepas } from "@/redux/repasSlice";
 import { fetchRestaurantsData } from "@/redux/restaurantSlice";
-import { 
-  IconPlus, 
-  IconEdit, 
-  IconTrash, 
-  IconEye,
-  IconPhoto,
-  IconChefHat,
-  IconCategory
-} from "@tabler/icons-react";
-import { BASE_URL } from "@/services/urlApp";
+import { fetchRepas } from "@/redux/repasSlice";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -51,44 +36,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { 
+  IconCategory, 
+  IconPlus, 
+  IconSearch, 
+  IconEdit, 
+  IconTrash, 
+  IconEye,
+  IconTrendingUp
+} from "@tabler/icons-react";
 
-interface Categorie {
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+interface CategoryFormData {
+  name: string;
+  description: string;
+  image?: File | string;
+  restaurantId?: number;
+}
+
+interface CategorieInterface {
   id: number;
   name: string;
-  image?: string;
   description: string;
+  image?: string;
   restaurantId: number;
-  createdAt: string;
-  updatedAt: string;
   restaurant?: {
     id: number;
     name: string;
   };
-  repas?: Array<{
-    id: number;
-    name: string;
-    price: number;
-    description: string;
-    image?: string;
-  }>;
-}
-
-interface CategorieFormData {
-  name: string;
-  description: string;
-  image?: string;
-  restaurantId: number;
+  createdAt: string;
 }
 
 export default function CategoriePage() {
@@ -97,107 +74,121 @@ export default function CategoriePage() {
   const { data: repas } = useSelector((state: any) => state.repas);
   const { data: restaurants } = useSelector((state: any) => state.restaurants);
   
-  const [filteredCategories, setFilteredCategories] = useState<Categorie[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedCategorie, setSelectedCategorie] = useState<Categorie | null>(null);
+  const [selectedCategorie, setSelectedCategorie] = useState<CategorieInterface | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categorieToDelete, setCategorieToDelete] = useState<Categorie | null>(null);
+  const [categorieToDelete, setCategorieToDelete] = useState<CategorieInterface | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
-  const loading = status === 'loading';
-  const submitLoading = status === 'loading';
-
-  // Form state
-  const [formData, setFormData] = useState<CategorieFormData>({
+  const [formData, setFormData] = useState<CategoryFormData>({
     name: "",
     description: "",
-    image: "",
-    restaurantId: 0
+    image: undefined,
+    restaurantId: undefined
   });
 
+  const loading = status === 'loading';
+  const filteredCategories = categories.filter((categorie: CategorieInterface) =>
+    categorie.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    categorie.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(() => {
-    dispatch(fetchCategoriesData());
-    dispatch(fetchRepas());
-    dispatch(fetchRestaurantsData());
+    dispatch(fetchCategoriesData() as any);
+    dispatch(fetchRestaurantsData() as any);
+    dispatch(fetchRepas() as any);
   }, [dispatch]);
 
   useEffect(() => {
-    if (searchTerm) {
-      const filtered = categories.filter(categorie =>
-        categorie.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        categorie.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        categorie.restaurant?.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredCategories(filtered);
-    } else {
-      setFilteredCategories(categories);
+    if (error) {
+      toast.error(error);
+      dispatch(clearError());
     }
-  }, [searchTerm, categories]);
+  }, [error, dispatch]);
 
-
-  const handleCreateOrUpdate = async () => {
-    try {
-      const categorieData = {
-        name: formData.name,
-        description: formData.description,
-        image: formData.image,
-        restaurantId: formData.restaurantId
-      };
-
-      if (selectedCategorie) {
-        // Update categorie
-        await dispatch(updateCategory({ id: selectedCategorie.id, data: categorieData }));
-      } else {
-        // Create categorie
-        await dispatch(createCategory(categorieData));
-      }
-      
-      // Close form
-      setIsFormOpen(false);
-      setSelectedCategorie(null);
-      resetForm();
-      
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      image: undefined,
+      restaurantId: undefined
+    });
+    setSelectedCategorie(null);
   };
 
-  const handleEdit = (categorie: Categorie) => {
+  const handleEdit = (categorie: CategorieInterface) => {
     setSelectedCategorie(categorie);
     setFormData({
       name: categorie.name,
       description: categorie.description,
-      image: categorie.image || "",
+      image: categorie.image,
       restaurantId: categorie.restaurantId
     });
     setIsFormOpen(true);
+  };
+
+  const openDeleteDialog = (categorie: CategorieInterface) => {
+    setCategorieToDelete(categorie);
+    setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
     if (!categorieToDelete) return;
     
     try {
-      await dispatch(deleteCategory(categorieToDelete.id));
+      await dispatch(deleteCategory(categorieToDelete.id) as any);
+      toast.success("Catégorie supprimée avec succès");
       setDeleteDialogOpen(false);
       setCategorieToDelete(null);
-      
     } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
+      toast.error("Erreur lors de la suppression");
     }
   };
 
-  const openDeleteDialog = (categorie: Categorie) => {
-    setCategorieToDelete(categorie);
-    setDeleteDialogOpen(true);
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast.error("Le nom de la catégorie est requis");
+      return;
+    }
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      image: "",
-      restaurantId: 0
-    });
+    if (!formData.restaurantId) {
+      toast.error("Veuillez sélectionner un restaurant");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('description', formData.description);
+      submitData.append('restaurantId', formData.restaurantId.toString());
+      
+      if (formData.image instanceof File) {
+        submitData.append('image', formData.image);
+      }
+
+      if (selectedCategorie) {
+        await dispatch(updateCategory({ 
+          id: selectedCategorie.id, 
+          categoryData: submitData 
+        }) as any);
+        toast.success("Catégorie modifiée avec succès");
+      } else {
+        await dispatch(createCategory(submitData) as any);
+        toast.success("Catégorie créée avec succès");
+      }
+
+      setIsFormOpen(false);
+      resetForm();
+    } catch (error) {
+      toast.error("Erreur lors de l'enregistrement");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -214,7 +205,7 @@ export default function CategoriePage() {
   };
 
   const getCategorieRepas = (categorieId: number) => {
-    return repas.filter(r => r.categorieId === categorieId || r.categoryId === categorieId);
+    return repas.filter((r: any) => r.categorieId === categorieId || r.categoryId === categorieId);
   };
 
   if (loading) {
@@ -235,175 +226,195 @@ export default function CategoriePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-      {/* En-tête */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconCategory className="h-6 w-6" />
-            Gestion des Catégories
-          </h1>
-          <p className="text-muted-foreground">
-            Organisez les repas par catégories pour vos restaurants
-          </p>
+    <div>
+      <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <IconCategory className="h-6 w-6" />
+              Gestion des Catégories
+            </h1>
+            <p className="text-muted-foreground">
+              Organisez les repas par catégories pour vos restaurants
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setIsFormOpen(true)}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <IconPlus className="h-4 w-4 mr-2" />
+                Nouvelle catégorie
+              </Button>
+            </div>
+            
+            <div className="relative w-full sm:w-64">
+              <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Rechercher une catégorie..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
         </div>
-        <Button onClick={() => {
-          setSelectedCategorie(null);
-          resetForm();
-          setIsFormOpen(true);
-        }}>
-          <IconPlus className="h-4 w-4 mr-2" />
-          Nouvelle catégorie
-        </Button>
-      </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="koursier-stats-card koursier-metric-card">
-          <div className="koursier-stats-label">Total Catégories</div>
-          <div className="koursier-stats-value">{categories?.length || 0}</div>
-          <div className="koursier-stats-change positive">
-            Toutes catégories
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="koursier-stat-card">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-blue-50 dark:bg-blue-500/10">
+                  <IconCategory className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold">{categories.length}</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="koursier-stats-card koursier-metric-card">
-          <div className="koursier-stats-label">Total Repas</div>
-          <div className="koursier-stats-value text-orange-600 dark:text-orange-400">
-            {repas?.length || 0}
-          </div>
-          <div className="koursier-stats-change positive">
-            Tous repas
-          </div>
-        </div>
-        <div className="koursier-stats-card koursier-metric-card">
-          <div className="koursier-stats-label">Catégories Actives</div>
-          <div className="koursier-stats-value koursier-trend-up">
-            {categories?.length || 0}
-          </div>
-          <div className="koursier-stats-change positive">
-            100% actives
-          </div>
-        </div>
-        <div className="koursier-stats-card koursier-metric-card">
-          <div className="koursier-stats-label">Restaurants</div>
-          <div className="koursier-stats-value koursier-trend-up">
-            {categories ? new Set(categories.map(c => c.restaurantId)).size : 0}
-          </div>
-          <div className="koursier-stats-change positive">
-            Unique restaurants
-          </div>
-        </div>
-      </div>
 
-      {/* Recherche */}
-      <div className="koursier-chart-container">
-        <h3 className="koursier-heading-4 mb-4">Rechercher</h3>
-        <div className="koursier-search-container max-w-md">
-          <input
-            type="text"
-            placeholder="Rechercher par nom, description ou restaurant..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="koursier-search-input"
-          />
-          <IconCategory className="koursier-search-icon" />
-        </div>
-      </div>
+          <div className="koursier-stat-card">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-green-50 dark:bg-green-500/10">
+                  <IconCategory className="h-5 w-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Repas</p>
+                  <p className="text-2xl font-bold">{repas.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Liste des catégories */}
-      <div className="koursier-chart-container">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="koursier-heading-3">Catégories</h3>
-          <div className="koursier-badge koursier-badge-info">
-            {filteredCategories?.length || 0} catégorie{filteredCategories?.length !== 1 ? 's' : ''}
+          <div className="koursier-stat-card">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-orange-50 dark:bg-orange-500/10">
+                  <IconCategory className="h-5 w-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Restaurants</p>
+                  <p className="text-2xl font-bold">{restaurants.length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="koursier-stat-card">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-purple-50 dark:bg-purple-500/10">
+                  <IconTrendingUp className="h-5 w-5 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Avg Repas/Cat</p>
+                  <p className="text-2xl font-bold">
+                    {categories.length > 0 ? Math.round(repas.length / categories.length) : 0}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <div className="overflow-x-auto koursier-scrollable">
-          <table className="koursier-data-table">
-            <thead>
-              <tr>
-                <th>Catégorie</th>
-                <th>Restaurant</th>
-                <th>Description</th>
-                <th>Repas</th>
-                <th>Créée le</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategories?.map((categorie) => (
-                <tr key={categorie.id} className="koursier-interactive">
-                  <td>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={getImageUrl(categorie.image)} />
-                          <AvatarFallback>
-                            <IconChefHat className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{categorie.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            ID: {categorie.id}
+
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Catégories ({filteredCategories.length})</h2>
+            
+            <div className="koursier-table-container">
+              <table className="w-full">
+                <thead>
+                  <tr className="koursier-table-header">
+                    <th className="koursier-table-cell text-left">Catégorie</th>
+                    <th className="koursier-table-cell text-left">Restaurant</th>
+                    <th className="koursier-table-cell text-left">Description</th>
+                    <th className="koursier-table-cell text-left">Repas</th>
+                    <th className="koursier-table-cell text-left">Date</th>
+                    <th className="koursier-table-cell text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCategories.map((categorie: CategorieInterface) => (
+                    <tr key={categorie.id} className="koursier-table-row">
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted">
+                            <img
+                              src={getImageUrl(categorie.image)}
+                              alt={categorie.name}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/placeholder-category.jpg";
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <div className="font-medium">{categorie.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              ID: {categorie.id}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">
-                        {categorie.restaurant?.name || `Restaurant ${categorie.restaurantId}`}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs line-clamp-2 text-sm text-muted-foreground">
-                        {categorie.description}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {getCategorieRepas(categorie.id).length} repas
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(categorie.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
-                          <IconEye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEdit(categorie)}
-                        >
-                          <IconEdit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => openDeleteDialog(categorie)}
-                        >
-                          <IconTrash className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {(!filteredCategories || filteredCategories.length === 0) && (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "Aucune catégorie trouvée pour cette recherche." : (loading ? "Chargement..." : "Aucune catégorie enregistrée.")}
+                      </td>
+                      <td>
+                        <div className="font-medium">
+                          {categorie.restaurant?.name || `Restaurant ${categorie.restaurantId}`}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="max-w-xs line-clamp-2 text-sm text-muted-foreground">
+                          {categorie.description}
+                        </div>
+                      </td>
+                      <td>
+                        <Badge variant="outline">
+                          {getCategorieRepas(categorie.id).length} repas
+                        </Badge>
+                      </td>
+                      <td className="text-sm text-muted-foreground">
+                        {formatDate(categorie.createdAt)}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm">
+                            <IconEye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEdit(categorie)}
+                          >
+                            <IconEdit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openDeleteDialog(categorie)}
+                          >
+                            <IconTrash className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            
+            {(!filteredCategories || filteredCategories.length === 0) && (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchTerm ? "Aucune catégorie trouvée pour cette recherche." : (loading ? "Chargement..." : "Aucune catégorie enregistrée.")}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-      {/* Formulaire de création/édition */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-3">
@@ -417,172 +428,96 @@ export default function CategoriePage() {
                 </DialogTitle>
                 <DialogDescription className="text-sm mt-1">
                   {selectedCategorie 
-                    ? "Modifiez les informations de la catégorie ci-dessous"
+                    ? "Modifiez les informations de la catégorie" 
                     : "Créez une nouvelle catégorie pour organiser vos repas"
                   }
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
-
-          <div className="space-y-6 py-4">
-            {/* Informations principales */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                <IconChefHat className="h-4 w-4" />
-                Informations principales
-              </h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1">
-                    Nom de la catégorie *
-                    <span className="text-red-500">•</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="Ex: Petit déjeuner, Plats principaux..."
-                    className="transition-all focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="restaurantId" className="text-sm font-medium flex items-center gap-1">
-                    Restaurant *
-                    <span className="text-red-500">•</span>
-                  </Label>
-                  <Select value={formData.restaurantId.toString()} onValueChange={(value) => setFormData({...formData, restaurantId: parseInt(value)})}>
-                    <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
-                      <SelectValue placeholder="Sélectionner un restaurant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {restaurants?.map((restaurant: any) => (
-                        <SelectItem key={restaurant.id} value={restaurant.id.toString()}>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            {restaurant.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid gap-6 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom de la catégorie</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  placeholder="Ex: Plats principaux"
+                  required
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium">
-                  Description
-                </Label>
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Décrivez cette catégorie et le type de repas qu'elle contient..."
+                  onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                  placeholder="Décrivez le type de repas dans cette catégorie..."
                   rows={3}
-                  className="transition-all focus:ring-2 focus:ring-primary/20 resize-none"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Une bonne description aide les clients à comprendre cette catégorie
-                </p>
               </div>
-            </div>
 
-            {/* Image */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                <IconPhoto className="h-4 w-4" />
-                Image de la catégorie
-              </h4>
-              
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="image" className="text-sm font-medium">
-                    URL de l'image
-                  </Label>
-                  <Input
-                    id="image"
-                    value={formData.image}
-                    onChange={(e) => setFormData({...formData, image: e.target.value})}
-                    placeholder="https://example.com/image.jpg"
-                    className="transition-all focus:ring-2 focus:ring-primary/20"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Ajoutez une image attrayante pour représenter cette catégorie
-                  </p>
-                </div>
-                
-                {formData.image && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Aperçu</Label>
-                    <div className="relative w-full h-32 rounded-lg overflow-hidden bg-muted border-2 border-dashed border-muted-foreground/25">
-                      <img 
-                        src={formData.image} 
-                        alt="Aperçu"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </div>
+              <div className="space-y-2">
+                <Label htmlFor="restaurantId">Restaurant</Label>
+                <select
+                  id="restaurantId"
+                  value={formData.restaurantId || ''}
+                  onChange={(e) => setFormData(prev => ({...prev, restaurantId: parseInt(e.target.value)}))}
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                  required
+                >
+                  <option value="">Sélectionner un restaurant</option>
+                  {restaurants.map((restaurant: any) => (
+                    <option key={restaurant.id} value={restaurant.id}>
+                      {restaurant.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image">Image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFormData(prev => ({...prev, image: file}));
+                    }
+                  }}
+                />
+                {(formData.image || selectedCategorie?.image) && (
+                  <div className="mt-2">
+                    <img
+                      src={formData.image instanceof File 
+                        ? URL.createObjectURL(formData.image)
+                        : getImageUrl(selectedCategorie?.image)
+                      }
+                      alt="Aperçu"
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Validation */}
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-              <div className="flex-shrink-0">
-                {formData.name && formData.restaurantId ? (
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                ) : (
-                  <div className="w-2 h-2 bg-destructive rounded-full"></div>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {formData.name && formData.restaurantId 
-                  ? "Formulaire valide, prêt à être soumis"
-                  : "Veuillez remplir tous les champs obligatoires (*)"}
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter className="gap-2 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsFormOpen(false);
-                resetForm();
-                setSelectedCategorie(null);
-              }}
-              className="transition-all"
-            >
-              Annuler
-            </Button>
-            <Button 
-              onClick={handleCreateOrUpdate} 
-              disabled={submitLoading || !formData.name || !formData.restaurantId}
-              className="min-w-[120px] transition-all"
-            >
-              {submitLoading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  {selectedCategorie ? "Modification..." : "Création..."}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  {selectedCategorie ? <IconEdit className="h-4 w-4" /> : <IconPlus className="h-4 w-4" />}
-                  {selectedCategorie ? "Modifier" : "Créer"}
-                </div>
-              )}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Enregistrement..." : (selectedCategorie ? "Modifier" : "Créer")}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de suppression */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
