@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { BASE_URL } from "@/services/urlApp";
+import { BASE_URL, baseImage } from "@/services/urlApp";
 import { 
   fetchRestaurantsData, 
   createRestaurant, 
@@ -57,6 +57,7 @@ interface Restaurant {
   phone: string;
   adresse: string;
   image?: string;
+  imageUrl?: string;
   description: string;
   ratings?: number;
   latitude: number;
@@ -117,20 +118,24 @@ export default function RestaurantPage() {
   const loading = status === 'loading';
   const submitLoading = status === 'loading';
 
+  // S'assurer que restaurants est un tableau
+  const restaurantsArray = Array.isArray(restaurants) ? restaurants : [];
+
   useEffect(() => {
     dispatch(fetchRestaurantsData());
   }, [dispatch]);
 
   useEffect(() => {
+    const safeRestaurants = Array.isArray(restaurants) ? restaurants : [];
     if (searchTerm) {
-      const filtered = restaurants.filter(restaurant =>
+      const filtered = safeRestaurants.filter(restaurant =>
         restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         restaurant.adresse.toLowerCase().includes(searchTerm.toLowerCase()) ||
         restaurant.ville?.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredRestaurants(filtered);
     } else {
-      setFilteredRestaurants(restaurants);
+      setFilteredRestaurants(safeRestaurants);
     }
   }, [searchTerm, restaurants]);
 
@@ -227,11 +232,6 @@ export default function RestaurantPage() {
     }).format(new Date(dateString));
   };
 
-  const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "/placeholder-restaurant.jpg";
-    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
@@ -294,8 +294,8 @@ export default function RestaurantPage() {
             </div>
             <div>
               <div className="koursier-stats-value text-yellow-600">
-                {restaurants?.length > 0 
-                  ? (restaurants.reduce((sum, r) => sum + (r.ratings || 4.5), 0) / restaurants.length).toFixed(1)
+                {restaurantsArray.length > 0
+                  ? (restaurantsArray.reduce((sum, r) => sum + (r.ratings || 4.5), 0) / restaurantsArray.length).toFixed(1)
                   : "0.0"
                 }
               </div>
@@ -310,7 +310,7 @@ export default function RestaurantPage() {
             </div>
             <div>
               <div className="koursier-stats-value text-purple-600">
-                {restaurants?.reduce((sum, r) => sum + (r.categories?.length || 0), 0) || 0}
+                {restaurantsArray.reduce((sum, r) => sum + (r.categories?.length || 0), 0)}
               </div>
               <div className="koursier-stats-label text-purple-500/80">Total Catégories</div>
             </div>
@@ -354,7 +354,7 @@ export default function RestaurantPage() {
                         <div className="koursier-avatar relative overflow-hidden rounded-full border-2 border-primary/10">
                           {restaurant.image ? (
                             <img 
-                              src={getImageUrl(restaurant.image)} 
+                              src={baseImage(restaurant.image || restaurant.imageUrl)}
                               alt={restaurant.name}
                               className="w-12 h-12 object-cover"
                               onError={(e) => {

@@ -28,7 +28,8 @@ import {
   IconMotorbike,
   IconCurrencyEuro,
   IconWallet,
-  IconClock
+  IconClock,
+  IconBoxSeam
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -76,6 +77,11 @@ const data = {
           title: "Repas & Menu",
           url: "/dashboard/repas",
           icon: IconChefHat,
+        },
+        {
+          title: "Stock",
+          url: "/dashboard/stock",
+          icon: IconBoxSeam,
         },
         {
           title: "Utilisateurs",
@@ -129,9 +135,26 @@ const data = {
       ],
     },
     {
-      title: "Wallet",
-      url: "/dashboard/wallet",
+      title: "Finances",
+      url: "#",
       icon: IconWallet,
+      items: [
+        {
+          title: "Wallet Admin",
+          url: "/dashboard/wallet",
+          icon: IconWallet,
+        },
+        {
+          title: "Wallet Livreurs",
+          url: "/dashboard/wallet-livreurs",
+          icon: IconMotorbike,
+        },
+      ],
+    },
+    {
+      title: "Configuration",
+      url: "/dashboard/configuration",
+      icon: IconSettings,
     },
     {
       title: "Analytics",

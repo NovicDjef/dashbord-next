@@ -78,8 +78,8 @@ export default function LivreursPage() {
   
   console.log("Livreurs Redux state:", livreursList);
   
-  // Extraire le tableau de livreurs depuis la réponse API
-  const livreursArray = livreursList?.livreurs || [];
+  // Extraire le tableau de livreurs depuis la réponse API et s'assurer que c'est un tableau
+  const livreursArray = Array.isArray(livreursList?.livreurs) ? livreursList.livreurs : [];
   // Calculer les livreurs filtrés directement depuis Redux
   const filteredLivreurs = livreursArray.filter((livreur: Livreur) => {
     let matchStatut = false;

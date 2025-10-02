@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getImageUrl } from "@/services/urlApp";
 import { 
   fetchRepas, 
   createRepas, 
@@ -99,16 +100,21 @@ export default function RepasPage() {
   const { data: repas, status, error } = useSelector((state: any) => state.repas);
   const { data: categories } = useSelector((state: any) => state.categories);
   const { data: restaurants } = useSelector((state: any) => state.restaurants);
-  
+
   const [filteredRepas, setFilteredRepas] = useState<Repas[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedRepas, setSelectedRepas] = useState<Repas | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [repasToDelete, setRepasToDelete] = useState<Repas | null>(null);
-  
+
   const loading = status === 'loading';
   const submitLoading = status === 'loading';
+
+  // S'assurer que les données sont des tableaux
+  const categoriesArray = Array.isArray(categories) ? categories : [];
+  const restaurantsArray = Array.isArray(restaurants) ? restaurants : [];
+  const repasArray = Array.isArray(repas) ? repas : [];
 
   // Form state
   const [formData, setFormData] = useState<RepasFormData>({
@@ -291,8 +297,8 @@ export default function RepasPage() {
               Prix Moyen
             </CardTitle>
             <div className="text-2xl font-bold text-blue-600">
-              {repas?.length > 0 
-                ? (repas.reduce((sum, r) => sum + r.price, 0) / repas.length).toFixed(0) + "€"
+              {repasArray.length > 0
+                ? (repasArray.reduce((sum, r) => sum + r.price, 0) / repasArray.length).toFixed(0) + "€"
                 : "0€"
               }
             </div>

@@ -35,7 +35,9 @@ export const updateRestaurant = createAsyncThunk(
   'restaurants/updateRestaurant',
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await apiService.put(`/restaurant/${id}`, data);
+      console.log('Mise à jour redux:', id, data);
+      const response = await apiService.put(`/restaurants/${id}`, data);
+      console.log('Réponse de la mise à jour redux:', response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -48,7 +50,7 @@ export const deleteRestaurant = createAsyncThunk(
   'restaurants/deleteRestaurant',
   async (id, { rejectWithValue }) => {
     try {
-      await apiService.delete(`/restaurant/${id}`);
+      await apiService.delete(`/restaurants/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -77,7 +79,8 @@ const restaurantSlice = createSlice({
       })
       .addCase(fetchRestaurantsData.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.data = action.payload;
+        // L'API retourne un objet avec { restaurants: [...] }
+        state.data = action.payload.restaurants || action.payload;
         state.error = null;
       })
       .addCase(fetchRestaurantsData.rejected, (state, action) => {
@@ -100,7 +103,12 @@ const restaurantSlice = createSlice({
       })
       .addCase(createRestaurant.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.data.push(action.payload);
+        // S'assurer que state.data est un tableau avant de push
+        if (Array.isArray(state.data)) {
+          state.data.push(action.payload);
+        } else {
+          state.data = [action.payload];
+        }
         state.error = null;
       })
       .addCase(createRestaurant.rejected, (state, action) => {
@@ -114,9 +122,12 @@ const restaurantSlice = createSlice({
       })
       .addCase(updateRestaurant.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.data.findIndex(item => item.id === action.payload.id);
-        if (index !== -1) {
-          state.data[index] = action.payload;
+        // S'assurer que state.data est un tableau
+        if (Array.isArray(state.data)) {
+          const index = state.data.findIndex(item => item.id === action.payload.id);
+          if (index !== -1) {
+            state.data[index] = action.payload;
+          }
         }
         state.error = null;
       })
@@ -131,7 +142,10 @@ const restaurantSlice = createSlice({
       })
       .addCase(deleteRestaurant.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.data = state.data.filter(item => item.id !== action.payload);
+        // S'assurer que state.data est un tableau
+        if (Array.isArray(state.data)) {
+          state.data = state.data.filter(item => item.id !== action.payload);
+        }
         state.error = null;
       })
       .addCase(deleteRestaurant.rejected, (state, action) => {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { getImageUrl } from "@/services/urlApp";
 import { 
   fetchCategoriesData, 
   createCategory, 
@@ -89,7 +90,12 @@ export default function CategoriePage() {
   });
 
   const loading = status === 'loading';
-  const filteredCategories = categories.filter((categorie: CategorieInterface) =>
+
+  // S'assurer que les données sont des tableaux
+  const categoriesArray = Array.isArray(categories) ? categories : [];
+  const restaurantsArray = Array.isArray(restaurants) ? restaurants : [];
+
+  const filteredCategories = categoriesArray.filter((categorie: CategorieInterface) =>
     categorie.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     categorie.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -470,7 +476,7 @@ export default function CategoriePage() {
                   required
                 >
                   <option value="">Sélectionner un restaurant</option>
-                  {restaurants.map((restaurant: any) => (
+                  {restaurantsArray.map((restaurant: any) => (
                     <option key={restaurant.id} value={restaurant.id}>
                       {restaurant.name}
                     </option>

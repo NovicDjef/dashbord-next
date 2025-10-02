@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { 
+import {
   IconTag,
   IconPhone,
   IconMapPin,
@@ -13,7 +13,11 @@ import {
   IconFileText,
   IconCategory,
   IconPlus,
-  IconTrash
+  IconTrash,
+  IconClock,
+  IconUpload,
+  IconPhoto,
+  IconCamera
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +39,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { updateRestaurant, fetchRestaurantsData } from "@/redux/restaurantSlice";
+import { BASE_URL, getImageUrl } from "@/services/urlApp";
 
 interface RestaurantEditFormProps {
   open: boolean;
@@ -56,6 +62,10 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
     adminCommissionPercent: "",
     restaurantCommissionPercent: ""
   });
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const [horaires, setHoraires] = useState([
     { jour: "Lundi", heures: "09:00-18:00" },
@@ -92,6 +102,15 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
         restaurantCommissionPercent: restaurant.restaurantCommissionPercent?.toString() || ""
       });
 
+      // Charger l'image existante
+      if (restaurant.image) {
+        const imageUrl = getImageUrl(restaurant.image);
+        setImagePreview(imageUrl || "");
+      } else {
+        setImagePreview("");
+      }
+      setSelectedImage(null);
+
       // Remplir les horaires avec les données du restaurant ou valeurs par défaut
       if (restaurant.heuresOuverture && restaurant.heuresOuverture.length > 0) {
         const restaurantHoraires = restaurant.heuresOuverture.map(h => ({
@@ -108,7 +127,7 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
       ...prev,
       [field]: value
     }));
-    
+
     // Effacer l'erreur pour ce champ
     if (errors[field]) {
       setErrors(prev => ({
@@ -116,6 +135,39 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
         [field]: null
       }));
     }
+  };
+
+  // Gestion de l'image
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner une image valide');
+        return;
+      }
+
+      // Vérifier la taille (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('L\'image ne doit pas dépasser 5MB');
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Créer un aperçu
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    const imageUrl = restaurant?.image ? getImageUrl(restaurant.image) : "";
+    setImagePreview(imageUrl || "");
   };
 
   // Gestion des horaires
@@ -213,13 +265,13 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      // Préparer les données pour l'API
-      const restaurantData = {
+      // Préparer les données de base
+      const baseData = {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         adresse: formData.adresse.trim(),
@@ -231,16 +283,85 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
         restaurantCommissionPercent: parseFloat(formData.restaurantCommissionPercent)
       };
 
-      console.log('🔄 Modification du restaurant:', restaurantData);
-      
-      // TODO: Implémenter l'appel API pour modifier le restaurant
-      // const response = await updateRestaurantAsync(restaurant.id, restaurantData);
-      // console.log('✅ Restaurant modifié:', response.data);
+      console.log('🔄 Modification du restaurant');
+      console.log('Latitude:', baseData.latitude);
+      console.log('Longitude:', baseData.longitude);
+      console.log('Nouvelle image:', selectedImage ? 'Oui' : 'Non');
 
-      // Simuler la modification pour l'instant
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let requestBody: any;
+      let requestHeaders: HeadersInit = {};
 
-      // Sauvegarder les horaires
+      if (selectedImage) {
+        // Si une image est sélectionnée, utiliser FormData
+        setUploadingImage(true);
+        const formDataObj = new FormData();
+
+        // Ajouter toutes les données
+        Object.entries(baseData).forEach(([key, value]) => {
+          formDataObj.append(key, value.toString());
+        });
+        formDataObj.append('image', selectedImage);
+
+        requestBody = formDataObj;
+        setUploadingImage(false);
+
+        console.log('📦 Envoi avec FormData (avec image)');
+      } else {
+        // Sinon, utiliser JSON
+        requestBody = JSON.stringify(baseData);
+        requestHeaders['Content-Type'] = 'application/json';
+
+        console.log('📦 Envoi avec JSON (sans image):', baseData);
+      }
+
+      // Récupérer le token d'authentification (essayer userToken puis adminToken)
+      let token = localStorage.getItem('userToken');
+      if (!token) {
+        token = localStorage.getItem('adminToken');
+      }
+
+      console.log('🔑 Token présent:', token ? 'Oui' : 'Non');
+      if (token) {
+        console.log('🔑 Token (premiers 20 caractères):', token.substring(0, 20) + '...');
+      }
+
+      // Ajouter le token aux headers
+      if (token) {
+        requestHeaders['Authorization'] = `Bearer ${token}`;
+        console.log('📋 Header Authorization ajouté');
+      } else {
+        console.error('❌ Aucun token trouvé dans localStorage!');
+        alert('Erreur: Vous devez être connecté pour modifier un restaurant');
+        setLoading(false);
+        return;
+      }
+
+      console.log('📡 Envoi de la requête PUT à:', `${BASE_URL}/restaurants/${restaurant.id}`);
+
+      const response = await fetch(`${BASE_URL}/restaurants/${restaurant.id}`, {
+        method: 'PUT',
+        headers: requestHeaders,
+        body: requestBody,
+      });
+
+      console.log('📥 Réponse reçue - Status:', response.status);
+
+      if (!response.ok) {
+        console.error('❌ Erreur HTTP:', response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({ message: 'Erreur lors de la modification' }));
+        console.error('❌ Détails erreur:', errorData);
+        alert(`Erreur ${response.status}: ${errorData.message || response.statusText}`);
+        throw new Error(errorData.message || 'Erreur lors de la modification');
+      }
+
+      const result = await response.json();
+      console.log('✅ Restaurant modifié avec succès:', result);
+      alert('Restaurant modifié avec succès!');
+
+      // Recharger les restaurants pour mettre à jour Redux
+      await dispatch(fetchRestaurantsData() as any);
+
+      // 4. Sauvegarder les horaires
       try {
         await saveHoraires(restaurant.id);
         console.log('✅ Horaires sauvegardés');
@@ -294,6 +415,57 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Upload d'image */}
+              <div className="space-y-2">
+                <Label>Image du restaurant</Label>
+                <div className="flex flex-col gap-4">
+                  {imagePreview && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-gray-200">
+                      <img
+                        src={imagePreview}
+                        alt="Aperçu du restaurant"
+                        className="w-full h-full object-cover"
+                      />
+                      {selectedImage && (
+                        <div className="absolute top-2 right-2">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={removeImage}
+                          >
+                            <IconTrash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                      className="flex-1"
+                      disabled={uploadingImage}
+                    >
+                      <IconCamera className="h-4 w-4 mr-2" />
+                      {selectedImage ? 'Changer l\'image' : imagePreview ? 'Modifier l\'image' : 'Ajouter une image'}
+                    </Button>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Formats acceptés: JPG, PNG, GIF (max 5MB)
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom du restaurant *</Label>
@@ -676,9 +848,9 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
               <IconX className="h-4 w-4 mr-2" />
               Annuler
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || uploadingImage}>
               <IconDeviceFloppy className="h-4 w-4 mr-2" />
-              {loading ? 'Modification...' : 'Modifier le restaurant'}
+              {uploadingImage ? 'Upload image...' : loading ? 'Modification...' : 'Modifier le restaurant'}
             </Button>
           </DialogFooter>
         </form>

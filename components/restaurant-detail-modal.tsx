@@ -1,6 +1,6 @@
 "use client"
 
-import { BASE_URL } from "@/services/urlApp";
+import { BASE_URL, getImageUrl } from "@/services/urlApp";
 import { 
   IconX,
   IconMapPin,
@@ -61,9 +61,33 @@ export function RestaurantDetailModal({ open, onOpenChange, restaurant }: Restau
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className="flex items-center justify-center h-12 w-12 bg-green-100 dark:bg-green-900 rounded-lg">
-              <IconTag className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
+            {restaurant.image ? (
+              <div className="relative h-12 w-12 rounded-lg overflow-hidden border-2 border-green-200">
+                <img
+                  src={getImageUrl(restaurant.image) || ''}
+                  alt={restaurant.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div
+                  className="absolute inset-0 flex items-center justify-center bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 font-bold text-lg"
+                  style={{display: 'none'}}
+                >
+                  {restaurant.name[0]?.toUpperCase()}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-12 w-12 bg-green-100 dark:bg-green-900 rounded-lg">
+                <span className="text-green-600 dark:text-green-400 font-bold text-lg">
+                  {restaurant.name[0]?.toUpperCase()}
+                </span>
+              </div>
+            )}
             <div>
               <div className="text-xl font-bold">{restaurant.name}</div>
               <div className="text-sm text-muted-foreground">
@@ -81,11 +105,11 @@ export function RestaurantDetailModal({ open, onOpenChange, restaurant }: Restau
           {restaurant.image && (
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center justify-center">
+                <div className="relative w-full h-64 rounded-lg overflow-hidden">
                   <img
-                    src={`${BASE_URL}/${restaurant.image}`}
+                    src={getImageUrl(restaurant.image) || ''}
                     alt={restaurant.name}
-                    className="max-w-full h-48 object-cover rounded-lg"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </CardContent>

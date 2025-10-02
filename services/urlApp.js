@@ -53,7 +53,15 @@ export const baseImage = (path) => {
 // Helper pour construire une URL d'image complète
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
+
+  // Si c'est déjà une URL complète, la retourner telle quelle
+  if (imagePath.startsWith('http')) return imagePath;
+
+  // Si le chemin commence par '/', le concaténer directement
+  if (imagePath.startsWith('/')) return `${BASE_URL}${imagePath}`;
+
+  // Sinon, ajouter '/images/' avant le nom de fichier
+  return `${BASE_URL}/images/${imagePath}`;
 };
 
 // Helper pour les URLs de callback/return de paiement
