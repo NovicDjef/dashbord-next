@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { API_ENDPOINTS } from "@/services/urlApp";
-import { 
+import {
   IconCurrency,
   IconTruck,
   IconClock,
@@ -10,7 +10,9 @@ import {
   IconDeviceFloppy,
   IconRefresh,
   IconCalculator,
-  IconSettings
+  IconSettings,
+  IconCheck,
+  IconX
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 
 interface TarifService {
   prixBase: number;
@@ -52,6 +55,7 @@ interface ConditionsActuelles {
 }
 
 export default function TarifsPage() {
+  const { toast } = useToast();
   const [tarifs, setTarifs] = useState<Tarifs | null>(null);
   const [conditions, setConditions] = useState<ConditionsActuelles | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,6 +82,11 @@ export default function TarifsPage() {
     majorationNuit: ""
   });
 
+  // États pour les erreurs de validation
+  const [repasErrors, setRepasErrors] = useState<{[key: string]: string}>({});
+  const [colisErrors, setColisErrors] = useState<{[key: string]: string}>({});
+  const [gazErrors, setGazErrors] = useState<{[key: string]: string}>({});
+
   useEffect(() => {
     loadTarifs();
   }, []);
@@ -87,11 +96,11 @@ export default function TarifsPage() {
       setLoading(true);
       const response = await fetch(API_ENDPOINTS.tarifs);
       const data = await response.json();
-      
+
       if (data.success) {
         setTarifs(data.tarifs);
         setConditions(data.conditionsActuelles);
-        
+
         // Initialiser les formulaires avec les données actuelles
         setRepasForm({
           prixBase: data.tarifs.REPAS.prixBase,
@@ -114,15 +123,79 @@ export default function TarifsPage() {
       }
     } catch (error) {
       console.error("Erreur lors du chargement des tarifs:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de charger les tarifs"
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const validateForms = (): boolean => {
+    const repasErrs: {[key: string]: string} = {};
+    const colisErrs: {[key: string]: string} = {};
+    const gazErrs: {[key: string]: string} = {};
+
+    // Validation REPAS
+    if (!repasForm.prixBase || repasForm.prixBase <= 0) {
+      repasErrs.prixBase = "Le prix de base doit être supérieur à 0";
+    }
+    if (!repasForm.parKmSupplementaire || repasForm.parKmSupplementaire < 0) {
+      repasErrs.parKmSupplementaire = "Le prix par km doit être positif ou nul";
+    }
+    if (!repasForm.majorationWeekend || !repasForm.majorationWeekend.match(/^\+?\d+%?$/)) {
+      repasErrs.majorationWeekend = "Format invalide (ex: +20% ou 20)";
+    }
+    if (!repasForm.majorationNuit || !repasForm.majorationNuit.match(/^\+?\d+%?$/)) {
+      repasErrs.majorationNuit = "Format invalide (ex: +20% ou 20)";
+    }
+
+    // Validation COLIS
+    if (!colisForm.prixBase || colisForm.prixBase <= 0) {
+      colisErrs.prixBase = "Le prix de base doit être supérieur à 0";
+    }
+    if (!colisForm.parKg || colisForm.parKg < 0) {
+      colisErrs.parKg = "Le prix par kg doit être positif ou nul";
+    }
+    if (!colisForm.majorationWeekend || !colisForm.majorationWeekend.match(/^\+?\d+%?$/)) {
+      colisErrs.majorationWeekend = "Format invalide (ex: +20% ou 20)";
+    }
+    if (!colisForm.majorationNuit || !colisForm.majorationNuit.match(/^\+?\d+%?$/)) {
+      colisErrs.majorationNuit = "Format invalide (ex: +20% ou 20)";
+    }
+
+    // Validation GAZ
+    if (!gazForm.majorationWeekend || !gazForm.majorationWeekend.match(/^\+?\d+%?$/)) {
+      gazErrs.majorationWeekend = "Format invalide (ex: +20% ou 20)";
+    }
+    if (!gazForm.majorationNuit || !gazForm.majorationNuit.match(/^\+?\d+%?$/)) {
+      gazErrs.majorationNuit = "Format invalide (ex: +20% ou 20)";
+    }
+
+    setRepasErrors(repasErrs);
+    setColisErrors(colisErrs);
+    setGazErrors(gazErrs);
+
+    return Object.keys(repasErrs).length === 0 &&
+           Object.keys(colisErrs).length === 0 &&
+           Object.keys(gazErrs).length === 0;
+  };
+
   const saveTarifs = async () => {
+    if (!validateForms()) {
+      toast({
+        variant: "destructive",
+        title: "Erreurs de validation",
+        description: "Veuillez corriger les erreurs avant de sauvegarder"
+      });
+      return;
+    }
+
     try {
       setSaving(true);
-      
+
       const newTarifs = {
         REPAS: {
           prixBase: repasForm.prixBase,
@@ -159,13 +232,25 @@ export default function TarifsPage() {
       if (response.ok) {
         await loadTarifs(); // Recharger les données
         setEditMode(false);
-        alert("Tarifs mis à jour avec succès !");
+        toast({
+          title: "Succès",
+          description: (
+            <div className="flex items-center gap-2">
+              <IconCheck className="h-4 w-4 text-green-600" />
+              <span>Tarifs mis à jour avec succès</span>
+            </div>
+          )
+        });
       } else {
         throw new Error('Erreur lors de la sauvegarde');
       }
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
-      alert("Erreur lors de la sauvegarde des tarifs");
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Erreur lors de la sauvegarde des tarifs"
+      });
     } finally {
       setSaving(false);
     }
@@ -207,21 +292,17 @@ export default function TarifsPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="h-8 bg-muted rounded w-1/3 animate-pulse" />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[...Array(3)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-muted rounded w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[...Array(4)].map((_, j) => (
-                    <div key={j} className="h-4 bg-muted rounded" />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="koursier-metric-card">
+              <div className="koursier-skeleton h-6 rounded w-1/2 koursier-shimmer" />
+              <div className="space-y-3 mt-4">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="koursier-skeleton h-4 rounded koursier-shimmer" />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -233,25 +314,31 @@ export default function TarifsPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconCurrency className="h-6 w-6" />
-            Gestion des Tarifs de Livraison
+          <h1 className="koursier-heading-1 flex items-center gap-2">
+            <IconCurrency className="h-7 w-7" />
+            Gestion des Tarifs
           </h1>
-          <p className="text-muted-foreground">
-            Configurez les prix et majorations pour tous vos services
+          <p className="koursier-body text-muted-foreground">
+            Configurez les prix et majorations pour tous vos services de livraison
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={loadTarifs}>
+          <Button variant="outline" onClick={loadTarifs} className="koursier-btn">
             <IconRefresh className="h-4 w-4 mr-2" />
             Actualiser
           </Button>
           {editMode ? (
             <>
-              <Button variant="outline" onClick={() => setEditMode(false)}>
+              <Button variant="outline" onClick={() => {
+                setEditMode(false);
+                setRepasErrors({});
+                setColisErrors({});
+                setGazErrors({});
+              }} className="koursier-btn">
+                <IconX className="h-4 w-4 mr-2" />
                 Annuler
               </Button>
-              <Button onClick={saveTarifs} disabled={saving}>
+              <Button onClick={saveTarifs} disabled={saving} className="koursier-btn koursier-btn-primary">
                 {saving ? "Sauvegarde..." : (
                   <>
                     <IconDeviceFloppy className="h-4 w-4 mr-2" />
@@ -261,7 +348,7 @@ export default function TarifsPage() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => setEditMode(true)}>
+            <Button onClick={() => setEditMode(true)} className="koursier-btn koursier-btn-primary">
               <IconSettings className="h-4 w-4 mr-2" />
               Modifier
             </Button>
@@ -271,31 +358,33 @@ export default function TarifsPage() {
 
       {/* Conditions actuelles */}
       {conditions && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <IconCalendar className="h-5 w-5" />
-              Conditions Actuelles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <Badge variant={conditions.estWeekend ? "default" : "outline"}>
-                Weekend: {conditions.estWeekend ? "Oui" : "Non"}
-              </Badge>
-              <Badge variant={conditions.estNuit ? "default" : "outline"}>
-                Service nocturne: {conditions.estNuit ? "Oui" : "Non"}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm">
-                <IconClock className="h-4 w-4" />
-                {conditions.heure}h - {conditions.jourSemaine}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {conditions.date}
-              </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-purple-200 dark:border-purple-800">
+          <h3 className="koursier-stats-label text-purple-600 dark:text-purple-400 flex items-center gap-2 mb-4">
+            <IconCalendar className="h-5 w-5" />
+            Conditions Actuelles
+          </h3>
+          <div className="flex flex-wrap gap-4 items-center">
+            <Badge
+              variant={conditions.estWeekend ? "default" : "outline"}
+              className={conditions.estWeekend ? "bg-purple-600 hover:bg-purple-700" : ""}
+            >
+              Weekend: {conditions.estWeekend ? "Oui" : "Non"}
+            </Badge>
+            <Badge
+              variant={conditions.estNuit ? "default" : "outline"}
+              className={conditions.estNuit ? "bg-purple-600 hover:bg-purple-700" : ""}
+            >
+              Service nocturne: {conditions.estNuit ? "Oui" : "Non"}
+            </Badge>
+            <div className="flex items-center gap-1 text-sm text-purple-700 dark:text-purple-300">
+              <IconClock className="h-4 w-4" />
+              {conditions.heure}h - {conditions.jourSemaine}
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-sm text-muted-foreground">
+              {conditions.date}
+            </div>
+          </div>
+        </div>
       )}
 
       <Tabs defaultValue="repas" className="w-full">
@@ -308,41 +397,61 @@ export default function TarifsPage() {
 
         {/* REPAS */}
         <TabsContent value="repas">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <IconTruck className="h-5 w-5" />
-                Tarifs Livraison de Repas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10 border-0">
+            <h3 className="koursier-stats-label text-green-600 dark:text-green-400 flex items-center gap-2 mb-6">
+              <IconTruck className="h-5 w-5" />
+              Tarifs Livraison de Repas
+            </h3>
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="repas-prix-base">Prix de base</Label>
+                    <Label htmlFor="repas-prix-base" className="koursier-label">Prix de base</Label>
                     {editMode ? (
-                      <Input
-                        id="repas-prix-base"
-                        type="number"
-                        value={repasForm.prixBase}
-                        onChange={(e) => setRepasForm({...repasForm, prixBase: parseInt(e.target.value) || 0})}
-                      />
+                      <div>
+                        <Input
+                          id="repas-prix-base"
+                          type="number"
+                          value={repasForm.prixBase}
+                          onChange={(e) => {
+                            setRepasForm({...repasForm, prixBase: parseInt(e.target.value) || 0});
+                            if (repasErrors.prixBase) {
+                              setRepasErrors({...repasErrors, prixBase: ""});
+                            }
+                          }}
+                          className={repasErrors.prixBase ? "border-red-500" : ""}
+                        />
+                        {repasErrors.prixBase && (
+                          <p className="text-sm text-red-500 mt-1">{repasErrors.prixBase}</p>
+                        )}
+                      </div>
                     ) : (
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                         {tarifs && formatCurrency(tarifs.REPAS.prixBase)}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="repas-par-km">Par km supplémentaire</Label>
+                    <Label htmlFor="repas-par-km" className="koursier-label">Par km supplémentaire</Label>
                     {editMode ? (
-                      <Input
-                        id="repas-par-km"
-                        type="number"
-                        value={repasForm.parKmSupplementaire}
-                        onChange={(e) => setRepasForm({...repasForm, parKmSupplementaire: parseInt(e.target.value) || 0})}
-                      />
+                      <div>
+                        <Input
+                          id="repas-par-km"
+                          type="number"
+                          value={repasForm.parKmSupplementaire}
+                          onChange={(e) => {
+                            setRepasForm({...repasForm, parKmSupplementaire: parseInt(e.target.value) || 0});
+                            if (repasErrors.parKmSupplementaire) {
+                              setRepasErrors({...repasErrors, parKmSupplementaire: ""});
+                            }
+                          }}
+                          className={repasErrors.parKmSupplementaire ? "border-red-500" : ""}
+                        />
+                        {repasErrors.parKmSupplementaire && (
+                          <p className="text-sm text-red-500 mt-1">{repasErrors.parKmSupplementaire}</p>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-xl font-semibold">
                         {tarifs && formatCurrency(tarifs.REPAS.parKmSupplementaire!)}
@@ -353,32 +462,54 @@ export default function TarifsPage() {
                   <Separator />
 
                   <div>
-                    <Label>Majorations</Label>
-                    <div className="space-y-2 mt-2">
+                    <Label className="koursier-label">Majorations</Label>
+                    <div className="space-y-3 mt-2">
                       <div className="flex items-center justify-between">
-                        <span>Weekend</span>
+                        <span className="koursier-caption">Weekend</span>
                         {editMode ? (
-                          <Input
-                            className="w-20"
-                            value={repasForm.majorationWeekend}
-                            onChange={(e) => setRepasForm({...repasForm, majorationWeekend: e.target.value})}
-                          />
+                          <div>
+                            <Input
+                              className={`w-24 ${repasErrors.majorationWeekend ? "border-red-500" : ""}`}
+                              value={repasForm.majorationWeekend}
+                              onChange={(e) => {
+                                setRepasForm({...repasForm, majorationWeekend: e.target.value});
+                                if (repasErrors.majorationWeekend) {
+                                  setRepasErrors({...repasErrors, majorationWeekend: ""});
+                                }
+                              }}
+                              placeholder="+20%"
+                            />
+                            {repasErrors.majorationWeekend && (
+                              <p className="text-sm text-red-500 mt-1">{repasErrors.majorationWeekend}</p>
+                            )}
+                          </div>
                         ) : (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="dark:bg-gray-800">
                             {tarifs?.REPAS.majoration.weekend}
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>Service nocturne</span>
+                        <span className="koursier-caption">Service nocturne</span>
                         {editMode ? (
-                          <Input
-                            className="w-20"
-                            value={repasForm.majorationNuit}
-                            onChange={(e) => setRepasForm({...repasForm, majorationNuit: e.target.value})}
-                          />
+                          <div>
+                            <Input
+                              className={`w-24 ${repasErrors.majorationNuit ? "border-red-500" : ""}`}
+                              value={repasForm.majorationNuit}
+                              onChange={(e) => {
+                                setRepasForm({...repasForm, majorationNuit: e.target.value});
+                                if (repasErrors.majorationNuit) {
+                                  setRepasErrors({...repasErrors, majorationNuit: ""});
+                                }
+                              }}
+                              placeholder="+30%"
+                            />
+                            {repasErrors.majorationNuit && (
+                              <p className="text-sm text-red-500 mt-1">{repasErrors.majorationNuit}</p>
+                            )}
+                          </div>
                         ) : (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="dark:bg-gray-800">
                             {tarifs?.REPAS.majoration.nuit}
                           </Badge>
                         )}
@@ -388,66 +519,86 @@ export default function TarifsPage() {
                 </div>
 
                 <div>
-                  <Label>Exemples de tarifs</Label>
+                  <Label className="koursier-label">Exemples de tarifs</Label>
                   {tarifs && (
                     <div className="space-y-3 mt-2">
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Livraison normale</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.REPAS.exemples.normal)}</span>
+                      <div className="flex justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="koursier-caption">Livraison normale</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">{formatCurrency(tarifs.REPAS.exemples.normal)}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Avec 5km supplémentaires</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.REPAS.exemples.avec5km)}</span>
+                      <div className="flex justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="koursier-caption">Avec 5km supplémentaires</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">{formatCurrency(tarifs.REPAS.exemples.avec5km)}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Avec 10km supplémentaires</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.REPAS.exemples.avec10km)}</span>
+                      <div className="flex justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="koursier-caption">Avec 10km supplémentaires</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">{formatCurrency(tarifs.REPAS.exemples.avec10km)}</span>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* COLIS */}
         <TabsContent value="colis">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <IconTruck className="h-5 w-5" />
-                Tarifs Expédition de Colis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-0">
+            <h3 className="koursier-stats-label text-blue-600 dark:text-blue-400 flex items-center gap-2 mb-6">
+              <IconTruck className="h-5 w-5" />
+              Tarifs Expédition de Colis
+            </h3>
+            <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="colis-prix-base">Prix de base</Label>
+                    <Label htmlFor="colis-prix-base" className="koursier-label">Prix de base</Label>
                     {editMode ? (
-                      <Input
-                        id="colis-prix-base"
-                        type="number"
-                        value={colisForm.prixBase}
-                        onChange={(e) => setColisForm({...colisForm, prixBase: parseInt(e.target.value) || 0})}
-                      />
+                      <div>
+                        <Input
+                          id="colis-prix-base"
+                          type="number"
+                          value={colisForm.prixBase}
+                          onChange={(e) => {
+                            setColisForm({...colisForm, prixBase: parseInt(e.target.value) || 0});
+                            if (colisErrors.prixBase) {
+                              setColisErrors({...colisErrors, prixBase: ""});
+                            }
+                          }}
+                          className={colisErrors.prixBase ? "border-red-500" : ""}
+                        />
+                        {colisErrors.prixBase && (
+                          <p className="text-sm text-red-500 mt-1">{colisErrors.prixBase}</p>
+                        )}
+                      </div>
                     ) : (
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                         {tarifs && formatCurrency(tarifs.COLIS.prixBase)}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <Label htmlFor="colis-par-kg">Par kilogramme</Label>
+                    <Label htmlFor="colis-par-kg" className="koursier-label">Par kilogramme</Label>
                     {editMode ? (
-                      <Input
-                        id="colis-par-kg"
-                        type="number"
-                        value={colisForm.parKg}
-                        onChange={(e) => setColisForm({...colisForm, parKg: parseInt(e.target.value) || 0})}
-                      />
+                      <div>
+                        <Input
+                          id="colis-par-kg"
+                          type="number"
+                          value={colisForm.parKg}
+                          onChange={(e) => {
+                            setColisForm({...colisForm, parKg: parseInt(e.target.value) || 0});
+                            if (colisErrors.parKg) {
+                              setColisErrors({...colisErrors, parKg: ""});
+                            }
+                          }}
+                          className={colisErrors.parKg ? "border-red-500" : ""}
+                        />
+                        {colisErrors.parKg && (
+                          <p className="text-sm text-red-500 mt-1">{colisErrors.parKg}</p>
+                        )}
+                      </div>
                     ) : (
                       <p className="text-xl font-semibold">
                         {tarifs && formatCurrency(tarifs.COLIS.parKg!)}
@@ -458,32 +609,54 @@ export default function TarifsPage() {
                   <Separator />
 
                   <div>
-                    <Label>Majorations</Label>
-                    <div className="space-y-2 mt-2">
+                    <Label className="koursier-label">Majorations</Label>
+                    <div className="space-y-3 mt-2">
                       <div className="flex items-center justify-between">
-                        <span>Weekend</span>
+                        <span className="koursier-caption">Weekend</span>
                         {editMode ? (
-                          <Input
-                            className="w-20"
-                            value={colisForm.majorationWeekend}
-                            onChange={(e) => setColisForm({...colisForm, majorationWeekend: e.target.value})}
-                          />
+                          <div>
+                            <Input
+                              className={`w-24 ${colisErrors.majorationWeekend ? "border-red-500" : ""}`}
+                              value={colisForm.majorationWeekend}
+                              onChange={(e) => {
+                                setColisForm({...colisForm, majorationWeekend: e.target.value});
+                                if (colisErrors.majorationWeekend) {
+                                  setColisErrors({...colisErrors, majorationWeekend: ""});
+                                }
+                              }}
+                              placeholder="+20%"
+                            />
+                            {colisErrors.majorationWeekend && (
+                              <p className="text-sm text-red-500 mt-1">{colisErrors.majorationWeekend}</p>
+                            )}
+                          </div>
                         ) : (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="dark:bg-gray-800">
                             {tarifs?.COLIS.majoration.weekend}
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>Service nocturne</span>
+                        <span className="koursier-caption">Service nocturne</span>
                         {editMode ? (
-                          <Input
-                            className="w-20"
-                            value={colisForm.majorationNuit}
-                            onChange={(e) => setColisForm({...colisForm, majorationNuit: e.target.value})}
-                          />
+                          <div>
+                            <Input
+                              className={`w-24 ${colisErrors.majorationNuit ? "border-red-500" : ""}`}
+                              value={colisForm.majorationNuit}
+                              onChange={(e) => {
+                                setColisForm({...colisForm, majorationNuit: e.target.value});
+                                if (colisErrors.majorationNuit) {
+                                  setColisErrors({...colisErrors, majorationNuit: ""});
+                                }
+                              }}
+                              placeholder="+30%"
+                            />
+                            {colisErrors.majorationNuit && (
+                              <p className="text-sm text-red-500 mt-1">{colisErrors.majorationNuit}</p>
+                            )}
+                          </div>
                         ) : (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="dark:bg-gray-800">
                             {tarifs?.COLIS.majoration.nuit}
                           </Badge>
                         )}
@@ -493,104 +666,122 @@ export default function TarifsPage() {
                 </div>
 
                 <div>
-                  <Label>Exemples de tarifs</Label>
+                  <Label className="koursier-label">Exemples de tarifs</Label>
                   {tarifs && (
                     <div className="space-y-3 mt-2">
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Colis 1kg</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.COLIS.exemples.kg1)}</span>
+                      <div className="flex justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="koursier-caption">Colis 1kg</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">{formatCurrency(tarifs.COLIS.exemples.kg1)}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Colis 3kg</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.COLIS.exemples.kg3)}</span>
+                      <div className="flex justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="koursier-caption">Colis 3kg</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">{formatCurrency(tarifs.COLIS.exemples.kg3)}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Colis 5kg</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.COLIS.exemples.kg5)}</span>
+                      <div className="flex justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="koursier-caption">Colis 5kg</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">{formatCurrency(tarifs.COLIS.exemples.kg5)}</span>
                       </div>
-                      <div className="flex justify-between p-3 bg-muted rounded-lg">
-                        <span>Colis 10kg</span>
-                        <span className="font-semibold">{formatCurrency(tarifs.COLIS.exemples.kg10)}</span>
+                      <div className="flex justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="koursier-caption">Colis 10kg</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">{formatCurrency(tarifs.COLIS.exemples.kg10)}</span>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* GAZ */}
         <TabsContent value="gaz">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <IconTruck className="h-5 w-5" />
-                Tarifs Livraison de Gaz
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-blue-800 font-medium">
+          <div className="koursier-metric-card bg-gradient-to-br from-orange-500/5 to-orange-600/10 border-0">
+            <h3 className="koursier-stats-label text-orange-600 dark:text-orange-400 flex items-center gap-2 mb-6">
+              <IconTruck className="h-5 w-5" />
+              Tarifs Livraison de Gaz
+            </h3>
+            <div className="space-y-6">
+              <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                <p className="text-orange-800 dark:text-orange-300 font-medium">
                   {tarifs?.GAZ.info}
                 </p>
               </div>
 
               <div>
-                <Label>Majorations</Label>
-                <div className="space-y-2 mt-2">
+                <Label className="koursier-label">Majorations</Label>
+                <div className="space-y-3 mt-2">
                   <div className="flex items-center justify-between">
-                    <span>Weekend</span>
+                    <span className="koursier-caption">Weekend</span>
                     {editMode ? (
-                      <Input
-                        className="w-20"
-                        value={gazForm.majorationWeekend}
-                        onChange={(e) => setGazForm({...gazForm, majorationWeekend: e.target.value})}
-                      />
+                      <div>
+                        <Input
+                          className={`w-24 ${gazErrors.majorationWeekend ? "border-red-500" : ""}`}
+                          value={gazForm.majorationWeekend}
+                          onChange={(e) => {
+                            setGazForm({...gazForm, majorationWeekend: e.target.value});
+                            if (gazErrors.majorationWeekend) {
+                              setGazErrors({...gazErrors, majorationWeekend: ""});
+                            }
+                          }}
+                          placeholder="+20%"
+                        />
+                        {gazErrors.majorationWeekend && (
+                          <p className="text-sm text-red-500 mt-1">{gazErrors.majorationWeekend}</p>
+                        )}
+                      </div>
                     ) : (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="dark:bg-gray-800">
                         {tarifs?.GAZ.majoration.weekend}
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Service nocturne</span>
+                    <span className="koursier-caption">Service nocturne</span>
                     {editMode ? (
-                      <Input
-                        className="w-20"
-                        value={gazForm.majorationNuit}
-                        onChange={(e) => setGazForm({...gazForm, majorationNuit: e.target.value})}
-                      />
+                      <div>
+                        <Input
+                          className={`w-24 ${gazErrors.majorationNuit ? "border-red-500" : ""}`}
+                          value={gazForm.majorationNuit}
+                          onChange={(e) => {
+                            setGazForm({...gazForm, majorationNuit: e.target.value});
+                            if (gazErrors.majorationNuit) {
+                              setGazErrors({...gazErrors, majorationNuit: ""});
+                            }
+                          }}
+                          placeholder="+30%"
+                        />
+                        {gazErrors.majorationNuit && (
+                          <p className="text-sm text-red-500 mt-1">{gazErrors.majorationNuit}</p>
+                        )}
+                      </div>
                     ) : (
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="dark:bg-gray-800">
                         {tarifs?.GAZ.majoration.nuit}
                       </Badge>
                     )}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* CALCULATEUR */}
         <TabsContent value="calculateur">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <IconCalculator className="h-5 w-5" />
-                Calculateur de Prix
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="koursier-metric-card bg-gradient-to-br from-indigo-500/5 to-indigo-600/10 border-0">
+            <h3 className="koursier-stats-label text-indigo-600 dark:text-indigo-400 flex items-center gap-2 mb-6">
+              <IconCalculator className="h-5 w-5" />
+              Calculateur de Prix
+            </h3>
+            <div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Repas</h3>
-                  <div className="space-y-4">
+                  <h3 className="koursier-stats-label text-green-600 dark:text-green-400 mb-4">🍽️ Repas</h3>
+                  <div className="space-y-3">
                     {[0, 5, 10, 15].map(km => (
-                      <div key={km} className="flex justify-between p-3 bg-orange-50 rounded-lg">
-                        <span>{km === 0 ? "Prix de base" : `Base + ${km}km`}</span>
-                        <span className="font-semibold">
+                      <div key={km} className="flex justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="koursier-caption">{km === 0 ? "Prix de base" : `Base + ${km}km`}</span>
+                        <span className="font-semibold text-green-700 dark:text-green-400">
                           {formatCurrency(calculatePrice('REPAS', { km }))}
                         </span>
                       </div>
@@ -599,12 +790,12 @@ export default function TarifsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Colis</h3>
-                  <div className="space-y-4">
+                  <h3 className="koursier-stats-label text-blue-600 dark:text-blue-400 mb-4">📦 Colis</h3>
+                  <div className="space-y-3">
                     {[1, 3, 5, 10].map(kg => (
-                      <div key={kg} className="flex justify-between p-3 bg-blue-50 rounded-lg">
-                        <span>{kg}kg</span>
-                        <span className="font-semibold">
+                      <div key={kg} className="flex justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <span className="koursier-caption">{kg}kg</span>
+                        <span className="font-semibold text-blue-700 dark:text-blue-400">
                           {formatCurrency(calculatePrice('COLIS', { kg }))}
                         </span>
                       </div>
@@ -614,16 +805,17 @@ export default function TarifsPage() {
               </div>
 
               {(conditions?.estWeekend || conditions?.estNuit) && (
-                <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-yellow-800 font-medium">
-                    ℹ️ Les prix ci-dessus incluent les majorations actuelles
+                <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-yellow-800 dark:text-yellow-300 font-medium flex items-center gap-2">
+                    <span>ℹ️</span>
+                    <span>Les prix ci-dessus incluent les majorations actuelles
                     {conditions.estWeekend && " (weekend)"}
-                    {conditions.estNuit && " (service nocturne)"}
+                    {conditions.estNuit && " (service nocturne)"}</span>
                   </p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

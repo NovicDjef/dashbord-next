@@ -58,6 +58,7 @@ interface LivreurEditFormProps {
 }
 
 interface LivreurEditFormData {
+  username: string;
   prenom: string;
   email: string;
   telephone: string;
@@ -73,6 +74,7 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
   const loading = status === 'loading';
 
   const [formData, setFormData] = useState<LivreurEditFormData>({
+    username: '',
     prenom: '',
     email: '',
     telephone: '',
@@ -88,6 +90,7 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
   useEffect(() => {
     if (livreur && open) {
       setFormData({
+        username: livreur.username || '',
         prenom: livreur.prenom || '',
         email: livreur.email || '',
         telephone: livreur.telephone || '',
@@ -110,6 +113,10 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
 
   const validateForm = (): boolean => {
     const errors: Partial<LivreurEditFormData> = {};
+
+    if (!formData.username.trim()) {
+      errors.username = 'Le nom d\'utilisateur est requis';
+    }
 
     if (!formData.prenom.trim()) {
       errors.prenom = 'Le prénom est requis';
@@ -137,12 +144,13 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!livreur || !validateForm()) {
       return;
     }
 
     const updateData = {
+      username: formData.username.trim(),
       prenom: formData.prenom.trim(),
       email: formData.email.trim(),
       telephone: formData.telephone.trim(),
@@ -189,6 +197,24 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
               {error}
             </div>
           )}
+
+          {/* Nom d'utilisateur */}
+          <div className="space-y-2">
+            <Label htmlFor="username">
+              <IconUser className="inline h-4 w-4 mr-1" />
+              Nom d'utilisateur *
+            </Label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) => handleInputChange('username', e.target.value)}
+              placeholder="jean_livreur"
+              className={formErrors.username ? 'border-red-500' : ''}
+            />
+            {formErrors.username && (
+              <p className="text-sm text-red-500">{formErrors.username}</p>
+            )}
+          </div>
 
           {/* Informations de base */}
           <div className="grid grid-cols-2 gap-4">

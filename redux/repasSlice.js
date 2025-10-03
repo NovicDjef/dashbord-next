@@ -74,7 +74,25 @@ const repasSlice = createSlice({
       })
       .addCase(fetchRepas.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.data = action.payload;
+        // L'API retourne directement un tableau
+        const repasData = action.payload.plats || action.payload.repas || action.payload;
+
+        // Mapper les données pour correspondre à l'interface
+        state.data = Array.isArray(repasData) ? repasData.map(item => ({
+          ...item,
+          price: item.prix || item.price,
+          categoryId: item.categorieId || item.categoryId,
+          category: item.categorie || item.category,
+          // Récupérer le restaurantId depuis la catégorie
+          restaurantId: item.categorie?.restaurantId || item.category?.restaurantId || item.restaurantId,
+          // Créer l'objet restaurant depuis la catégorie
+          restaurant: item.categorie?.restaurantId ? {
+            id: item.categorie.restaurantId,
+            name: item.categorie.restaurant?.name || `Restaurant ${item.categorie.restaurantId}`
+          } : item.restaurant,
+          disponible: item.disponible !== undefined ? item.disponible : true
+        })) : [];
+
         state.error = null;
       })
       .addCase(fetchRepas.rejected, (state, action) => {

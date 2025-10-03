@@ -43,7 +43,8 @@ import {
   IconSearch,
   IconFilter,
   IconClock,
-  IconChartBar
+  IconChartBar,
+  IconCheck
 } from "@tabler/icons-react";
 import { useToast } from "@/hooks/use-toast";
 import { stockService } from '@/services/api';
@@ -273,18 +274,35 @@ export default function StockPage() {
   const categories = Array.from(new Set(items.map(item => item.category)));
 
   const getStockStatus = (item: StockItem) => {
-    if (item.currentStock === 0) return { label: 'Rupture', color: 'bg-red-100 text-red-800' };
-    if (item.currentStock <= item.minStock) return { label: 'Stock bas', color: 'bg-yellow-100 text-yellow-800' };
-    if (item.currentStock >= item.maxStock) return { label: 'Stock plein', color: 'bg-blue-100 text-blue-800' };
-    return { label: 'Normal', color: 'bg-green-100 text-green-800' };
+    if (item.currentStock === 0) return {
+      label: 'Rupture',
+      color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800'
+    };
+    if (item.currentStock <= item.minStock) return {
+      label: 'Stock bas',
+      color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'
+    };
+    if (item.currentStock >= item.maxStock) return {
+      label: 'Stock plein',
+      color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800'
+    };
+    return {
+      label: 'Normal',
+      color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800'
+    };
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <IconRefresh className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="text-muted-foreground">Chargement du stock...</p>
+          <div className="inline-flex items-center justify-center w-16 h-16 mb-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <IconRefresh className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">Chargement du stock...</p>
+            <p className="text-sm text-muted-foreground">Veuillez patienter</p>
+          </div>
         </div>
       </div>
     );
@@ -298,8 +316,8 @@ export default function StockPage() {
           <div className="flex items-center gap-3">
             <IconPackage className="h-8 w-8" />
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Gestion de Stock</h1>
-              <p className="text-muted-foreground">
+              <h1 className="koursier-heading-1">Gestion de Stock</h1>
+              <p className="koursier-heading-description">
                 Gérez votre inventaire et suivez les mouvements de stock
               </p>
             </div>
@@ -324,97 +342,106 @@ export default function StockPage() {
       {/* Stats Cards */}
       <div className="px-4 lg:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Articles
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalItems}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Valeur Totale
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', minimumFractionDigits: 0 }).format(stats.totalValue)}
+          <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-blue-500/10 rounded-xl">
+                <IconPackage className="h-6 w-6 text-blue-600" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="koursier-stats-value text-blue-600">{stats.totalItems}</div>
+                <div className="koursier-stats-label text-blue-500/80">Total Articles</div>
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <IconAlertCircle className="h-4 w-4 text-yellow-600" />
-                Stock Bas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.lowStockItems}</div>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-green-500/10 rounded-xl">
+                <IconChartBar className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <div className="koursier-stats-value text-green-600">
+                  {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(stats.totalValue)} FCFA
+                </div>
+                <div className="koursier-stats-label text-green-500/80">Valeur Totale</div>
+              </div>
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <IconTrendingDown className="h-4 w-4 text-red-600" />
-                Rupture de Stock
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.outOfStockItems}</div>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-yellow-500/10 rounded-xl">
+                <IconAlertCircle className="h-6 w-6 text-yellow-600" />
+              </div>
+              <div>
+                <div className="koursier-stats-value text-yellow-600">{stats.lowStockItems}</div>
+                <div className="koursier-stats-label text-yellow-500/80">Stock Bas</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="koursier-metric-card bg-gradient-to-br from-red-500/5 to-red-600/10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-red-500/10 rounded-xl">
+                <IconTrendingDown className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <div className="koursier-stats-value text-red-600">{stats.outOfStockItems}</div>
+                <div className="koursier-stats-label text-red-500/80">Rupture de Stock</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Alerts */}
       {alerts.length > 0 && (
         <div className="px-4 lg:px-6">
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-800">
-                <IconAlertCircle className="h-5 w-5" />
-                Alertes Stock ({alerts.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {alerts.slice(0, 5).map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-2 bg-white rounded">
-                    <span className="text-sm">{alert.message}</span>
-                    <Badge variant="outline">{alert.type}</Badge>
-                  </div>
-                ))}
+          <div className="koursier-stats-card border-l-4 border-yellow-500 bg-gradient-to-r from-yellow-50/50 to-transparent dark:from-yellow-900/10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <IconAlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
               </div>
-            </CardContent>
-          </Card>
+              <h3 className="koursier-heading-3 text-yellow-900 dark:text-yellow-100">
+                Alertes Stock ({alerts.length})
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {alerts.slice(0, 5).map((alert) => (
+                <div
+                  key={alert.id}
+                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-yellow-200 dark:border-yellow-800 hover:shadow-sm transition-shadow"
+                >
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{alert.message}</span>
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                    {alert.type}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Filters */}
+      {/* Stock Table */}
       <div className="px-4 lg:px-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+        <div className="koursier-stats-card">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+            <h2 className="koursier-heading-3">Inventaire ({filteredItems.length})</h2>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="koursier-search-container max-w-md">
+                <IconSearch className="koursier-search-icon" />
+                <input
+                  className="koursier-search-input"
                   placeholder="Rechercher par nom ou SKU..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
                 />
               </div>
 
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue placeholder="Catégorie" />
                 </SelectTrigger>
                 <SelectContent>
@@ -426,7 +453,7 @@ export default function StockPage() {
               </Select>
 
               <Select value={stockFilter} onValueChange={setStockFilter}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full sm:w-48">
                   <SelectValue placeholder="État du stock" />
                 </SelectTrigger>
                 <SelectContent>
@@ -436,57 +463,48 @@ export default function StockPage() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
-      {/* Stock Table */}
-      <div className="px-4 lg:px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventaire ({filteredItems.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Article</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Catégorie</TableHead>
-                    <TableHead className="text-right">Stock</TableHead>
-                    <TableHead className="text-right">Min/Max</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead className="text-right">Prix Unitaire</TableHead>
-                    <TableHead className="text-right">Valeur</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredItems.map((item) => {
-                    const status = getStockStatus(item);
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.sku}</TableCell>
-                        <TableCell>{item.category}</TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {item.currentStock} {item.unit}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
-                          {item.minStock} / {item.maxStock}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={status.color}>{status.label}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.unitPrice)} XAF
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.totalValue)} XAF
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
+          <div className="overflow-x-auto">
+            <table className="koursier-data-table">
+              <thead>
+                <tr>
+                  <th>Article</th>
+                  <th>SKU</th>
+                  <th>Catégorie</th>
+                  <th className="text-right">Stock</th>
+                  <th className="text-right">Min/Max</th>
+                  <th>Statut</th>
+                  <th className="text-right">Prix Unitaire</th>
+                  <th className="text-right">Valeur</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item) => {
+                  const status = getStockStatus(item);
+                  return (
+                    <tr key={item.id}>
+                      <td className="koursier-label font-medium">{item.name}</td>
+                      <td className="koursier-caption text-muted-foreground">{item.sku}</td>
+                      <td className="koursier-label">{item.category}</td>
+                      <td className="text-right font-semibold">
+                        {item.currentStock} {item.unit}
+                      </td>
+                      <td className="text-right koursier-caption">
+                        {item.minStock} / {item.maxStock}
+                      </td>
+                      <td>
+                        <Badge className={status.color}>{status.label}</Badge>
+                      </td>
+                      <td className="text-right koursier-caption">
+                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.unitPrice)} FCFA
+                      </td>
+                      <td className="text-right font-semibold">
+                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.totalValue)} FCFA
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
@@ -495,6 +513,8 @@ export default function StockPage() {
                                 setMovementData({ type: 'IN', quantity: 0, reason: '' });
                                 setMovementDialogOpen(true);
                               }}
+                              className="hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-600"
+                              title="Ajouter un mouvement"
                             >
                               <IconPlus className="h-4 w-4" />
                             </Button>
@@ -502,6 +522,8 @@ export default function StockPage() {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleViewHistory(item)}
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600"
+                              title="Historique"
                             >
                               <IconClock className="h-4 w-4" />
                             </Button>
@@ -513,6 +535,8 @@ export default function StockPage() {
                                 setFormData(item);
                                 setEditDialogOpen(true);
                               }}
+                              className="hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600"
+                              title="Modifier"
                             >
                               <IconEdit className="h-4 w-4" />
                             </Button>
@@ -520,25 +544,34 @@ export default function StockPage() {
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteItem(item.id)}
+                              className="hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
+                              title="Supprimer"
                             >
                               <IconTrash className="h-4 w-4" />
                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
             {filteredItems.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Aucun article trouvé
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-gray-100 dark:bg-gray-800">
+                  <IconPackage className="h-8 w-8 text-gray-400 dark:text-gray-600" />
+                </div>
+                <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
+                  Aucun article trouvé
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Essayez de modifier vos critères de recherche ou ajoutez un nouvel article
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Add Item Dialog */}

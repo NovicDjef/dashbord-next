@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getImageUrl } from "@/services/urlApp";
-import { 
-  fetchCategoriesData, 
-  createCategory, 
-  updateCategory, 
+import {
+  fetchCategoriesData,
+  createCategory,
+  updateCategory,
   deleteCategory,
-  clearError 
+  clearError
 } from "@/redux/categoriesSlice";
+import { CategoryEditForm } from "@/components/category-edit-form";
 import { fetchRestaurantsData } from "@/redux/restaurantSlice";
 import { fetchRepas } from "@/redux/repasSlice";
 import { toast } from "sonner";
@@ -37,14 +38,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { 
-  IconCategory, 
-  IconPlus, 
-  IconSearch, 
-  IconEdit, 
-  IconTrash, 
+import {
+  IconCategory,
+  IconPlus,
+  IconSearch,
+  IconEdit,
+  IconTrash,
   IconEye,
-  IconTrendingUp
+  IconTrendingUp,
+  IconChefHat,
+  IconBuildingStore
 } from "@tabler/icons-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -81,6 +84,9 @@ export default function CategoriePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categorieToDelete, setCategorieToDelete] = useState<CategorieInterface | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [categorieToView, setCategorieToView] = useState<CategorieInterface | null>(null);
   
   const [formData, setFormData] = useState<CategoryFormData>({
     name: "",
@@ -125,18 +131,17 @@ export default function CategoriePage() {
 
   const handleEdit = (categorie: CategorieInterface) => {
     setSelectedCategorie(categorie);
-    setFormData({
-      name: categorie.name,
-      description: categorie.description,
-      image: categorie.image,
-      restaurantId: categorie.restaurantId
-    });
-    setIsFormOpen(true);
+    setEditDialogOpen(true);
   };
 
   const openDeleteDialog = (categorie: CategorieInterface) => {
     setCategorieToDelete(categorie);
     setDeleteDialogOpen(true);
+  };
+
+  const openDetailDialog = (categorie: CategorieInterface) => {
+    setCategorieToView(categorie);
+    setDetailDialogOpen(true);
   };
 
   const handleDelete = async () => {
@@ -205,10 +210,6 @@ export default function CategoriePage() {
     }).format(new Date(dateString));
   };
 
-  const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "/placeholder-category.jpg";
-    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
-  };
 
   const getCategorieRepas = (categorieId: number) => {
     return repas.filter((r: any) => r.categorieId === categorieId || r.categoryId === categorieId);
@@ -232,192 +233,183 @@ export default function CategoriePage() {
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <IconCategory className="h-6 w-6" />
-              Gestion des Catégories
-            </h1>
-            <p className="text-muted-foreground">
-              Organisez les repas par catégories pour vos restaurants
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setIsFormOpen(true)}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <IconPlus className="h-4 w-4 mr-2" />
-                Nouvelle catégorie
-              </Button>
+    <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
+      {/* En-tête */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <div>
+          <h1 className="koursier-heading-1">Gestion des Catégories</h1>
+          <p className="koursier-body text-muted-foreground">
+            Organisez les repas par catégories pour vos restaurants
+          </p>
+        </div>
+        <button className="koursier-btn koursier-btn-primary koursier-btn-md" onClick={() => setIsFormOpen(true)}>
+          <IconPlus className="h-4 w-4 mr-2" />
+          Nouvelle catégorie
+        </button>
+      </div>
+
+      {/* Statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-blue-500/10 rounded-xl">
+              <IconCategory className="h-6 w-6 text-blue-600" />
             </div>
-            
-            <div className="relative w-full sm:w-64">
-              <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Rechercher une catégorie..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+            <div>
+              <div className="koursier-stats-value text-blue-600">{categories.length}</div>
+              <div className="koursier-stats-label text-blue-500/80">Total Catégories</div>
             </div>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="koursier-stat-card">
-            <div className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-blue-50 dark:bg-blue-500/10">
-                  <IconCategory className="h-5 w-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold">{categories.length}</p>
-                </div>
-              </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-green-500/10 rounded-xl">
+              <IconChefHat className="h-6 w-6 text-green-600" />
             </div>
-          </div>
-
-          <div className="koursier-stat-card">
-            <div className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-green-50 dark:bg-green-500/10">
-                  <IconCategory className="h-5 w-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Repas</p>
-                  <p className="text-2xl font-bold">{repas.length}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="koursier-stat-card">
-            <div className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-orange-50 dark:bg-orange-500/10">
-                  <IconCategory className="h-5 w-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Restaurants</p>
-                  <p className="text-2xl font-bold">{restaurants.length}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="koursier-stat-card">
-            <div className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-purple-50 dark:bg-purple-500/10">
-                  <IconTrendingUp className="h-5 w-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg Repas/Cat</p>
-                  <p className="text-2xl font-bold">
-                    {categories.length > 0 ? Math.round(repas.length / categories.length) : 0}
-                  </p>
-                </div>
-              </div>
+            <div>
+              <div className="koursier-stats-value text-green-600">{repas.length}</div>
+              <div className="koursier-stats-label text-green-500/80">Total Repas</div>
             </div>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Catégories ({filteredCategories.length})</h2>
-            
-            <div className="koursier-table-container">
-              <table className="w-full">
-                <thead>
-                  <tr className="koursier-table-header">
-                    <th className="koursier-table-cell text-left">Catégorie</th>
-                    <th className="koursier-table-cell text-left">Restaurant</th>
-                    <th className="koursier-table-cell text-left">Description</th>
-                    <th className="koursier-table-cell text-left">Repas</th>
-                    <th className="koursier-table-cell text-left">Date</th>
-                    <th className="koursier-table-cell text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCategories.map((categorie: CategorieInterface) => (
-                    <tr key={categorie.id} className="koursier-table-row">
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted">
-                            <img
-                              src={getImageUrl(categorie.image)}
-                              alt={categorie.name}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = "/placeholder-category.jpg";
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <div className="font-medium">{categorie.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              ID: {categorie.id}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="font-medium">
-                          {categorie.restaurant?.name || `Restaurant ${categorie.restaurantId}`}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="max-w-xs line-clamp-2 text-sm text-muted-foreground">
-                          {categorie.description}
-                        </div>
-                      </td>
-                      <td>
-                        <Badge variant="outline">
-                          {getCategorieRepas(categorie.id).length} repas
-                        </Badge>
-                      </td>
-                      <td className="text-sm text-muted-foreground">
-                        {formatDate(categorie.createdAt)}
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm">
-                            <IconEye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleEdit(categorie)}
-                          >
-                            <IconEdit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => openDeleteDialog(categorie)}
-                          >
-                            <IconTrash className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="koursier-metric-card bg-gradient-to-br from-orange-500/5 to-orange-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-orange-500/10 rounded-xl">
+              <IconBuildingStore className="h-6 w-6 text-orange-600" />
             </div>
-            
-            {(!filteredCategories || filteredCategories.length === 0) && (
-              <div className="text-center py-8 text-muted-foreground">
-                {searchTerm ? "Aucune catégorie trouvée pour cette recherche." : (loading ? "Chargement..." : "Aucune catégorie enregistrée.")}
-              </div>
-            )}
+            <div>
+              <div className="koursier-stats-value text-orange-600">{restaurants.length}</div>
+              <div className="koursier-stats-label text-orange-500/80">Restaurants</div>
+            </div>
           </div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-purple-500/10 rounded-xl">
+              <IconTrendingUp className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-purple-600">
+                {categories.length > 0 ? Math.round(repas.length / categories.length) : 0}
+              </div>
+              <div className="koursier-stats-label text-purple-500/80">Avg Repas/Cat</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Liste des catégories */}
+      <div className="koursier-stats-card">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+          <h2 className="koursier-heading-3">Catégories ({filteredCategories.length})</h2>
+          <div className="koursier-search-container max-w-md">
+            <IconSearch className="koursier-search-icon" />
+            <input
+              className="koursier-search-input"
+              placeholder="Rechercher par nom, description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="koursier-scrollable overflow-x-auto">
+          <table className="koursier-data-table">
+            <thead>
+              <tr>
+                <th>Catégorie</th>
+                <th>Restaurant</th>
+                <th>Description</th>
+                <th>Repas</th>
+                <th>Créé le</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCategories.map((categorie: CategorieInterface) => (
+                <tr key={categorie.id}>
+                  <td>
+                    <div className="flex items-center gap-4">
+                      <div className="koursier-avatar relative overflow-hidden rounded-full border-2 border-primary/10">
+                        {categorie.image ? (
+                          <img
+                            src={baseImage(categorie.image || categorie.imageUrl)}
+                            alt={categorie.name}
+                            className="w-12 h-12 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary font-bold text-lg"
+                          style={{display: categorie.image ? 'none' : 'flex'}}
+                        >
+                          {categorie.name[0]?.toUpperCase()}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="koursier-label font-semibold">{categorie.name}</div>
+                        <div className="koursier-caption text-muted-foreground">
+                          ID: {categorie.id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="koursier-label font-medium">
+                      {categorie.restaurant?.name || `Restaurant ${categorie.restaurantId}`}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="max-w-xs line-clamp-2 text-sm text-muted-foreground">
+                      {categorie.description}
+                    </div>
+                  </td>
+                  <td>
+                    <Badge variant="outline" className="koursier-badge koursier-badge-info">
+                      {getCategorieRepas(categorie.id).length} repas
+                    </Badge>
+                  </td>
+                  <td className="koursier-caption text-muted-foreground">
+                    {formatDate(categorie.createdAt)}
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => openDetailDialog(categorie)}>
+                        <IconEye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(categorie)}
+                      >
+                        <IconEdit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openDeleteDialog(categorie)}
+                      >
+                        <IconTrash className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {(!filteredCategories || filteredCategories.length === 0) && (
+            <div className="text-center py-8 text-muted-foreground">
+              {searchTerm ? "Aucune catégorie trouvée pour cette recherche." : (loading ? "Chargement..." : "Aucune catégorie enregistrée.")}
+            </div>
+          )}
         </div>
       </div>
 
@@ -500,9 +492,10 @@ export default function CategoriePage() {
                 {(formData.image || selectedCategorie?.image) && (
                   <div className="mt-2">
                     <img
+                    src={baseImage(categorie.image || categorie.imageUrl)}
                       src={formData.image instanceof File 
                         ? URL.createObjectURL(formData.image)
-                        : getImageUrl(selectedCategorie?.image)
+                        : baseImage(selectedCategorie?.image || selectedCategorie?.imageUrl)
                       }
                       alt="Aperçu"
                       className="w-20 h-20 object-cover rounded-lg"
@@ -541,6 +534,95 @@ export default function CategoriePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CategoryEditForm
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        category={selectedCategorie}
+        restaurants={restaurantsArray}
+      />
+
+      {/* Modal de détails */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <IconCategory className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <div className="text-xl font-bold">Détails de la catégorie</div>
+                <div className="text-sm text-muted-foreground">
+                  {categorieToView?.name} - ID: {categorieToView?.id}
+                </div>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {categorieToView && (
+            <div className="space-y-6">
+              {/* Image */}
+              {categorieToView.image && (
+                <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-gray-200">
+                  <img
+                    src={baseImage(categorieToView.image || categorieToView.imageUrl)}
+                    alt={categorieToView.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Informations principales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Nom de la catégorie</Label>
+                  <div className="text-lg font-semibold">{categorieToView.name}</div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Restaurant</Label>
+                  <div className="text-base">
+                    {categorieToView.restaurant?.name || `Restaurant ${categorieToView.restaurantId}`}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Nombre de repas</Label>
+                  <Badge variant="outline" className="koursier-badge koursier-badge-info">
+                    {getCategorieRepas(categorieToView.id).length} repas
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Date de création</Label>
+                  <div className="text-base">{formatDate(categorieToView.createdAt)}</div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+                <div className="text-base p-4 bg-muted rounded-lg">
+                  {categorieToView.description || "Aucune description"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>
+              Fermer
+            </Button>
+            <Button onClick={() => {
+              setDetailDialogOpen(false);
+              handleEdit(categorieToView!);
+            }}>
+              <IconEdit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2,25 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getImageUrl } from "@/services/urlApp";
-import { 
-  fetchRepas, 
-  createRepas, 
-  updateRepas, 
+import { baseImage } from "@/services/urlApp";
+import {
+  fetchRepas,
+  createRepas,
+  updateRepas,
   deleteRepas,
-  clearError 
+  clearError
 } from "@/redux/repasSlice";
+import { RepasEditForm } from "@/components/repas-edit-form";
 import { fetchCategoriesData } from "@/redux/categoriesSlice";
 import { fetchRestaurantsData } from "@/redux/restaurantSlice";
-import { 
-  IconPlus, 
-  IconEdit, 
-  IconTrash, 
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
   IconEye,
   IconCurrencyEuro,
   IconChefHat,
   IconCategory,
-  IconPhoto
+  IconPhoto,
+  IconCheck,
+  IconSearch
 } from "@tabler/icons-react";
 import { BASE_URL } from "@/services/urlApp";
 import { Button } from "@/components/ui/button";
@@ -70,6 +73,7 @@ interface Repas {
   price: number;
   description: string;
   image?: string;
+  imageUrl?: string;
   categoryId: number;
   restaurantId: number;
   disponible: boolean;
@@ -107,6 +111,9 @@ export default function RepasPage() {
   const [selectedRepas, setSelectedRepas] = useState<Repas | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [repasToDelete, setRepasToDelete] = useState<Repas | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [repasToView, setRepasToView] = useState<Repas | null>(null);
 
   const loading = status === 'loading';
   const submitLoading = status === 'loading';
@@ -134,8 +141,24 @@ export default function RepasPage() {
   }, [dispatch]);
 
   useEffect(() => {
+    // Enrichir les repas avec les noms des restaurants
+    const enrichedRepas = repasArray.map(repas => {
+      // Trouver le restaurant via la catégorie
+      const category = categoriesArray.find(cat => cat.id === repas.categoryId);
+      const restaurant = category ? restaurantsArray.find(rest => rest.id === category.restaurantId) : null;
+
+      return {
+        ...repas,
+        restaurantId: category?.restaurantId || repas.restaurantId,
+        restaurant: restaurant ? {
+          id: restaurant.id,
+          name: restaurant.name
+        } : repas.restaurant
+      };
+    });
+
     if (searchTerm) {
-      const filtered = repas?.filter(repas =>
+      const filtered = enrichedRepas.filter(repas =>
         repas.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         repas.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         repas.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,9 +166,9 @@ export default function RepasPage() {
       );
       setFilteredRepas(filtered || []);
     } else {
-      setFilteredRepas(repas || []);
+      setFilteredRepas(enrichedRepas || []);
     }
-  }, [searchTerm, repas]);
+  }, [searchTerm, repas, categories, restaurants]);
 
   const handleCreateOrUpdate = async () => {
     try {
@@ -176,16 +199,7 @@ export default function RepasPage() {
 
   const handleEdit = (repas: Repas) => {
     setSelectedRepas(repas);
-    setFormData({
-      name: repas.name,
-      description: repas.description,
-      price: repas.price,
-      image: repas.image || "",
-      categoryId: repas.categoryId,
-      restaurantId: repas.restaurantId,
-      disponible: repas.disponible
-    });
-    setIsFormOpen(true);
+    setEditDialogOpen(true);
   };
 
   const handleDelete = async () => {
@@ -204,6 +218,11 @@ export default function RepasPage() {
   const openDeleteDialog = (repas: Repas) => {
     setRepasToDelete(repas);
     setDeleteDialogOpen(true);
+  };
+
+  const openDetailDialog = (repas: Repas) => {
+    setRepasToView(repas);
+    setDetailDialogOpen(true);
   };
 
   const resetForm = () => {
@@ -226,9 +245,26 @@ export default function RepasPage() {
     }).format(new Date(dateString));
   };
 
-  const getImageUrl = (imagePath?: string) => {
-    if (!imagePath) return "/placeholder-food.jpg";
-    return imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
+
+  // Fonction pour récupérer le nom du restaurant via la catégorie
+  const getRestaurantName = (repas: Repas) => {
+    // D'abord vérifier si le repas a déjà un restaurant avec un nom
+    if (repas.restaurant?.name) {
+      return repas.restaurant.name;
+    }
+
+    // Sinon, chercher via la catégorie
+    const category = categoriesArray.find(cat => cat.id === repas.categoryId);
+    if (category?.restaurantId) {
+      const restaurant = restaurantsArray.find(rest => rest.id === category.restaurantId);
+      if (restaurant?.name) {
+        return restaurant.name;
+      }
+      return `Restaurant ${category.restaurantId}`;
+    }
+
+    // Fallback
+    return repas.restaurantId ? `Restaurant ${repas.restaurantId}` : "Restaurant inconnu";
   };
 
   if (loading && !repas) {
@@ -253,180 +289,195 @@ export default function RepasPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconChefHat className="h-6 w-6" />
-            Gestion des Repas
-          </h1>
-          <p className="text-muted-foreground">
+          <h1 className="koursier-heading-1">Gestion des Repas</h1>
+          <p className="koursier-body text-muted-foreground">
             Gérez le menu de vos restaurants
           </p>
         </div>
-        <Button onClick={() => {
+        <button className="koursier-btn koursier-btn-primary koursier-btn-md" onClick={() => {
           setSelectedRepas(null);
           resetForm();
           setIsFormOpen(true);
         }}>
           <IconPlus className="h-4 w-4 mr-2" />
           Nouveau repas
-        </Button>
+        </button>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Repas
-            </CardTitle>
-            <div className="text-2xl font-bold">{repas?.length || 0}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Disponibles
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">
-              {repas?.filter(r => r.disponible).length || 0}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-blue-500/10 rounded-xl">
+              <IconChefHat className="h-6 w-6 text-blue-600" />
             </div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Prix Moyen
-            </CardTitle>
-            <div className="text-2xl font-bold text-blue-600">
-              {repasArray.length > 0
-                ? (repasArray.reduce((sum, r) => sum + r.price, 0) / repasArray.length).toFixed(0) + "€"
-                : "0€"
-              }
+            <div>
+              <div className="koursier-stats-value text-blue-600">{repas?.length || 0}</div>
+              <div className="koursier-stats-label text-blue-500/80">Total Repas</div>
             </div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Catégories
-            </CardTitle>
-            <div className="text-2xl font-bold text-orange-600">
-              {categories?.length || 0}
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-green-500/10 rounded-xl">
+              <IconCheck className="h-6 w-6 text-green-600" />
             </div>
-          </CardHeader>
-        </Card>
+            <div>
+              <div className="koursier-stats-value text-green-600">
+                {repas?.filter(r => r.disponible).length || 0}
+              </div>
+              <div className="koursier-stats-label text-green-500/80">Disponibles</div>
+            </div>
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-purple-500/10 rounded-xl">
+              <IconCurrencyEuro className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-purple-600">
+                {repasArray.length > 0
+                  ? (repasArray.reduce((sum, r) => sum + (r.price || 0), 0) / repasArray.length).toFixed(0) + " FCFA"
+                  : "0 FCFA"
+                }
+              </div>
+              <div className="koursier-stats-label text-purple-500/80">Prix Moyen</div>
+            </div>
+          </div>
+        </div>
+        <div className="koursier-metric-card bg-gradient-to-br from-orange-500/5 to-orange-600/10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-3 bg-orange-500/10 rounded-xl">
+              <IconCategory className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <div className="koursier-stats-value text-orange-600">
+                {categories?.length || 0}
+              </div>
+              <div className="koursier-stats-label text-orange-500/80">Catégories</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Recherche */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Rechercher</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Rechercher par nom, description, catégorie ou restaurant..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </CardContent>
-      </Card>
-
       {/* Liste des repas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Repas ({filteredRepas?.length || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Repas</TableHead>
-                  <TableHead>Prix</TableHead>
-                  <TableHead>Catégorie</TableHead>
-                  <TableHead>Restaurant</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Créé le</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRepas?.map((repas) => (
-                  <TableRow key={repas.id} className="Koursier-table-row">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={getImageUrl(repas.image)} />
-                          <AvatarFallback>
-                            <IconChefHat className="h-5 w-5" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{repas.name}</div>
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {repas.description}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 font-semibold">
-                        <IconCurrencyEuro className="h-4 w-4" />
-                        {repas.price.toFixed(2)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {repas.category?.name || `Catégorie ${repas.categoryId}`}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {repas.restaurant?.name || `Restaurant ${repas.restaurantId}`}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={repas.disponible ? "default" : "secondary"}>
-                        {repas.disponible ? "Disponible" : "Indisponible"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(repas.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm">
-                          <IconEye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEdit(repas)}
-                        >
-                          <IconEdit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => openDeleteDialog(repas)}
-                        >
-                          <IconTrash className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+      <div className="koursier-stats-card">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+          <h2 className="koursier-heading-3">Repas ({filteredRepas?.length || 0})</h2>
+          <div className="koursier-search-container max-w-md">
+            <IconSearch className="koursier-search-icon" />
+            <input
+              className="koursier-search-input"
+              placeholder="Rechercher par nom, description, catégorie ou restaurant..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          
-          {(!filteredRepas || filteredRepas.length === 0) && (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? "Aucun repas trouvé pour cette recherche." : (loading ? "Chargement..." : "Aucun repas enregistré.")}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      <div className="koursier-scrollable overflow-x-auto">
+        <table className="koursier-data-table">
+          <thead>
+            <tr>
+              <th>Repas</th>
+              <th>Prix</th>
+              <th>Catégorie</th>
+              <th>Restaurant</th>
+              <th>Status</th>
+              <th>Créé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRepas?.map((repas) => (
+              <tr key={repas.id}>
+                <td>
+                  <div className="flex items-center gap-4">
+                    <div className="koursier-avatar relative overflow-hidden rounded-full border-2 border-primary/10">
+                      {repas.image ? (
+                        <img
+                          src={baseImage(repas.image || repas.imageUrl)}
+                          alt={repas.name}
+                          className="w-12 h-12 object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            if (e.currentTarget.nextElementSibling) {
+                              (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                            }
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-primary font-bold text-lg"
+                        style={{display: repas.image ? 'none' : 'flex'}}
+                      >
+                        <IconChefHat className="h-5 w-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="koursier-label font-semibold">{repas.name}</div>
+                      <div className="koursier-caption text-muted-foreground line-clamp-1">
+                        {repas.description}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div className="koursier-label font-semibold">
+                    {repas.price ? repas.price.toFixed(0) : "0"} FCFA
+                  </div>
+                </td>
+                <td>
+                  <Badge variant="outline" className="koursier-badge koursier-badge-info">
+                    {repas.category?.name || `Catégorie ${repas.categoryId}`}
+                  </Badge>
+                </td>
+                <td>
+                  <div className="koursier-label font-medium">
+                    {getRestaurantName(repas)}
+                  </div>
+                </td>
+                <td>
+                  <Badge variant={repas.disponible ? "default" : "secondary"} className={repas.disponible ? "koursier-badge koursier-badge-success" : "koursier-badge"}>
+                    {repas.disponible ? "Disponible" : "Indisponible"}
+                  </Badge>
+                </td>
+                <td className="koursier-caption text-muted-foreground">
+                  {formatDate(repas.createdAt)}
+                </td>
+                <td>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => openDetailDialog(repas)}>
+                      <IconEye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(repas)}
+                    >
+                      <IconEdit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openDeleteDialog(repas)}
+                    >
+                      <IconTrash className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {(!filteredRepas || filteredRepas.length === 0) && (
+          <div className="text-center py-8 text-muted-foreground">
+            {searchTerm ? "Aucun repas trouvé pour cette recherche." : (loading ? "Chargement..." : "Aucun repas enregistré.")}
+          </div>
+        )}
+      </div>
+      </div>
 
       {/* Formulaire de création/édition */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -475,7 +526,7 @@ export default function RepasPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="price" className="text-sm font-medium flex items-center gap-1">
-                    Prix (€) *
+                    Prix (FCFA) *
                     <span className="text-red-500">•</span>
                   </Label>
                   <div className="relative">
@@ -648,7 +699,7 @@ export default function RepasPage() {
                   <p className="text-sm font-medium">Informations</p>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p>• Nom: {formData.name || "Non défini"}</p>
-                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)}€` : "Non défini"}</p>
+                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)} FCFA` : "Non défini"}</p>
                     <p>• Statut: {formData.disponible ? "Disponible" : "Indisponible"}</p>
                   </div>
                 </div>
@@ -725,6 +776,106 @@ export default function RepasPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <RepasEditForm
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        repas={selectedRepas}
+        categories={categoriesArray}
+        restaurants={restaurantsArray}
+      />
+
+      {/* Modal de détails */}
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-10 w-10 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <IconChefHat className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <div className="text-xl font-bold">Détails du repas</div>
+                <div className="text-sm text-muted-foreground">
+                  {repasToView?.name} - ID: {repasToView?.id}
+                </div>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {repasToView && (
+            <div className="space-y-6">
+              {/* Image */}
+              {repasToView.image && (
+                <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-gray-200">
+                  <img
+                    src={baseImage(repasToView.image || repasToView.imageUrl)}
+                    alt={repasToView.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Informations principales */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Nom du repas</Label>
+                  <div className="text-lg font-semibold">{repasToView.name}</div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
+                  <div className="text-lg font-semibold text-green-600">
+                    {repasToView.price ? repasToView.price.toFixed(0) : "0"} FCFA
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Catégorie</Label>
+                  <div className="text-base">{repasToView.category?.name || `Catégorie ${repasToView.categoryId}`}</div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Restaurant</Label>
+                  <div className="text-base">{getRestaurantName(repasToView)}</div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Statut</Label>
+                  <Badge variant={repasToView.disponible ? "default" : "secondary"}>
+                    {repasToView.disponible ? "Disponible" : "Indisponible"}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Date de création</Label>
+                  <div className="text-base">{formatDate(repasToView.createdAt)}</div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">Description</Label>
+                <div className="text-base p-4 bg-muted rounded-lg">
+                  {repasToView.description || "Aucune description"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailDialogOpen(false)}>
+              Fermer
+            </Button>
+            <Button onClick={() => {
+              setDetailDialogOpen(false);
+              handleEdit(repasToView!);
+            }}>
+              <IconEdit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
