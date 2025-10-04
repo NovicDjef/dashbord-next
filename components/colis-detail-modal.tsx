@@ -7,7 +7,7 @@ import {
   IconPhone,
   IconMapPin,
   IconCalendar,
-  IconCurrencyEuro,
+  IconCoin,
   IconClock,
   IconX,
   IconTruck,
@@ -311,7 +311,7 @@ export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModal
 
                 {colis.valeurDeclaree && (
                   <div className="flex items-center gap-3">
-                    <IconCurrencyEuro className="h-4 w-4 text-muted-foreground" />
+                    <IconCoin className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <div className="text-sm text-muted-foreground">Valeur déclarée</div>
                       <div className="font-medium">{formatCurrency(colis.valeurDeclaree)}</div>
@@ -371,7 +371,7 @@ export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModal
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-blue-600" />
+                    <IconCoin className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="text-2xl font-bold text-blue-600">
                     {formatCurrency(colis.prix)}
@@ -381,7 +381,7 @@ export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModal
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-green-600" />
+                    <IconCoin className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(colis.commission)}
@@ -391,7 +391,7 @@ export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModal
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-orange-600" />
+                    <IconCoin className="h-6 w-6 text-orange-600" />
                   </div>
                   <div className="text-2xl font-bold text-orange-600">
                     {calculateMargin()}%

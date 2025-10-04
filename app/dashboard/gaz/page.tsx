@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { getGasOrdersAsync } from "@/redux/gazSlice";
 import { GazDetailModal } from "@/components/gaz-detail-modal";
+import { Pagination } from "@/components/pagination";
 
 
 interface CommandeGaz {
@@ -75,7 +76,47 @@ export default function GazPage() {
   const [filterPeriod, setFilterPeriod] = useState<string>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedCommande, setSelectedCommande] = useState<CommandeGaz | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const loading = status === 'loading';
+
+  // Fonction pour mapper les statuts de l'API vers le format local
+  const mapStatus = (status: string): CommandeGaz['statut'] => {
+    const statusMap: { [key: string]: CommandeGaz['statut'] } = {
+      'EN_ATTENTE': 'en_attente',
+      'CONFIRMEE': 'confirme',
+      'EN_PREPARATION': 'confirme',
+      'EN_LIVRAISON': 'en_livraison',
+      'LIVREE': 'livre',
+      'ANNULEE': 'annule',
+    };
+    return statusMap[status] || 'en_attente';
+  };
+
+  // Fonction pour mapper le type de commande
+  const mapOrderType = (orderType: string): 'recharge' | 'bouteille_complete' => {
+    return orderType === 'REFILL' ? 'recharge' : 'bouteille_complete';
+  };
+
+  // Transformer les données de l'API au format attendu
+  const transformGasOrders = (orders: any[]): CommandeGaz[] => {
+    return orders.map(order => ({
+      id: order.id?.toString() || '',
+      numeroCommande: order.orderNumber || `GAZ-${order.id}`,
+      client: order.user?.username || 'Client inconnu',
+      telephone: order.phone || order.user?.phone || '',
+      adresse: order.deliveryAddress || '',
+      marqueGaz: order.selectedBrand?.replace('_', ' ') || 'BOCCOM',
+      typeCommande: mapOrderType(order.orderType),
+      quantite: order.quantity || 1,
+      prix: order.totalPrice || order.basePrice || 0,
+      commission: order.adminShare || 0,
+      statut: mapStatus(order.status),
+      livreur: order.livreur ? `${order.livreur.username} ${order.livreur.prenom || ''}`.trim() : undefined,
+      dateCommande: order.createdAt || new Date().toISOString(),
+      dateLivraison: order.deliveredAt
+    }));
+  };
 
   useEffect(() => {
     dispatch(getGasOrdersAsync());
@@ -83,13 +124,36 @@ export default function GazPage() {
 
   // Utiliser les données de Redux
   useEffect(() => {
-    if (gasOrders && gasOrders.length > 0) {
-      setFilteredCommandes(gasOrders);
+    console.log("=== DEBUG GAZ PAGE ===");
+    console.log("gasOrders type:", typeof gasOrders);
+    console.log("gasOrders isArray:", Array.isArray(gasOrders));
+    console.log("gasOrders value:", gasOrders);
+    console.log("=====================");
+
+    // S'assurer que gasOrders est un tableau
+    const ordersArray = Array.isArray(gasOrders) ? gasOrders : [];
+
+    if (ordersArray.length > 0) {
+      const transformedOrders = transformGasOrders(ordersArray);
+      console.log("Commandes transformées:", transformedOrders);
+      setFilteredCommandes(transformedOrders);
+    } else {
+      setFilteredCommandes([]);
     }
   }, [gasOrders]);
 
   useEffect(() => {
-    let filtered = gasOrders || [];
+    // S'assurer que gasOrders est un tableau
+    const ordersArray = Array.isArray(gasOrders) ? gasOrders : [];
+
+    if (!Array.isArray(ordersArray)) {
+      console.error("gasOrders n'est pas un tableau:", ordersArray);
+      setFilteredCommandes([]);
+      return;
+    }
+
+    // Transformer les données
+    let filtered = ordersArray.length > 0 ? transformGasOrders(ordersArray) : [];
 
     if (filterStatut !== 'all') {
       filtered = filtered.filter(c => c.statut === filterStatut);
@@ -102,7 +166,7 @@ export default function GazPage() {
     if (filterPeriod !== 'all') {
       const now = new Date();
       const filterDate = new Date();
-      
+
       switch (filterPeriod) {
         case 'today':
           filterDate.setHours(0, 0, 0, 0);
@@ -114,12 +178,24 @@ export default function GazPage() {
           filterDate.setMonth(now.getMonth() - 1);
           break;
       }
-      
+
       filtered = filtered.filter(c => new Date(c.dateCommande) >= filterDate);
     }
 
     setFilteredCommandes(filtered);
+    setCurrentPage(1); // Réinitialiser à la page 1 quand les filtres changent
   }, [gasOrders, filterStatut, filterType, filterPeriod]);
+
+  // Calcul de la pagination
+  const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCommandes = filteredCommandes.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Afficher une erreur si nécessaire
   if (error) {
@@ -135,10 +211,8 @@ export default function GazPage() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const formatDate = (date: string) => {
@@ -178,15 +252,10 @@ export default function GazPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="h-8 bg-muted rounded w-1/3 animate-pulse" />
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-1/2 mb-2" />
-                <div className="h-8 bg-muted rounded w-3/4" />
-              </CardHeader>
-            </Card>
+            <div key={i} className="koursier-skeleton h-24 rounded koursier-shimmer" />
           ))}
         </div>
       </div>
@@ -198,82 +267,74 @@ export default function GazPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconGasStation className="h-6 w-6" />
+          <h1 className="koursier-heading-1 flex items-center gap-2">
+            <IconGasStation className="h-7 w-7" />
             Livraisons de Gaz
           </h1>
-          <p className="text-muted-foreground">
+          <p className="koursier-body text-muted-foreground">
             Gérez les commandes et livraisons de bouteilles de gaz
           </p>
         </div>
-        <Button>
+        <Button className="koursier-btn-primary">
           <IconDownload className="h-4 w-4 mr-2" />
           Exporter rapport
         </Button>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Commandes
-            </CardTitle>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En attente
-            </CardTitle>
-            <div className="text-2xl font-bold text-yellow-600">{stats.enAttente}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En livraison
-            </CardTitle>
-            <div className="text-2xl font-bold text-orange-600">{stats.enLivraison}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Livrées
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{stats.livrees}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Chiffre d'affaires
-            </CardTitle>
-            <div className="text-xl font-bold text-blue-600">{formatCurrency(stats.chiffreAffaires)}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Commissions
-            </CardTitle>
-            <div className="text-xl font-bold text-green-600">{formatCurrency(stats.commissionsTotal)}</div>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="koursier-metric-card bg-gradient-to-br from-orange-500/5 to-orange-600/10 border-0">
+          <div className="koursier-stats-label text-orange-600 dark:text-orange-400">
+            Total Commandes
+          </div>
+          <div className="koursier-stats-value text-orange-600 dark:text-orange-400">{stats.total}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 border-0">
+          <div className="koursier-stats-label text-yellow-600 dark:text-yellow-400">
+            En attente
+          </div>
+          <div className="koursier-stats-value text-yellow-600 dark:text-yellow-400">{stats.enAttente}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-0">
+          <div className="koursier-stats-label text-purple-600 dark:text-purple-400">
+            En livraison
+          </div>
+          <div className="koursier-stats-value text-purple-600 dark:text-purple-400">{stats.enLivraison}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10 border-0">
+          <div className="koursier-stats-label text-green-600 dark:text-green-400">
+            Livrées
+          </div>
+          <div className="koursier-stats-value text-green-600 dark:text-green-400">{stats.livrees}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-0">
+          <div className="koursier-stats-label text-blue-600 dark:text-blue-400">
+            Chiffre d'affaires
+          </div>
+          <div className="koursier-stats-value text-xl text-blue-600 dark:text-blue-400">{formatCurrency(stats.chiffreAffaires)}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 border-0">
+          <div className="koursier-stats-label text-emerald-600 dark:text-emerald-400">
+            Commissions
+          </div>
+          <div className="koursier-stats-value text-xl text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.commissionsTotal)}</div>
+        </div>
       </div>
 
       {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Filtres</CardTitle>
-            <IconFilter className="h-5 w-5 text-muted-foreground" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="koursier-metric-card bg-gradient-to-br from-slate-500/5 to-slate-600/10 border-0">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="koursier-stats-label text-slate-600 dark:text-slate-400 flex items-center gap-2">
+            <IconFilter className="h-5 w-5" />
+            Filtres
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select value={filterStatut} onValueChange={setFilterStatut}>
               <SelectTrigger>
                 <SelectValue placeholder="Statut" />
@@ -311,98 +372,110 @@ export default function GazPage() {
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Tableau des commandes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Commandes de Gaz ({filteredCommandes.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="koursier-metric-card border-0">
+        <h3 className="koursier-stats-label mb-6">
+          Commandes de Gaz ({filteredCommandes.length})
+        </h3>
+        {filteredCommandes.length === 0 ? (
+          <div className="koursier-empty-state">
+            <IconGasStation className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="koursier-body text-muted-foreground">
+              Aucune commande trouvée avec les filtres sélectionnés.
+            </p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>N° Commande</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Marque</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Qté</TableHead>
-                  <TableHead>Prix</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Livreur</TableHead>
-                  <TableHead>Date commande</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCommandes.slice(0, 50).map((commande) => (
-                  <TableRow key={commande.id}>
-                    <TableCell className="font-medium">{commande.numeroCommande}</TableCell>
-                    <TableCell>
+            <table className="koursier-data-table">
+              <thead>
+                <tr>
+                  <th className="koursier-label">N° Commande</th>
+                  <th className="koursier-label">Client</th>
+                  <th className="koursier-label">Contact</th>
+                  <th className="koursier-label">Marque</th>
+                  <th className="koursier-label">Type</th>
+                  <th className="koursier-label">Qté</th>
+                  <th className="koursier-label">Prix</th>
+                  <th className="koursier-label">Commission</th>
+                  <th className="koursier-label">Statut</th>
+                  <th className="koursier-label">Livreur</th>
+                  <th className="koursier-label">Date commande</th>
+                  <th className="koursier-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedCommandes.map((commande) => (
+                  <tr key={commande.id}>
+                    <td className="koursier-label font-medium">{commande.numeroCommande}</td>
+                    <td>
                       <div>
-                        <div className="font-medium">{commande.client}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <div className="koursier-label font-medium">{commande.client}</div>
+                        <div className="koursier-caption text-muted-foreground flex items-center gap-1">
                           <IconMapPin className="h-3 w-3" />
                           {commande.adresse}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{commande.telephone}</TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="koursier-caption">{commande.telephone}</td>
+                    <td>
                       <Badge variant="outline">{commande.marqueGaz}</Badge>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td>
                       <div className="flex items-center gap-1">
                         <span>{typeCommandeConfig[commande.typeCommande].icon}</span>
-                        <span className="text-sm">{typeCommandeConfig[commande.typeCommande].label}</span>
+                        <span className="koursier-caption">{typeCommandeConfig[commande.typeCommande].label}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-center">{commande.quantite}</TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(commande.prix)}</TableCell>
-                    <TableCell className="font-semibold text-green-600">
+                    </td>
+                    <td className="koursier-label text-center">{commande.quantite}</td>
+                    <td className="koursier-label font-semibold">{formatCurrency(commande.prix)}</td>
+                    <td className="koursier-label font-semibold text-green-600 dark:text-green-400">
                       {formatCurrency(commande.commission)}
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td>
                       <Badge className={statutConfig[commande.statut].color}>
                         {statutConfig[commande.statut].label}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
+                    </td>
+                    <td className="koursier-caption">
                       {commande.livreur || <span className="text-muted-foreground">-</span>}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    </td>
+                    <td className="koursier-caption text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <IconClock className="h-3 w-3" />
                         {formatDate(commande.dateCommande)}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
+                    </td>
+                    <td>
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleViewCommande(commande)}
                         title="Voir les détails"
+                        className="koursier-btn"
                       >
                         <IconEye className="h-4 w-4" />
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
-          
-          {filteredCommandes.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucune commande trouvée avec les filtres sélectionnés.
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Pagination */}
+        {filteredCommandes.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredCommandes.length}
+          />
+        )}
+      </div>
 
       {/* Modal de détail de la commande */}
       <GazDetailModal

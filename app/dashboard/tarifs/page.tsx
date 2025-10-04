@@ -258,10 +258,8 @@ export default function TarifsPage() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const calculatePrice = (service: 'REPAS' | 'COLIS', params: any) => {

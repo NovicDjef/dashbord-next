@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -180,10 +181,8 @@ export default function WalletLivreursPage() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0,
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const filteredWithdrawals = withdrawals.filter((w) =>
@@ -200,10 +199,23 @@ export default function WalletLivreursPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <IconRefresh className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-          <p className="text-muted-foreground">Chargement des wallets...</p>
+      <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="koursier-metric-card">
+              <div className="koursier-skeleton h-6 rounded w-1/2 koursier-shimmer" />
+              <div className="koursier-skeleton h-8 rounded w-full mt-4 koursier-shimmer" />
+            </div>
+          ))}
+        </div>
+        <div className="koursier-metric-card">
+          <div className="koursier-skeleton h-6 rounded w-1/4 koursier-shimmer" />
+          <div className="space-y-3 mt-4">
+            {[...Array(5)].map((_, j) => (
+              <div key={j} className="koursier-skeleton h-12 rounded koursier-shimmer" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -213,22 +225,22 @@ export default function WalletLivreursPage() {
     <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6">
       {/* Header */}
       <div className="px-4 lg:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <IconWallet className="h-8 w-8" />
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Wallets Livreurs</h1>
-              <p className="text-muted-foreground">
-                Gérez les gains et les retraits des livreurs
-              </p>
-            </div>
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <div>
+            <h1 className="koursier-heading-1 flex items-center gap-2">
+              <IconWallet className="h-7 w-7" />
+              Wallets Livreurs
+            </h1>
+            <p className="koursier-body text-muted-foreground">
+              Gérez les gains et les retraits des livreurs
+            </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={loadData}>
+            <Button variant="outline" onClick={loadData} className="koursier-btn">
               <IconRefresh className="h-4 w-4 mr-2" />
               Actualiser
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" className="koursier-btn">
               <IconDownload className="h-4 w-4 mr-2" />
               Exporter
             </Button>
@@ -239,264 +251,254 @@ export default function WalletLivreursPage() {
       {/* Stats Cards */}
       <div className="px-4 lg:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Livreurs Actifs
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{livreurs.length}</div>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-indigo-500/5 to-indigo-600/10">
+            <div className="koursier-stats-label text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+              <IconMotorbike className="h-5 w-5" />
+              Total Livreurs Actifs
+            </div>
+            <div className="koursier-stats-value text-indigo-600 dark:text-indigo-400">{livreurs.length}</div>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Gains Totaux
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(wallets.reduce((sum, w) => sum + w.balance.total, 0))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+            <div className="koursier-stats-label text-green-600 dark:text-green-400 flex items-center gap-2">
+              <IconCash className="h-5 w-5" />
+              Gains Totaux
+            </div>
+            <div className="koursier-stats-value text-green-600 dark:text-green-400">
+              {formatCurrency(wallets.reduce((sum, w) => sum + w.balance.total, 0))}
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <IconClock className="h-4 w-4 text-yellow-600" />
-                Retraits en Attente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {formatCurrency(totalPending)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {withdrawals.filter((w) => w.status === 'PENDING').length} demandes
-              </p>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10">
+            <div className="koursier-stats-label text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+              <IconClock className="h-5 w-5" />
+              Retraits en Attente
+            </div>
+            <div className="koursier-stats-value text-yellow-600 dark:text-yellow-400">
+              {formatCurrency(totalPending)}
+            </div>
+            <p className="koursier-caption mt-2">
+              {withdrawals.filter((w) => w.status === 'PENDING').length} demandes
+            </p>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <IconCheck className="h-4 w-4 text-green-600" />
-                Retraits Approuvés
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {formatCurrency(totalApproved)}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+            <div className="koursier-stats-label text-blue-600 dark:text-blue-400 flex items-center gap-2">
+              <IconCheck className="h-5 w-5" />
+              Retraits Approuvés
+            </div>
+            <div className="koursier-stats-value text-blue-600 dark:text-blue-400">
+              {formatCurrency(totalApproved)}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Wallets Table */}
       <div className="px-4 lg:px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Wallets des Livreurs</CardTitle>
-            <CardDescription>Vue d&apos;ensemble des gains de chaque livreur</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Livreur</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead className="text-right">Balance Totale</TableHead>
-                    <TableHead className="text-right">Disponible</TableHead>
-                    <TableHead className="text-right">En Attente</TableHead>
-                    <TableHead className="text-right">Retiré</TableHead>
-                    <TableHead className="text-right">Ce Mois</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {wallets.map((wallet) => (
-                    <TableRow key={wallet.livreurId}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <IconMotorbike className="h-4 w-4 text-muted-foreground" />
-                          {wallet.livreur.username}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {wallet.livreur.phone}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {formatCurrency(wallet.balance.total)}
-                      </TableCell>
-                      <TableCell className="text-right text-green-600 font-semibold">
-                        {formatCurrency(wallet.balance.available)}
-                      </TableCell>
-                      <TableCell className="text-right text-yellow-600">
-                        {formatCurrency(wallet.balance.pending)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {formatCurrency(wallet.balance.withdrawn)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <IconTrendingUp className="h-4 w-4 text-green-600" />
-                          {formatCurrency(wallet.stats.monthlyEarnings)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => viewLivreurDetails(wallet.livreur)}
-                        >
-                          <IconEye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+        <div className="koursier-metric-card">
+          <h3 className="koursier-stats-label mb-2">Wallets des Livreurs</h3>
+          <p className="koursier-caption mb-6">Vue d&apos;ensemble des gains de chaque livreur</p>
 
-            {wallets.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Aucun wallet trouvé
+          <div className="overflow-x-auto">
+            <table className="koursier-data-table">
+              <thead>
+                <tr>
+                  <th className="koursier-label">Livreur</th>
+                  <th className="koursier-label">Contact</th>
+                  <th className="koursier-label text-right">Balance Totale</th>
+                  <th className="koursier-label text-right">Disponible</th>
+                  <th className="koursier-label text-right">En Attente</th>
+                  <th className="koursier-label text-right">Retiré</th>
+                  <th className="koursier-label text-right">Ce Mois</th>
+                  <th className="koursier-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wallets.map((wallet) => (
+                  <tr key={wallet.livreurId}>
+                    <td className="koursier-label font-medium">
+                      <div className="flex items-center gap-2">
+                        <IconMotorbike className="h-4 w-4 text-muted-foreground" />
+                        {wallet.livreur.username}
+                      </div>
+                    </td>
+                    <td className="koursier-caption">
+                      {wallet.livreur.phone}
+                    </td>
+                    <td className="koursier-label text-right font-semibold">
+                      {formatCurrency(wallet.balance.total)}
+                    </td>
+                    <td className="koursier-label text-right text-green-600 dark:text-green-400 font-semibold">
+                      {formatCurrency(wallet.balance.available)}
+                    </td>
+                    <td className="koursier-label text-right text-yellow-600 dark:text-yellow-400">
+                      {formatCurrency(wallet.balance.pending)}
+                    </td>
+                    <td className="koursier-caption text-right">
+                      {formatCurrency(wallet.balance.withdrawn)}
+                    </td>
+                    <td className="koursier-label text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <IconTrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        {formatCurrency(wallet.stats.monthlyEarnings)}
+                      </div>
+                    </td>
+                    <td>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => viewLivreurDetails(wallet.livreur)}
+                        className="koursier-btn"
+                      >
+                        <IconEye className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {wallets.length === 0 && (
+            <div className="koursier-empty-state">
+              <div className="koursier-empty-icon">
+                <IconWallet className="h-12 w-12" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <h3 className="koursier-empty-title">Aucun wallet trouvé</h3>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Withdrawal Requests */}
       <div className="px-4 lg:px-6">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Demandes de Retrait</CardTitle>
-                <CardDescription>
-                  Gérez les demandes de retrait des livreurs
-                </CardDescription>
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="PENDING">En attente</SelectItem>
-                  <SelectItem value="APPROVED">Approuvé</SelectItem>
-                  <SelectItem value="REJECTED">Rejeté</SelectItem>
-                  <SelectItem value="COMPLETED">Complété</SelectItem>
-                </SelectContent>
-              </Select>
+        <div className="koursier-metric-card">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h3 className="koursier-stats-label mb-2">Demandes de Retrait</h3>
+              <p className="koursier-caption">
+                Gérez les demandes de retrait des livreurs
+              </p>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Livreur</TableHead>
-                    <TableHead className="text-right">Montant</TableHead>
-                    <TableHead>Méthode</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredWithdrawals.map((withdrawal) => (
-                    <TableRow key={withdrawal.id}>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(withdrawal.createdAt).toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {withdrawal.livreur?.username || `Livreur #${withdrawal.livreurId}`}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {formatCurrency(withdrawal.amount)}
-                      </TableCell>
-                      <TableCell>{withdrawal.method}</TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            withdrawal.status === 'PENDING'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : withdrawal.status === 'APPROVED'
-                              ? 'bg-blue-100 text-blue-800'
-                              : withdrawal.status === 'COMPLETED'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }
-                        >
-                          {withdrawal.status === 'PENDING'
-                            ? 'En attente'
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="PENDING">En attente</SelectItem>
+                <SelectItem value="APPROVED">Approuvé</SelectItem>
+                <SelectItem value="REJECTED">Rejeté</SelectItem>
+                <SelectItem value="COMPLETED">Complété</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="koursier-data-table">
+              <thead>
+                <tr>
+                  <th className="koursier-label">Date</th>
+                  <th className="koursier-label">Livreur</th>
+                  <th className="koursier-label text-right">Montant</th>
+                  <th className="koursier-label">Méthode</th>
+                  <th className="koursier-label">Statut</th>
+                  <th className="koursier-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredWithdrawals.map((withdrawal) => (
+                  <tr key={withdrawal.id}>
+                    <td className="koursier-caption">
+                      {new Date(withdrawal.createdAt).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td className="koursier-label font-medium">
+                      {withdrawal.livreur?.username || `Livreur #${withdrawal.livreurId}`}
+                    </td>
+                    <td className="koursier-label text-right font-semibold">
+                      {formatCurrency(withdrawal.amount)}
+                    </td>
+                    <td className="koursier-caption">{withdrawal.method}</td>
+                    <td>
+                      <Badge
+                        className={
+                          withdrawal.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
                             : withdrawal.status === 'APPROVED'
-                            ? 'Approuvé'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
                             : withdrawal.status === 'COMPLETED'
-                            ? 'Complété'
-                            : 'Rejeté'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {withdrawal.status === 'PENDING' && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleApproveWithdrawal(withdrawal.id)}
-                            >
-                              <IconCheck className="h-4 w-4 mr-1" />
-                              Approuver
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRejectWithdrawal(withdrawal.id)}
-                            >
-                              <IconX className="h-4 w-4 mr-1" />
-                              Rejeter
-                            </Button>
-                          </div>
-                        )}
-                        {withdrawal.status !== 'PENDING' && (
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                        }
+                      >
+                        {withdrawal.status === 'PENDING'
+                          ? 'En attente'
+                          : withdrawal.status === 'APPROVED'
+                          ? 'Approuvé'
+                          : withdrawal.status === 'COMPLETED'
+                          ? 'Complété'
+                          : 'Rejeté'}
+                      </Badge>
+                    </td>
+                    <td>
+                      {withdrawal.status === 'PENDING' && (
+                        <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedWithdrawal(withdrawal);
-                              setWithdrawalDetailsOpen(true);
-                            }}
+                            variant="outline"
+                            onClick={() => handleApproveWithdrawal(withdrawal.id)}
+                            className="koursier-btn"
                           >
-                            <IconEye className="h-4 w-4" />
+                            <IconCheck className="h-4 w-4 mr-1" />
+                            Approuver
                           </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRejectWithdrawal(withdrawal.id)}
+                            className="koursier-btn"
+                          >
+                            <IconX className="h-4 w-4 mr-1" />
+                            Rejeter
+                          </Button>
+                        </div>
+                      )}
+                      {withdrawal.status !== 'PENDING' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedWithdrawal(withdrawal);
+                            setWithdrawalDetailsOpen(true);
+                          }}
+                          className="koursier-btn"
+                        >
+                          <IconEye className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            {filteredWithdrawals.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Aucune demande de retrait
+          {filteredWithdrawals.length === 0 && (
+            <div className="koursier-empty-state">
+              <div className="koursier-empty-icon">
+                <IconAlertCircle className="h-12 w-12" />
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <h3 className="koursier-empty-title">Aucune demande de retrait</h3>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Livreur Details Dialog */}

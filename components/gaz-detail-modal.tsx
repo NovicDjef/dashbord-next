@@ -8,7 +8,7 @@ import {
   IconMapPin,
   IconCalendar,
   IconPackage,
-  IconCurrencyEuro,
+  IconCoin,
   IconClock,
   IconX,
   IconTruck,
@@ -263,7 +263,7 @@ export function GazDetailModal({ open, onOpenChange, commande }: GazDetailModalP
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-blue-600" />
+                    <IconCoin className="h-6 w-6 text-blue-600" />
                   </div>
                   <div className="text-2xl font-bold text-blue-600">
                     {formatCurrency(commande.prix)}
@@ -273,7 +273,7 @@ export function GazDetailModal({ open, onOpenChange, commande }: GazDetailModalP
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-green-600" />
+                    <IconCoin className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(commande.commission)}
@@ -283,7 +283,7 @@ export function GazDetailModal({ open, onOpenChange, commande }: GazDetailModalP
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-orange-600" />
+                    <IconCoin className="h-6 w-6 text-orange-600" />
                   </div>
                   <div className="text-2xl font-bold text-orange-600">
                     {calculateMargin()}%

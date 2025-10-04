@@ -26,7 +26,7 @@ import {
   IconPackage,
   IconGasStation,
   IconMotorbike,
-  IconCurrencyEuro,
+  IconCoin,
   IconWallet,
   IconClock,
   IconBoxSeam
@@ -130,7 +130,7 @@ const data = {
         {
           title: "Tarifs",
           url: "/dashboard/tarifs",
-          icon: IconCurrencyEuro,
+          icon: IconCoin,
         },
       ],
     },

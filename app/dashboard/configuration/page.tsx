@@ -14,7 +14,7 @@ import {
   IconCurrencyDollar,
   IconPercentage,
   IconBell,
-  IconSave,
+  IconDeviceFloppy,
   IconRefresh,
   IconCheck,
   IconAlertCircle
@@ -273,7 +273,7 @@ export default function ConfigurationPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label>Prix de base (XAF)</Label>
+                        <Label>Prix de base (F)</Label>
                         <Input
                           type="number"
                           value={tarif.basePrice}
@@ -287,7 +287,7 @@ export default function ConfigurationPage() {
 
                       {tarif.serviceType !== 'GAZ' && (
                         <div className="space-y-2">
-                          <Label>Prix par km (XAF)</Label>
+                          <Label>Prix par km (F)</Label>
                           <Input
                             type="number"
                             value={tarif.pricePerKm || 0}
@@ -302,7 +302,7 @@ export default function ConfigurationPage() {
 
                       {tarif.serviceType === 'COLIS' && (
                         <div className="space-y-2">
-                          <Label>Prix par kg (XAF)</Label>
+                          <Label>Prix par kg (F)</Label>
                           <Input
                             type="number"
                             value={tarif.pricePerKg || 0}
@@ -316,7 +316,7 @@ export default function ConfigurationPage() {
                       )}
 
                       <div className="space-y-2">
-                        <Label>Prix minimum (XAF)</Label>
+                        <Label>Prix minimum (F)</Label>
                         <Input
                           type="number"
                           value={tarif.minimumPrice}
@@ -329,7 +329,7 @@ export default function ConfigurationPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Prix maximum (XAF)</Label>
+                        <Label>Prix maximum (F)</Label>
                         <Input
                           type="number"
                           value={tarif.maximumPrice || 0}
@@ -348,7 +348,7 @@ export default function ConfigurationPage() {
                   {saving ? (
                     <IconRefresh className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <IconSave className="h-4 w-4 mr-2" />
+                    <IconDeviceFloppy className="h-4 w-4 mr-2" />
                   )}
                   Sauvegarder les tarifs
                 </Button>
@@ -396,7 +396,7 @@ export default function ConfigurationPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Montant fixe (XAF) - Optionnel</Label>
+                        <Label>Montant fixe (F) - Optionnel</Label>
                         <Input
                           type="number"
                           value={commission.fixedAmount || 0}
@@ -415,7 +415,7 @@ export default function ConfigurationPage() {
                   {saving ? (
                     <IconRefresh className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <IconSave className="h-4 w-4 mr-2" />
+                    <IconDeviceFloppy className="h-4 w-4 mr-2" />
                   )}
                   Sauvegarder les commissions
                 </Button>
@@ -541,7 +541,7 @@ export default function ConfigurationPage() {
                   {saving ? (
                     <IconRefresh className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <IconSave className="h-4 w-4 mr-2" />
+                    <IconDeviceFloppy className="h-4 w-4 mr-2" />
                   )}
                   Sauvegarder les paramètres Client
                 </Button>
@@ -670,7 +670,7 @@ export default function ConfigurationPage() {
                   {saving ? (
                     <IconRefresh className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <IconSave className="h-4 w-4 mr-2" />
+                    <IconDeviceFloppy className="h-4 w-4 mr-2" />
                   )}
                   Sauvegarder les paramètres Livreur
                 </Button>

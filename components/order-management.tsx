@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { 
+import {
   IconEdit,
   IconEye,
   IconClock,
@@ -13,7 +13,8 @@ import {
   IconSearch,
   IconMapPin,
   IconPhone,
-  IconUser
+  IconUser,
+  IconShoppingCart
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Pagination } from "@/components/pagination";
 
 interface Order {
   id: string;
@@ -165,7 +167,21 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
     }
 
     setFilteredOrders(filtered);
+    setCurrentPage(1); // Réinitialiser à la page 1 quand les filtres changent
   }, [searchTerm, filterType, filterStatus, orders]);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleStatusChange = async () => {
     if (!selectedOrder || !newStatus || !onOrderUpdate) return;
@@ -205,10 +221,8 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const formatDate = (dateString: string) => {
@@ -238,243 +252,249 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
     <div className="space-y-6">
       {/* Statistiques */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Commandes
-            </CardTitle>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En attente
-            </CardTitle>
-            <div className="text-2xl font-bold text-yellow-600">{stats.enAttente}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En livraison
-            </CardTitle>
-            <div className="text-2xl font-bold text-purple-600">{stats.enLivraison}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Livrées
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{stats.livrees}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Chiffre d'affaires
-            </CardTitle>
-            <div className="text-xl font-bold text-blue-600">{formatCurrency(stats.chiffreAffaires)}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Commissions
-            </CardTitle>
-            <div className="text-xl font-bold text-green-600">{formatCurrency(stats.commissionsTotal)}</div>
-          </CardHeader>
-        </Card>
+        <div className="koursier-metric-card bg-gradient-to-br from-indigo-500/5 to-indigo-600/10">
+          <div className="koursier-stats-label text-indigo-600 dark:text-indigo-400">
+            Total Commandes
+          </div>
+          <div className="koursier-stats-value text-indigo-600 dark:text-indigo-400">{stats.total}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10">
+          <div className="koursier-stats-label text-yellow-600 dark:text-yellow-400">
+            En attente
+          </div>
+          <div className="koursier-stats-value text-yellow-600 dark:text-yellow-400">{stats.enAttente}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+          <div className="koursier-stats-label text-purple-600 dark:text-purple-400">
+            En livraison
+          </div>
+          <div className="koursier-stats-value text-purple-600 dark:text-purple-400">{stats.enLivraison}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+          <div className="koursier-stats-label text-green-600 dark:text-green-400">
+            Livrées
+          </div>
+          <div className="koursier-stats-value text-green-600 dark:text-green-400">{stats.livrees}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-cyan-500/5 to-cyan-600/10">
+          <div className="koursier-stats-label text-cyan-600 dark:text-cyan-400">
+            Chiffre d'affaires
+          </div>
+          <div className="koursier-stats-value text-xl text-cyan-600 dark:text-cyan-400">{formatCurrency(stats.chiffreAffaires)}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-emerald-500/5 to-emerald-600/10">
+          <div className="koursier-stats-label text-emerald-600 dark:text-emerald-400">
+            Commissions
+          </div>
+          <div className="koursier-stats-value text-xl text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.commissionsTotal)}</div>
+        </div>
       </div>
 
       {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Filtres et Recherche</CardTitle>
-            {onRefresh && (
-              <Button variant="outline" onClick={onRefresh}>
-                <IconRefresh className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            )}
+      <div className="koursier-metric-card bg-gradient-to-br from-slate-500/5 to-slate-600/10 border-0">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="koursier-stats-label text-slate-600 dark:text-slate-400 flex items-center gap-2">
+            <IconFilter className="h-5 w-5" />
+            Filtres et Recherche
+          </h3>
+          {onRefresh && (
+            <Button variant="outline" onClick={onRefresh} className="koursier-btn">
+              <IconRefresh className="h-4 w-4 mr-2" />
+              Actualiser
+            </Button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <IconSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="N° commande, client, restaurant..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
-              <IconSearch className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="N° commande, client, restaurant..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
 
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Type de service" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les types</SelectItem>
-                <SelectItem value="repas">Repas</SelectItem>
-                <SelectItem value="colis">Colis</SelectItem>
-                <SelectItem value="gaz">Gaz</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger>
+              <SelectValue placeholder="Type de service" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les types</SelectItem>
+              <SelectItem value="repas">Repas</SelectItem>
+              <SelectItem value="colis">Colis</SelectItem>
+              <SelectItem value="gaz">Gaz</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En attente</SelectItem>
-                <SelectItem value="confirmee">Confirmée</SelectItem>
-                <SelectItem value="preparee">Préparée</SelectItem>
-                <SelectItem value="en_livraison">En livraison</SelectItem>
-                <SelectItem value="livree">Livrée</SelectItem>
-                <SelectItem value="annulee">Annulée</SelectItem>
-              </SelectContent>
-            </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger>
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="en_attente">En attente</SelectItem>
+              <SelectItem value="confirmee">Confirmée</SelectItem>
+              <SelectItem value="preparee">Préparée</SelectItem>
+              <SelectItem value="en_livraison">En livraison</SelectItem>
+              <SelectItem value="livree">Livrée</SelectItem>
+              <SelectItem value="annulee">Annulée</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <div className="flex items-center text-sm text-muted-foreground">
-              {filteredOrders.length} résultat{filteredOrders.length > 1 ? 's' : ''}
-            </div>
+          <div className="flex items-center koursier-caption text-muted-foreground">
+            {filteredOrders.length} résultat{filteredOrders.length > 1 ? 's' : ''}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tableau des commandes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Commandes ({filteredOrders.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="koursier-metric-card border-0">
+        <h3 className="koursier-stats-label mb-6">
+          Commandes ({filteredOrders.length})
+        </h3>
+        {filteredOrders.length === 0 ? (
+          <div className="koursier-empty-state">
+            <IconShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="koursier-body text-muted-foreground">
+              {searchTerm || filterType !== "all" || filterStatus !== "all"
+                ? "Aucune commande trouvée avec les filtres sélectionnés."
+                : "Aucune commande enregistrée."
+              }
+            </p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>N° Commande</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Restaurant/Service</TableHead>
-                  <TableHead>Montant</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Livreur</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => {
+            <table className="koursier-data-table">
+              <thead>
+                <tr>
+                  <th className="koursier-label">N° Commande</th>
+                  <th className="koursier-label">Type</th>
+                  <th className="koursier-label">Client</th>
+                  <th className="koursier-label">Restaurant/Service</th>
+                  <th className="koursier-label">Montant</th>
+                  <th className="koursier-label">Commission</th>
+                  <th className="koursier-label">Statut</th>
+                  <th className="koursier-label">Livreur</th>
+                  <th className="koursier-label">Date</th>
+                  <th className="koursier-label">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedOrders.map((order) => {
                   const StatusIcon = statutsConfig[order.statut].icon;
                   const typeInfo = typeConfig[order.type];
-                  
+
                   return (
-                    <TableRow key={order.id} className="Koursier-table-row">
-                      <TableCell className="font-medium">
+                    <tr key={order.id}>
+                      <td className="koursier-label font-medium">
                         {order.numeroCommande}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div className="flex items-center gap-2">
                           <span>{typeInfo.icon}</span>
                           <Badge className={typeInfo.color}>
                             {typeInfo.label}
                           </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div>
-                          <div className="font-medium">{order.client.nom}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <div className="koursier-label font-medium">{order.client.nom}</div>
+                          <div className="koursier-caption text-muted-foreground flex items-center gap-1">
                             <IconPhone className="h-3 w-3" />
                             {order.client.telephone}
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         {order.restaurant ? (
                           <div>
-                            <div className="font-medium">{order.restaurant.nom}</div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <div className="koursier-label font-medium">{order.restaurant.nom}</div>
+                            <div className="koursier-caption text-muted-foreground flex items-center gap-1">
                               <IconMapPin className="h-3 w-3" />
                               {order.restaurant.adresse}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">-</span>
+                          <span className="koursier-caption text-muted-foreground">-</span>
                         )}
-                      </TableCell>
-                      <TableCell className="font-semibold">
+                      </td>
+                      <td className="koursier-label font-semibold">
                         {formatCurrency(order.montant)}
-                      </TableCell>
-                      <TableCell className="font-semibold text-green-600">
+                      </td>
+                      <td className="koursier-label font-semibold text-green-600 dark:text-green-400">
                         {formatCurrency(order.commission)}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div className="flex items-center gap-2">
                           <StatusIcon className="h-4 w-4" />
                           <Badge className={statutsConfig[order.statut].color}>
                             {statutsConfig[order.statut].label}
                           </Badge>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         {order.livreur ? (
                           <div>
-                            <div className="font-medium">{order.livreur.nom}</div>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="koursier-label font-medium">{order.livreur.nom}</div>
+                            <div className="koursier-caption text-muted-foreground">
                               {order.livreur.telephone}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">Non assigné</span>
+                          <span className="koursier-caption text-muted-foreground">Non assigné</span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      </td>
+                      <td className="koursier-caption text-muted-foreground">
                         {formatDate(order.dateCommande)}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => openDetailsDialog(order)}
+                            className="koursier-btn"
                           >
                             <IconEye className="h-4 w-4" />
                           </Button>
                           {statutsConfig[order.statut].nextStatuts.length > 0 && (
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="sm"
                               onClick={() => openStatusDialog(order)}
+                              className="koursier-btn"
                             >
                               <IconEdit className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
-          
-          {filteredOrders.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm || filterType !== "all" || filterStatus !== "all" 
-                ? "Aucune commande trouvée avec les filtres sélectionnés."
-                : "Aucune commande enregistrée."
-              }
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+
+        {/* Pagination */}
+        {filteredOrders.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredOrders.length}
+          />
+        )}
+      </div>
 
       {/* Dialog de changement de statut */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>

@@ -9,7 +9,7 @@ import {
   IconCalendar,
   IconStar,
   IconPackage,
-  IconCurrencyEuro,
+  IconCoin,
   IconClock,
   IconX,
   IconToggleRight,
@@ -264,7 +264,7 @@ export function LivreurDetailModal({ open, onOpenChange, livreur }: LivreurDetai
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-center mb-2">
-                    <IconCurrencyEuro className="h-6 w-6 text-green-600" />
+                    <IconCoin className="h-6 w-6 text-green-600" />
                   </div>
                   <div className="text-2xl font-bold text-green-600">
                     {formatCurrency(livreur.totalGains)}

@@ -11,42 +11,78 @@ import {
 
 // Transformer les données de commande en format uniforme
 const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz') => {
-  return commandes.map((item, index) => ({
-    id: item.id?.toString() || `${type}-${index}`,
-    numeroCommande: item.numeroCommande || `${type.toUpperCase()}-${String(item.id || index).padStart(4, '0')}`,
-    type,
-    client: {
-      id: item.clientId?.toString() || `client-${index}`,
-      nom: item.customerName || item.client?.nom || item.expediteur || `Client ${index + 1}`,
-      telephone: item.client?.telephone || item.telephone || `+237 6${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`,
-      adresse: item.adresseLivraison || item.client?.adresse || item.adresse || `Adresse ${index + 1}`
-    },
-    montant: item.montant || item.prix || item.total || Math.random() * 50000 + 5000,
-    commission: (item.montant || item.prix || 25000) * 0.1, // 10% de commission
-    statut: mapStatus(item.statut || item.status) as any,
-    dateCommande: item.createdAt || item.dateCommande || new Date().toISOString(),
-    dateLivraison: item.dateLivraison,
-    livreur: item.livreur ? {
-      id: item.livreur.id?.toString() || 'livreur-1',
-      nom: item.livreur.nom || item.livreurNom || 'Livreur assigné',
-      telephone: item.livreur.telephone || '+237 6XX XX XX XX'
-    } : undefined,
-    restaurant: item.restaurant ? {
-      id: item.restaurant.id?.toString() || item.restaurantId?.toString() || 'restaurant-1',
-      nom: item.restaurant.nom || item.restaurantName || 'Restaurant partenaire',
-      adresse: item.restaurant.adresse || 'Adresse restaurant'
-    } : (type === 'repas' ? {
-      id: 'restaurant-default',
-      nom: 'Restaurant partenaire',
-      adresse: 'Adresse non spécifiée'
-    } : undefined),
-    details: {
-      items: item.items || item.plats || [],
-      instructions: item.instructions || item.notes,
-      ...item
-    },
-    notes: item.notes || item.commentaire
-  }));
+  return commandes.map((item, index) => {
+    // Extraction intelligente du nom du client
+    const clientNom = item.customerName
+      || item.client?.nom
+      || item.client?.name
+      || item.client?.prenom
+      || (item.client?.prenom && item.client?.nom ? `${item.client.prenom} ${item.client.nom}` : null)
+      || item.expediteur
+      || item.nomClient
+      || `Client ${index + 1}`;
+
+    // Extraction intelligente du téléphone du client
+    const clientTelephone = item.client?.telephone
+      || item.client?.phone
+      || item.telephone
+      || item.phoneNumber
+      || `+237 6${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`;
+
+    // Extraction intelligente de l'adresse du client
+    const clientAdresse = item.adresseLivraison
+      || item.client?.adresse
+      || item.client?.address
+      || item.adresse
+      || item.deliveryAddress
+      || `Adresse ${index + 1}`;
+
+    // Extraction intelligente du nom du restaurant
+    const restaurantNom = item.restaurant?.nom
+      || item.restaurant?.name
+      || item.restaurantName
+      || item.nomRestaurant
+      || (type === 'repas' ? 'Restaurant partenaire' : null);
+
+    // Extraction intelligente de l'adresse du restaurant
+    const restaurantAdresse = item.restaurant?.adresse
+      || item.restaurant?.address
+      || item.restaurantAdresse
+      || 'Adresse non spécifiée';
+
+    return {
+      id: item.id?.toString() || `${type}-${index}`,
+      numeroCommande: item.numeroCommande || `${type.toUpperCase()}-${String(item.id || index).padStart(4, '0')}`,
+      type,
+      client: {
+        id: item.clientId?.toString() || item.client?.id?.toString() || `client-${index}`,
+        nom: clientNom,
+        telephone: clientTelephone,
+        adresse: clientAdresse
+      },
+      montant: item.montant || item.prix || item.total || Math.random() * 50000 + 5000,
+      commission: item.commission || ((item.montant || item.prix || 25000) * 0.1), // 10% de commission par défaut
+      statut: mapStatus(item.statut || item.status) as any,
+      dateCommande: item.createdAt || item.dateCommande || new Date().toISOString(),
+      dateLivraison: item.dateLivraison,
+      livreur: item.livreur ? {
+        id: item.livreur.id?.toString() || 'livreur-1',
+        nom: item.livreur.nom || item.livreur.name || item.livreurNom || 'Livreur assigné',
+        telephone: item.livreur.telephone || item.livreur.phone || '+237 6XX XX XX XX'
+      } : undefined,
+      restaurant: restaurantNom ? {
+        id: item.restaurant?.id?.toString() || item.restaurantId?.toString() || 'restaurant-1',
+        nom: restaurantNom,
+        adresse: restaurantAdresse
+      } : undefined,
+      details: {
+        items: item.items || item.plats || [],
+        instructions: item.instructions || item.notes,
+        ...item
+      },
+      notes: item.notes || item.commentaire
+    };
+  });
 };
 
 // Mapper les statuts vers notre format uniforme
@@ -93,41 +129,56 @@ export default function CommandePage() {
 
   // Traitement des commandes depuis Redux
   useEffect(() => {
-    if (commandes && commandes.length > 0) {
-      const repasOrders = transformCommandeData(commandes, 'repas');
-      
-      // Ajouter quelques commandes gaz simulées pour la démo
-      const gazOrders = Array.from({ length: 5 }, (_, index) => ({
-        id: `gaz-${index}`,
-        numeroCommande: `GAZ${String(1000 + index).padStart(4, '0')}`,
-        type: 'gaz' as const,
-        client: {
-          id: `client-gaz-${index}`,
-          nom: `Client Gaz ${index + 1}`,
-          telephone: `+237 6${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`,
-          adresse: `Quartier ${['Bonamoussadi', 'Akwa', 'Centre-ville', 'Makepe', 'PK8'][index % 5]}`
-        },
-        montant: Math.random() * 15000 + 8000,
-        commission: (Math.random() * 15000 + 8000) * 0.15,
-        statut: ['en_attente', 'confirmee', 'en_livraison', 'livree'][Math.floor(Math.random() * 4)] as any,
-        dateCommande: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        livreur: Math.random() > 0.3 ? {
-          id: `livreur-${index}`,
-          nom: `Livreur Gaz ${index + 1}`,
-          telephone: '+237 6XX XX XX XX'
-        } : undefined,
-        details: {
-          marqueGaz: ['CAM GAZ', 'TRADEX', 'BOCCOM'][Math.floor(Math.random() * 3)],
-          typeCommande: Math.random() > 0.5 ? 'recharge' : 'bouteille_complete',
-          quantite: Math.floor(Math.random() * 3) + 1
-        }
-      }));
+    console.log("=== DEBUG COMMANDES ===");
+    console.log("Type de commandes:", typeof commandes);
+    console.log("Est un tableau?", Array.isArray(commandes));
+    console.log("Valeur de commandes:", commandes);
+    console.log("======================");
 
-      const allOrders = [...repasOrders, ...gazOrders]
-        .sort((a, b) => new Date(b.dateCommande).getTime() - new Date(a.dateCommande).getTime());
-
-      setOrders(allOrders);
+    // Vérifier que commandes est bien un tableau
+    if (!commandes) {
+      console.log("Commandes est null ou undefined");
+      setOrders([]);
+      return;
     }
+
+    // Si commandes n'est pas un tableau, essayer d'extraire le tableau
+    let commandesArray = Array.isArray(commandes) ? commandes : (commandes.data || commandes.commandes || []);
+
+    if (!Array.isArray(commandesArray)) {
+      console.error("Impossible de convertir commandes en tableau:", commandesArray);
+      setOrders([]);
+      return;
+    }
+
+    if (commandesArray.length === 0) {
+      console.log("Aucune commande disponible");
+      setOrders([]);
+      return;
+    }
+
+    console.log("=== TOUTES LES COMMANDES ===");
+    console.log("Total commandes:", commandesArray.length);
+    console.log("Exemples de commandes:", commandesArray.slice(0, 3));
+    console.log("============================");
+
+    // Pour le moment, afficher TOUTES les commandes sans filtre
+    // Vous pourrez filtrer par type plus tard une fois qu'on aura identifié le bon champ
+    const repasOrders = transformCommandeData(commandesArray, 'repas');
+
+    console.log("=== COMMANDES TRANSFORMÉES ===");
+    console.log("Nombre transformées:", repasOrders.length);
+    if (repasOrders.length > 0) {
+      console.log("Première commande transformée:", repasOrders[0]);
+    }
+    console.log("==============================");
+
+    // Trier par date (plus récent en premier)
+    const sortedOrders = repasOrders.sort((a, b) =>
+      new Date(b.dateCommande).getTime() - new Date(a.dateCommande).getTime()
+    );
+
+    setOrders(sortedOrders);
   }, [commandes]);
 
   const handleOrderUpdate = async (orderId: string, newStatus: string, notes?: string) => {
@@ -162,10 +213,10 @@ export default function CommandePage() {
   if (loading && orders.length === 0) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="h-8 bg-muted rounded w-1/3 animate-pulse" />
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-muted rounded animate-pulse" />
+            <div key={i} className="koursier-skeleton h-16 rounded koursier-shimmer" />
           ))}
         </div>
       </div>
@@ -177,11 +228,11 @@ export default function CommandePage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconShoppingCart className="h-6 w-6" />
+          <h1 className="koursier-heading-1 flex items-center gap-2">
+            <IconShoppingCart className="h-7 w-7" />
             Gestion des Commandes
           </h1>
-          <p className="text-muted-foreground">
+          <p className="koursier-body text-muted-foreground">
             Suivez et gérez toutes les commandes de votre plateforme de livraison
           </p>
         </div>

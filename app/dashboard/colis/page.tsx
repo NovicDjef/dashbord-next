@@ -14,15 +14,6 @@ import {
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -32,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { getColisAsync } from '@/redux/colisSlice';
 import { ColisDetailModal } from "@/components/colis-detail-modal";
+import { Pagination } from "@/components/pagination";
 
 interface Colis {
   id: string;
@@ -88,6 +80,8 @@ export default function ColisPage() {
   const [filterPeriod, setFilterPeriod] = useState<string>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedColis, setSelectedColis] = useState<Colis | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const loading = status === 'loading';
 
   useEffect(() => {
@@ -159,14 +153,34 @@ export default function ColisPage() {
 
   // Utiliser les données transformées
   useEffect(() => {
-    if (colisList && colisList.length > 0) {
-      const transformedData = transformColisData(colisList);
+    console.log("=== DEBUG COLIS PAGE ===");
+    console.log("colisList type:", typeof colisList);
+    console.log("colisList isArray:", Array.isArray(colisList));
+    console.log("colisList value:", colisList);
+    console.log("=======================");
+
+    // S'assurer que colisList est un tableau
+    const colisArray = Array.isArray(colisList) ? colisList : (colisList?.data || colisList?.colis || []);
+
+    if (Array.isArray(colisArray) && colisArray.length > 0) {
+      const transformedData = transformColisData(colisArray);
       setFilteredColis(transformedData);
+    } else {
+      setFilteredColis([]);
     }
   }, [colisList]);
 
   useEffect(() => {
-    let filtered = colisList ? transformColisData(colisList) : [];
+    // S'assurer que colisList est un tableau
+    const colisArray = Array.isArray(colisList) ? colisList : (colisList?.data || colisList?.colis || []);
+
+    if (!Array.isArray(colisArray)) {
+      console.error("colisList n'est pas un tableau:", colisArray);
+      setFilteredColis([]);
+      return;
+    }
+
+    let filtered = colisArray.length > 0 ? transformColisData(colisArray) : [];
 
     if (filterStatut !== 'all') {
       filtered = filtered.filter(c => c.statut === filterStatut);
@@ -175,7 +189,7 @@ export default function ColisPage() {
     if (filterPeriod !== 'all') {
       const now = new Date();
       const filterDate = new Date();
-      
+
       switch (filterPeriod) {
         case 'today':
           filterDate.setHours(0, 0, 0, 0);
@@ -187,12 +201,24 @@ export default function ColisPage() {
           filterDate.setMonth(now.getMonth() - 1);
           break;
       }
-      
+
       filtered = filtered.filter(c => new Date(c.dateCreation) >= filterDate);
     }
 
     setFilteredColis(filtered);
+    setCurrentPage(1); // Réinitialiser à la page 1 quand les filtres changent
   }, [colisList, filterStatut, filterPeriod]);
+
+  // Calcul de la pagination
+  const totalPages = Math.ceil(filteredColis.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedColis = filteredColis.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Fonctions pour gérer les actions
   const handleViewColis = (colis: Colis) => {
@@ -219,10 +245,8 @@ export default function ColisPage() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const formatDate = (date: string) => {
@@ -259,15 +283,10 @@ export default function ColisPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 py-4 md:gap-8 md:py-6 px-4 lg:px-6">
-        <div className="h-8 bg-muted rounded w-1/3 animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-muted rounded w-1/2 mb-2" />
-                <div className="h-8 bg-muted rounded w-3/4" />
-              </CardHeader>
-            </Card>
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
+          {[...Array(7)].map((_, i) => (
+            <div key={i} className="koursier-skeleton h-24 rounded koursier-shimmer" />
           ))}
         </div>
       </div>
@@ -279,235 +298,238 @@ export default function ColisPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <IconPackage className="h-6 w-6" />
+          <h1 className="koursier-heading-1 flex items-center gap-2">
+            <IconPackage className="h-7 w-7" />
             Gestion des Colis
           </h1>
-          <p className="text-muted-foreground">
+          <p className="koursier-body text-muted-foreground">
             Gérez les envois et livraisons de colis
           </p>
         </div>
-        <Button>
+        <Button className="koursier-btn-primary">
           <IconDownload className="h-4 w-4 mr-2" />
           Exporter rapport
         </Button>
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Colis
-            </CardTitle>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En attente
-            </CardTitle>
-            <div className="text-2xl font-bold text-yellow-600">{stats.enAttente}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              En transit
-            </CardTitle>
-            <div className="text-2xl font-bold text-orange-600">{stats.enTransit}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Livrés
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-600">{stats.livres}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Chiffre d'affaires
-            </CardTitle>
-            <div className="text-xl font-bold text-blue-600">{formatCurrency(stats.chiffreAffaires)}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Commissions
-            </CardTitle>
-            <div className="text-xl font-bold text-green-600">{formatCurrency(stats.commissionsTotal)}</div>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Poids Total
-            </CardTitle>
-            <div className="text-xl font-bold text-purple-600">{formatWeight(stats.poidsTotal)}</div>
-          </CardHeader>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+        <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10 border-0">
+          <div className="koursier-stats-label text-blue-600 dark:text-blue-400">
+            Total Colis
+          </div>
+          <div className="koursier-stats-value text-blue-600 dark:text-blue-400">{stats.total}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-yellow-500/5 to-yellow-600/10 border-0">
+          <div className="koursier-stats-label text-yellow-600 dark:text-yellow-400">
+            En attente
+          </div>
+          <div className="koursier-stats-value text-yellow-600 dark:text-yellow-400">{stats.enAttente}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-0">
+          <div className="koursier-stats-label text-purple-600 dark:text-purple-400">
+            En transit
+          </div>
+          <div className="koursier-stats-value text-purple-600 dark:text-purple-400">{stats.enTransit}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10 border-0">
+          <div className="koursier-stats-label text-green-600 dark:text-green-400">
+            Livrés
+          </div>
+          <div className="koursier-stats-value text-green-600 dark:text-green-400">{stats.livres}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-cyan-500/5 to-cyan-600/10 border-0">
+          <div className="koursier-stats-label text-cyan-600 dark:text-cyan-400">
+            Chiffre d'affaires
+          </div>
+          <div className="koursier-stats-value text-cyan-600 dark:text-cyan-400">{formatCurrency(stats.chiffreAffaires)}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 border-0">
+          <div className="koursier-stats-label text-emerald-600 dark:text-emerald-400">
+            Commissions
+          </div>
+          <div className="koursier-stats-value text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.commissionsTotal)}</div>
+        </div>
+
+        <div className="koursier-metric-card bg-gradient-to-br from-indigo-500/5 to-indigo-600/10 border-0">
+          <div className="koursier-stats-label text-indigo-600 dark:text-indigo-400">
+            Poids Total
+          </div>
+          <div className="koursier-stats-value text-indigo-600 dark:text-indigo-400">{formatWeight(stats.poidsTotal)}</div>
+        </div>
       </div>
 
       {/* Filtres */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Filtres</CardTitle>
-            <IconFilter className="h-5 w-5 text-muted-foreground" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Select value={filterStatut} onValueChange={setFilterStatut}>
-              <SelectTrigger>
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En attente</SelectItem>
-                <SelectItem value="confirme">Confirmé</SelectItem>
-                <SelectItem value="collecte">En collecte</SelectItem>
-                <SelectItem value="en_transit">En transit</SelectItem>
-                <SelectItem value="en_livraison">En livraison</SelectItem>
-                <SelectItem value="livre">Livré</SelectItem>
-                <SelectItem value="annule">Annulé</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="koursier-metric-card bg-gradient-to-br from-slate-500/5 to-slate-600/10 border-0">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="koursier-label text-slate-600 dark:text-slate-400">Filtres</h3>
+          <IconFilter className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Select value={filterStatut} onValueChange={setFilterStatut}>
+            <SelectTrigger>
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="en_attente">En attente</SelectItem>
+              <SelectItem value="confirme">Confirmé</SelectItem>
+              <SelectItem value="collecte">En collecte</SelectItem>
+              <SelectItem value="en_transit">En transit</SelectItem>
+              <SelectItem value="en_livraison">En livraison</SelectItem>
+              <SelectItem value="livre">Livré</SelectItem>
+              <SelectItem value="annule">Annulé</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-              <SelectTrigger>
-                <SelectValue placeholder="Période" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toute période</SelectItem>
-                <SelectItem value="today">Aujourd'hui</SelectItem>
-                <SelectItem value="week">7 derniers jours</SelectItem>
-                <SelectItem value="month">30 derniers jours</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+            <SelectTrigger>
+              <SelectValue placeholder="Période" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toute période</SelectItem>
+              <SelectItem value="today">Aujourd'hui</SelectItem>
+              <SelectItem value="week">7 derniers jours</SelectItem>
+              <SelectItem value="month">30 derniers jours</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Tableau des colis */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Colis ({filteredColis.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>N° Colis</TableHead>
-                  <TableHead>Expéditeur</TableHead>
-                  <TableHead>Destinataire</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Poids</TableHead>
-                  <TableHead>Prix</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Livreur</TableHead>
-                  <TableHead>Date création</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredColis.slice(0, 50).map((colis) => (
-                  <TableRow key={colis.id}>
-                    <TableCell className="font-medium">{colis.numeroColis}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{colis.expediteur.nom}</div>
-                        <div className="text-sm text-muted-foreground">{colis.expediteur.telephone}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
-                          <IconMapPin className="h-3 w-3" />
-                          {colis.expediteur.adresse}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{colis.destinataire.nom}</div>
-                        <div className="text-sm text-muted-foreground">{colis.destinataire.telephone}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
-                          <IconMapPin className="h-3 w-3" />
-                          {colis.destinataire.adresse}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-[180px] truncate">
-                        {colis.description}
-                        {colis.fragile && (
-                          <Badge variant="destructive" className="ml-2 text-xs">
-                            FRAGILE
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <IconWeight className="h-3 w-3" />
-                        {formatWeight(colis.poids)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-semibold">{formatCurrency(colis.prix)}</TableCell>
-                    <TableCell className="font-semibold text-green-600">
-                      {formatCurrency(colis.commission)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={statutConfig[colis.statut].color}>
-                        {statutConfig[colis.statut].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {colis.livreur ? (
-                        <div>
-                          <div className="font-medium">{colis.livreur.nom}</div>
-                          <div className="text-sm text-muted-foreground">{colis.livreur.telephone}</div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <IconClock className="h-3 w-3" />
-                        {formatDate(colis.dateCreation)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewColis(colis)}
-                        title="Voir les détails"
-                      >
-                        <IconEye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          {filteredColis.length === 0 && !loading && (
-            <div className="text-center py-8 text-muted-foreground">
-              {colisList && colisList.length === 0 ? 
-                "Aucun colis trouvé. Vérifiez votre connexion API." : 
+      <div className="koursier-data-table">
+        <div className="mb-4">
+          <h3 className="koursier-label">Colis ({filteredColis.length})</h3>
+        </div>
+
+        {filteredColis.length === 0 && !loading ? (
+          <div className="koursier-empty-state">
+            <IconPackage className="h-12 w-12 mb-4 text-muted-foreground" />
+            <p className="koursier-body text-muted-foreground">
+              {colisList && colisList.length === 0 ?
+                "Aucun colis trouvé. Vérifiez votre connexion API." :
                 "Aucun colis trouvé avec les filtres sélectionnés."
               }
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th className="koursier-label">N° Colis</th>
+                    <th className="koursier-label">Expéditeur</th>
+                    <th className="koursier-label">Destinataire</th>
+                    <th className="koursier-label">Description</th>
+                    <th className="koursier-label">Poids</th>
+                    <th className="koursier-label">Prix</th>
+                    <th className="koursier-label">Commission</th>
+                    <th className="koursier-label">Statut</th>
+                    <th className="koursier-label">Livreur</th>
+                    <th className="koursier-label">Date création</th>
+                    <th className="koursier-label">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedColis.map((colis) => (
+                    <tr key={colis.id}>
+                      <td className="koursier-body font-medium">{colis.numeroColis}</td>
+                      <td>
+                        <div>
+                          <div className="koursier-body font-medium">{colis.expediteur.nom}</div>
+                          <div className="koursier-caption text-muted-foreground">{colis.expediteur.telephone}</div>
+                          <div className="koursier-caption text-muted-foreground flex items-center gap-1">
+                            <IconMapPin className="h-3 w-3" />
+                            {colis.expediteur.adresse}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div>
+                          <div className="koursier-body font-medium">{colis.destinataire.nom}</div>
+                          <div className="koursier-caption text-muted-foreground">{colis.destinataire.telephone}</div>
+                          <div className="koursier-caption text-muted-foreground flex items-center gap-1">
+                            <IconMapPin className="h-3 w-3" />
+                            {colis.destinataire.adresse}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="max-w-[180px] truncate koursier-body">
+                          {colis.description}
+                          {colis.fragile && (
+                            <Badge variant="destructive" className="ml-2 text-xs">
+                              FRAGILE
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1 koursier-body">
+                          <IconWeight className="h-3 w-3" />
+                          {formatWeight(colis.poids)}
+                        </div>
+                      </td>
+                      <td className="koursier-body font-semibold">{formatCurrency(colis.prix)}</td>
+                      <td className="koursier-body font-semibold text-green-600">
+                        {formatCurrency(colis.commission)}
+                      </td>
+                      <td>
+                        <Badge className={statutConfig[colis.statut].color}>
+                          {statutConfig[colis.statut].label}
+                        </Badge>
+                      </td>
+                      <td>
+                        {colis.livreur ? (
+                          <div>
+                            <div className="koursier-body font-medium">{colis.livreur.nom}</div>
+                            <div className="koursier-caption text-muted-foreground">{colis.livreur.telephone}</div>
+                          </div>
+                        ) : (
+                          <span className="koursier-caption text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="koursier-caption text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <IconClock className="h-3 w-3" />
+                          {formatDate(colis.dateCreation)}
+                        </div>
+                      </td>
+                      <td>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewColis(colis)}
+                          title="Voir les détails"
+                        >
+                          <IconEye className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Pagination */}
+            {filteredColis.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredColis.length}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       {/* Modal de détail du colis */}
       <ColisDetailModal

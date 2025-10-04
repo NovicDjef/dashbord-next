@@ -361,7 +361,7 @@ export default function StockPage() {
               </div>
               <div>
                 <div className="koursier-stats-value text-green-600">
-                  {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(stats.totalValue)} FCFA
+                  {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(stats.totalValue)} F
                 </div>
                 <div className="koursier-stats-label text-green-500/80">Valeur Totale</div>
               </div>
@@ -498,10 +498,10 @@ export default function StockPage() {
                         <Badge className={status.color}>{status.label}</Badge>
                       </td>
                       <td className="text-right koursier-caption">
-                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.unitPrice)} FCFA
+                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.unitPrice)} F
                       </td>
                       <td className="text-right font-semibold">
-                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.totalValue)} FCFA
+                        {new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0 }).format(item.totalValue)} F
                       </td>
                       <td>
                         <div className="flex items-center gap-1">
@@ -645,7 +645,7 @@ export default function StockPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Prix unitaire (XAF)</Label>
+              <Label>Prix unitaire (F)</Label>
               <Input
                 type="number"
                 value={formData.unitPrice}
@@ -728,7 +728,7 @@ export default function StockPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Prix unitaire (XAF)</Label>
+              <Label>Prix unitaire (F)</Label>
               <Input
                 type="number"
                 value={formData.unitPrice}

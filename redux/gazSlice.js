@@ -6,10 +6,19 @@ export const getGasOrdersAsync = createAsyncThunk(
   'gas/fetchGasOrders',
   async (_, { rejectWithValue }) => {
     try {
-      // ✅ Remplacez par votre vraie API endpoint pour récupérer les commandes de gaz
+      // Récupérer les commandes de gaz avec les relations client et livreur
       const response = await getSomeGasOrdersAsync();
-    
-      return response.data; 
+
+      console.log("=== DEBUG GAZ ===");
+      console.log("Réponse complète:", response.data);
+      console.log("Type:", typeof response.data);
+      console.log("Orders array:", response.data?.orders);
+      console.log("Nombre de commandes:", response.data?.orders?.length);
+      console.log("=================");
+
+      // Extraire le tableau orders de la réponse
+      const orders = response.data?.orders || [];
+      return orders;
     } catch (error) {
       console.error("Erreur lors de la récupération des commandes de gaz:", error);
       return rejectWithValue(error.message || "Impossible de récupérer les commandes de gaz");

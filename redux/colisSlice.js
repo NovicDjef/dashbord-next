@@ -26,9 +26,16 @@ export const getColisAsync = createAsyncThunk(
   'colis/fetchColis',
   async (_, { rejectWithValue }) => {
     try {
-      // Appel API pour récupérer les colis
+      // Appel API pour récupérer les colis avec les relations
       const response = await apiService.get('/colis');
-      return response.data; // Retourne les données des colis
+
+      console.log("=== DEBUG COLIS ===");
+      console.log("Données brutes colis:", response.data);
+      console.log("Type:", typeof response.data);
+      console.log("Est un tableau?", Array.isArray(response.data));
+      console.log("===================");
+
+      return response.data;
     } catch (error) {
       console.error("Erreur lors de la récupération des colis:", error.response?.data);
       return rejectWithValue(error.response?.data || { message: "Impossible de récupérer les colis" });

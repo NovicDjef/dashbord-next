@@ -6,7 +6,7 @@ import {
   IconPhone,
   IconMapPin,
   IconCalendar,
-  IconCurrencyEuro,
+  IconCoin,
   IconClock,
   IconX,
   IconId,
@@ -312,7 +312,7 @@ export function UserDetailModal({ open, onOpenChange, user }: UserDetailModalPro
                   {user.totalDepenses && (
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-center mb-2">
-                        <IconCurrencyEuro className="h-6 w-6 text-green-600" />
+                        <IconCoin className="h-6 w-6 text-green-600" />
                       </div>
                       <div className="text-2xl font-bold text-green-600">
                         {formatCurrency(user.totalDepenses)}

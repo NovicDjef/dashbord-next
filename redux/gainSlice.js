@@ -68,7 +68,7 @@ export const retirerGainsAsync = createAsyncThunk(
   'gains/retirerGains',
   async ({ livreurId, montant }, { rejectWithValue }) => {
     try {
-      console.log(`💸 Retrait gains: ${montant} FCFA pour livreur ${livreurId}`);
+      console.log(`💸 Retrait gains: ${montant} F pour livreur ${livreurId}`);
       
       const response = await apiService.post(`/livreur/${livreurId}/gains/retirer`, { montant });
       

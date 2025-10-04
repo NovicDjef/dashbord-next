@@ -7,9 +7,9 @@ export const getCommandesAsync = createAsyncThunk(
   'commande/fetchCommandes',
   async (_, { rejectWithValue }) => {
     try {
-      // Appel API pour récupérer la liste des commandes
+      // Appel API pour récupérer la liste des commandes avec les relations client, restaurant et livreur
       const response = await apiService.get('/commandes');
-      console.log("Commandes récupérées:", response.data);
+      console.log("Commandes récupérées avec relations:", response.data);
       return response.data;
     } catch (error) {
       // Gestion des erreurs avec rejectWithValue

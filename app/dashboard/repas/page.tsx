@@ -18,7 +18,7 @@ import {
   IconEdit,
   IconTrash,
   IconEye,
-  IconCurrencyEuro,
+  IconCoin,
   IconChefHat,
   IconCategory,
   IconPhoto,
@@ -333,13 +333,13 @@ export default function RepasPage() {
         <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-3 bg-purple-500/10 rounded-xl">
-              <IconCurrencyEuro className="h-6 w-6 text-purple-600" />
+              <IconCoin className="h-6 w-6 text-purple-600" />
             </div>
             <div>
               <div className="koursier-stats-value text-purple-600">
                 {repasArray.length > 0
-                  ? (repasArray.reduce((sum, r) => sum + (r.price || 0), 0) / repasArray.length).toFixed(0) + " FCFA"
-                  : "0 FCFA"
+                  ? (repasArray.reduce((sum, r) => sum + (r.price || 0), 0) / repasArray.length).toFixed(0) + " F"
+                  : "0 F"
                 }
               </div>
               <div className="koursier-stats-label text-purple-500/80">Prix Moyen</div>
@@ -424,7 +424,7 @@ export default function RepasPage() {
                 </td>
                 <td>
                   <div className="koursier-label font-semibold">
-                    {repas.price ? repas.price.toFixed(0) : "0"} FCFA
+                    {repas.price ? repas.price.toFixed(0) : "0"} F
                   </div>
                 </td>
                 <td>
@@ -526,11 +526,11 @@ export default function RepasPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="price" className="text-sm font-medium flex items-center gap-1">
-                    Prix (FCFA) *
+                    Prix (F) *
                     <span className="text-red-500">•</span>
                   </Label>
                   <div className="relative">
-                    <IconCurrencyEuro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <IconCoin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="price"
                       type="number"
@@ -699,7 +699,7 @@ export default function RepasPage() {
                   <p className="text-sm font-medium">Informations</p>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p>• Nom: {formData.name || "Non défini"}</p>
-                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)} FCFA` : "Non défini"}</p>
+                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)} F` : "Non défini"}</p>
                     <p>• Statut: {formData.disponible ? "Disponible" : "Indisponible"}</p>
                   </div>
                 </div>
@@ -825,7 +825,7 @@ export default function RepasPage() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
                   <div className="text-lg font-semibold text-green-600">
-                    {repasToView.price ? repasToView.price.toFixed(0) : "0"} FCFA
+                    {repasToView.price ? repasToView.price.toFixed(0) : "0"} F
                   </div>
                 </div>
 

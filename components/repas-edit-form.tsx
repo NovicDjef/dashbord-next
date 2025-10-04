@@ -341,7 +341,7 @@ export function RepasEditForm({ open, onOpenChange, repas, categories, restauran
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Prix (FCFA) *</Label>
+                  <Label htmlFor="price">Prix (F) *</Label>
                   <div className="relative">
                     <IconCurrencyDollar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input

@@ -63,10 +63,8 @@ export function WalletDashboard() {
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XAF',
       minimumFractionDigits: 0
-    }).format(amount);
+    }).format(amount) + ' F';
   };
 
   const formatDate = (date: string) => {
@@ -113,16 +111,23 @@ export function WalletDashboard() {
   if (loading) {
     return (
       <div className="space-y-6 px-4 lg:px-6">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-6 bg-muted rounded w-1/3" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-32 bg-muted rounded" />
-            </CardContent>
-          </Card>
-        ))}
+        <div className="koursier-skeleton h-8 rounded w-1/3 koursier-shimmer" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="koursier-metric-card">
+              <div className="koursier-skeleton h-6 rounded w-1/2 koursier-shimmer" />
+              <div className="koursier-skeleton h-8 rounded w-full mt-4 koursier-shimmer" />
+            </div>
+          ))}
+        </div>
+        <div className="koursier-metric-card">
+          <div className="koursier-skeleton h-6 rounded w-1/4 koursier-shimmer" />
+          <div className="space-y-3 mt-4">
+            {[...Array(5)].map((_, j) => (
+              <div key={j} className="koursier-skeleton h-12 rounded koursier-shimmer" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -164,205 +169,210 @@ export function WalletDashboard() {
   return (
     <div className="space-y-6 px-4 lg:px-6">
       {/* Vue d'ensemble du wallet */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <IconWallet className="h-5 w-5" />
-            Vue d'ensemble du Wallet
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
-              <div className="flex items-center justify-center mb-2">
-                <IconCoin className="h-6 w-6 text-green-600 mr-2" />
-                <span className="text-sm font-medium text-green-600">Balance Total</span>
-              </div>
-              <div className="text-3xl font-bold text-green-700">{formatCurrency(walletData.totalBalance)}</div>
+      <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10 border-0">
+        <h3 className="koursier-stats-label text-purple-600 dark:text-purple-400 flex items-center gap-2 mb-6">
+          <IconWallet className="h-5 w-5" />
+          Vue d'ensemble du Wallet
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="koursier-metric-card bg-gradient-to-br from-green-500/5 to-green-600/10">
+            <div className="koursier-stats-label text-green-600 dark:text-green-400 flex items-center gap-2">
+              <IconCoin className="h-5 w-5" />
+              Balance Total
             </div>
-            
-            <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
-              <div className="flex items-center justify-center mb-2">
-                <IconCalendar className="h-6 w-6 text-blue-600 mr-2" />
-                <span className="text-sm font-medium text-blue-600">Ce Mois</span>
-              </div>
-              <div className="text-2xl font-bold text-blue-700">{formatCurrency(walletData.monthlyEarnings)}</div>
-              <div className="flex items-center justify-center mt-1">
-                {walletData.monthlyGrowth >= 0 ? (
-                  <IconTrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                ) : (
-                  <IconTrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                )}
-                <span className={`text-xs ${walletData.monthlyGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {walletData.monthlyGrowth >= 0 ? '+' : ''}{walletData.monthlyGrowth.toFixed(1)}%
-                </span>
-              </div>
+            <div className="koursier-stats-value text-green-600 dark:text-green-400">{formatCurrency(walletData.totalBalance)}</div>
+          </div>
+
+          <div className="koursier-metric-card bg-gradient-to-br from-blue-500/5 to-blue-600/10">
+            <div className="koursier-stats-label text-blue-600 dark:text-blue-400 flex items-center gap-2">
+              <IconCalendar className="h-5 w-5" />
+              Ce Mois
             </div>
-            
-            <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
-              <div className="flex items-center justify-center mb-2">
-                <IconArrowUpRight className="h-6 w-6 text-purple-600 mr-2" />
-                <span className="text-sm font-medium text-purple-600">Transactions</span>
-              </div>
-              <div className="text-2xl font-bold text-purple-700">{walletData.totalTransactions}</div>
-            </div>
-            
-            <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
-              <div className="flex items-center justify-center mb-2">
-                <IconTrendingUp className="h-6 w-6 text-orange-600 mr-2" />
-                <span className="text-sm font-medium text-orange-600">Commissions</span>
-              </div>
-              <div className="text-2xl font-bold text-orange-700">{formatCurrency(walletData.deliveryCommissions)}</div>
+            <div className="koursier-stats-value text-blue-600 dark:text-blue-400">{formatCurrency(walletData.monthlyEarnings)}</div>
+            <div className="flex items-center gap-1 mt-2">
+              {walletData.monthlyGrowth >= 0 ? (
+                <IconTrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+              ) : (
+                <IconTrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+              )}
+              <span className={`koursier-caption ${walletData.monthlyGrowth >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {walletData.monthlyGrowth >= 0 ? '+' : ''}{walletData.monthlyGrowth.toFixed(1)}%
+              </span>
             </div>
           </div>
 
-          {/* Répartition par service */}
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">Gains par Service</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(walletData.earningsByService).map(([service, amount]) => {
-                const config = serviceConfig[service as keyof typeof serviceConfig];
-                const Icon = config.icon;
-                return (
-                  <div key={service} className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="koursier-metric-card bg-gradient-to-br from-purple-500/5 to-purple-600/10">
+            <div className="koursier-stats-label text-purple-600 dark:text-purple-400 flex items-center gap-2">
+              <IconArrowUpRight className="h-5 w-5" />
+              Transactions
+            </div>
+            <div className="koursier-stats-value text-purple-600 dark:text-purple-400">{walletData.totalTransactions}</div>
+          </div>
+
+          <div className="koursier-metric-card bg-gradient-to-br from-orange-500/5 to-orange-600/10">
+            <div className="koursier-stats-label text-orange-600 dark:text-orange-400 flex items-center gap-2">
+              <IconTrendingUp className="h-5 w-5" />
+              Commissions
+            </div>
+            <div className="koursier-stats-value text-orange-600 dark:text-orange-400">{formatCurrency(walletData.deliveryCommissions)}</div>
+          </div>
+        </div>
+
+        {/* Répartition par service */}
+        <div className="mt-6">
+          <h3 className="koursier-stats-label mb-4">Gains par Service</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(walletData.earningsByService).map(([service, amount]) => {
+              const config = serviceConfig[service as keyof typeof serviceConfig];
+              const Icon = config.icon;
+              return (
+                <div key={service} className="koursier-metric-card bg-gradient-to-br from-gray-500/5 to-gray-600/10">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Icon className="h-5 w-5" style={{ color: config.chartColor }} />
-                      <span className="font-medium">{config.label}</span>
+                      <span className="koursier-label">{config.label}</span>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold" style={{ color: config.chartColor }}>
+                      <div className="koursier-stats-value" style={{ color: config.chartColor }}>
                         {formatCurrency(amount)}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="koursier-caption">
                         {((amount / walletData.totalBalance) * 100).toFixed(1)}%
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Historique des transactions */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <CardTitle>Historique des Transactions</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <IconDownload className="h-4 w-4 mr-2" />
-                Exporter
-              </Button>
-              <Button variant="outline" size="sm" onClick={refetch}>
-                <IconRefresh className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            </div>
+      <div className="koursier-metric-card">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
+          <div>
+            <h3 className="koursier-stats-label mb-2">Historique des Transactions</h3>
+            <p className="koursier-caption">Consultez toutes vos transactions</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          {/* Filtres */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <Select value={filterService} onValueChange={setFilterService}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Service" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les services</SelectItem>
-                <SelectItem value="REPAS">Repas</SelectItem>
-                <SelectItem value="COLIS">Colis</SelectItem>
-                <SelectItem value="GAZ">Gaz</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Période" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toute période</SelectItem>
-                <SelectItem value="today">Aujourd'hui</SelectItem>
-                <SelectItem value="week">7 derniers jours</SelectItem>
-                <SelectItem value="month">30 derniers jours</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="koursier-btn">
+              <IconDownload className="h-4 w-4 mr-2" />
+              Exporter
+            </Button>
+            <Button variant="outline" size="sm" onClick={refetch} className="koursier-btn">
+              <IconRefresh className="h-4 w-4 mr-2" />
+              Actualiser
+            </Button>
           </div>
+        </div>
 
-          {/* Tableau des transactions */}
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Montant</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransactions.slice(0, 50).map((transaction) => {
-                  const serviceConfig = serviceConfig[transaction.source.type];
-                  const ServiceIcon = serviceConfig.icon;
-                  
-                  return (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(transaction.date)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{transaction.description}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {transaction.source.restaurantName && `${transaction.source.restaurantName}`}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <ServiceIcon className="h-4 w-4" />
-                          <Badge className={serviceConfig.color}>
-                            {serviceConfig.label}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {transaction.source.customerName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          className={transaction.status === 'completed' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                          }
-                        >
-                          {transaction.status === 'completed' ? 'Complété' : 'En attente'}
+        {/* Filtres */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Select value={filterService} onValueChange={setFilterService}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Service" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les services</SelectItem>
+              <SelectItem value="REPAS">Repas</SelectItem>
+              <SelectItem value="COLIS">Colis</SelectItem>
+              <SelectItem value="GAZ">Gaz</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Période" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toute période</SelectItem>
+              <SelectItem value="today">Aujourd'hui</SelectItem>
+              <SelectItem value="week">7 derniers jours</SelectItem>
+              <SelectItem value="month">30 derniers jours</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Tableau des transactions */}
+        <div className="overflow-x-auto">
+          <table className="koursier-data-table">
+            <thead>
+              <tr>
+                <th className="koursier-label">Date</th>
+                <th className="koursier-label">Description</th>
+                <th className="koursier-label">Service</th>
+                <th className="koursier-label">Client</th>
+                <th className="koursier-label">Statut</th>
+                <th className="koursier-label text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTransactions.slice(0, 50).map((transaction) => {
+                const config = serviceConfig[transaction.source.type as keyof typeof serviceConfig];
+                const ServiceIcon = config.icon;
+
+                return (
+                  <tr key={transaction.id}>
+                    <td className="koursier-caption">
+                      {formatDate(transaction.date)}
+                    </td>
+                    <td>
+                      <div className="koursier-label font-medium">{transaction.description}</div>
+                      <div className="koursier-caption">
+                        {transaction.source.restaurantName && `${transaction.source.restaurantName}`}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <ServiceIcon className="h-4 w-4" />
+                        <Badge className={config.color + ' dark:bg-opacity-20'}>
+                          {config.label}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold text-green-600">
-                        +{formatCurrency(transaction.amount)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                      </div>
+                    </td>
+                    <td className="koursier-caption">
+                      {transaction.source.customerName}
+                    </td>
+                    <td>
+                      <Badge
+                        className={transaction.status === 'completed'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                        }
+                      >
+                        {transaction.status === 'completed' ? 'Complété' : 'En attente'}
+                      </Badge>
+                    </td>
+                    <td className="koursier-label text-right font-semibold text-green-600 dark:text-green-400">
+                      +{formatCurrency(transaction.amount)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredTransactions.length === 0 && (
+          <div className="koursier-empty-state">
+            <div className="koursier-empty-icon">
+              <IconWallet className="h-12 w-12" />
+            </div>
+            <h3 className="koursier-empty-title">Aucune transaction trouvée</h3>
+            <p className="koursier-caption">Essayez de modifier vos filtres</p>
           </div>
-          
-          {filteredTransactions.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              Aucune transaction trouvée avec les filtres sélectionnés.
-            </div>
-          )}
-          
-          {filteredTransactions.length > 50 && (
-            <div className="text-center py-4 text-muted-foreground">
+        )}
+
+        {filteredTransactions.length > 50 && (
+          <div className="text-center py-4">
+            <p className="koursier-caption">
               Affichage de 50 transactions sur {filteredTransactions.length}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
