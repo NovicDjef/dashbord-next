@@ -282,7 +282,7 @@ export default function RestaurantPage() {
               <IconCheck className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <div className="koursier-stats-value text-green-600">{restaurants?.length || 0}</div>
+              <div className="koursier-stats-value text-green-600">{restaurantsArray.filter((r) => r.validationStatus === "APPROVED").length}</div>
               <div className="koursier-stats-label text-green-500/80">Restaurants Actifs</div>
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function RestaurantPage() {
             <div>
               <div className="koursier-stats-value text-yellow-600">
                 {restaurantsArray.length > 0
-                  ? (restaurantsArray.reduce((sum, r) => sum + (r.ratings || 4.5), 0) / restaurantsArray.length).toFixed(1)
+                  ? (restaurantsArray.reduce((sum, r) => sum + (r.ratings || 0), 0) / restaurantsArray.length).toFixed(1)
                   : "0.0"
                 }
               </div>
@@ -409,7 +409,7 @@ export default function RestaurantPage() {
                     <td>
                       <div className="flex items-center gap-2 p-2 bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 rounded-lg">
                         <IconStar className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-bold text-yellow-600">{restaurant.ratings?.toFixed(1) || "4.5"}</span>
+                        <span className="font-bold text-yellow-600">{(restaurant.ratings ?? 0).toFixed(1)}</span>
                       </div>
                     </td>
                     <td>

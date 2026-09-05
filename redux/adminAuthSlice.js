@@ -36,6 +36,7 @@ export const signInAdmin = createAsyncThunk(
       // Stocker le token et les données admin
       await webStorage.setItem('adminToken', response.data.token);
       await webStorage.setItem('adminData', JSON.stringify(response.data.admin));
+      await webStorage.setItem('adminRestaurants', JSON.stringify(response.data.restaurants || []));
 
       return response.data;
     } catch (error) {
@@ -69,17 +70,21 @@ export const checkAdminAuth = createAsyncThunk(
         // Nettoyer le storage si le token est expiré
         await webStorage.removeItem('adminToken');
         await webStorage.removeItem('adminData');
+      await webStorage.removeItem('adminRestaurants');
         return rejectWithValue('Session expirée');
       }
 
+      const restaurantsRaw = await webStorage.getItem('adminRestaurants');
       return {
         admin: JSON.parse(adminData),
+        restaurants: restaurantsRaw ? JSON.parse(restaurantsRaw) : [],
         token: token
       };
     } catch (error) {
       // Nettoyer en cas d'erreur
       await webStorage.removeItem('adminToken');
       await webStorage.removeItem('adminData');
+      await webStorage.removeItem('adminRestaurants');
       return rejectWithValue('Erreur de vérification de session');
     }
   }
@@ -92,6 +97,7 @@ export const signOutAdmin = createAsyncThunk(
     try {
       await webStorage.removeItem('adminToken');
       await webStorage.removeItem('adminData');
+      await webStorage.removeItem('adminRestaurants');
       console.log('✅ Déconnexion admin réussie');
       return true;
     } catch (error) {
@@ -107,6 +113,7 @@ const adminAuthSlice = createSlice({
     // Données de l'admin connecté
     admin: null,
     token: null,
+    restaurants: [],
     
     // États de l'authentification
     isAuthenticated: false,
@@ -117,6 +124,25 @@ const adminAuthSlice = createSlice({
     error: null,
   },
   reducers: {
+    // Session établie hors du flux de connexion (inscription restaurateur)
+    setSession: (state, action) => {
+      const { admin, token, restaurants = [] } = action.payload;
+      state.admin = admin;
+      state.token = token;
+      state.restaurants = restaurants;
+      state.isAuthenticated = true;
+      state.isInitialized = true;
+      state.isLoading = false;
+      state.error = null;
+      webStorage.setItem('adminToken', token);
+      webStorage.setItem('adminData', JSON.stringify(admin));
+      webStorage.setItem('adminRestaurants', JSON.stringify(restaurants));
+    },
+    // Mise à jour locale des restaurants (après édition du profil)
+    setRestaurants: (state, action) => {
+      state.restaurants = action.payload || [];
+      webStorage.setItem('adminRestaurants', JSON.stringify(state.restaurants));
+    },
     // Nettoyer les erreurs
     clearError: (state) => {
       state.error = null;
@@ -153,6 +179,7 @@ const adminAuthSlice = createSlice({
       .addCase(signInAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.admin = action.payload.admin;
+        state.restaurants = action.payload.restaurants || [];
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isInitialized = true;
@@ -173,6 +200,7 @@ const adminAuthSlice = createSlice({
       .addCase(checkAdminAuth.fulfilled, (state, action) => {
         state.isLoading = false;
         state.admin = action.payload.admin;
+        state.restaurants = action.payload.restaurants || [];
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.isInitialized = true;
@@ -194,6 +222,7 @@ const adminAuthSlice = createSlice({
       .addCase(signOutAdmin.fulfilled, (state) => {
         state.isLoading = false;
         state.admin = null;
+        state.restaurants = [];
         state.token = null;
         state.isAuthenticated = false;
         state.error = null;
@@ -205,5 +234,5 @@ const adminAuthSlice = createSlice({
   },
 });
 
-export const { clearError, forceSignOut, resetAuthState } = adminAuthSlice.actions;
+export const { clearError, forceSignOut, resetAuthState, setSession, setRestaurants } = adminAuthSlice.actions;
 export default adminAuthSlice.reducer;

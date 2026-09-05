@@ -1,5 +1,5 @@
 // redux/livraisonSlice.js - Version propre et corrigée
-import { getSomeActiveLivraisons, getSomeCommande, getSomeDetailsLivraison, getSomeHistoriqueLivraisons, getSomeStatsLivreur, updateSomeCommandeLivred, updateSomeLivreurLocation, updateSomeUpdateLivraisonStatus } from '@/services/routeApi';
+import { getSomeActiveLivraisons, getSomeCommande, getSomeDetailsLivraison, getSomeHistoriqueLivraisons, getSomeStatsLivreur, updateSomeCommandeLivred, updateSomeLivreurLocation } from '@/services/routeApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import apiService from '../services/api';
@@ -119,33 +119,6 @@ export const fetchLivraisonDetails = createAsyncThunk(
       console.error('❌ Erreur récupération détails livraison:', error.response?.data);
       return rejectWithValue(
         error.response?.data?.message || 'Impossible de récupérer les détails'
-      );
-    }
-  }
-);
-
-// ✅ Mettre à jour le statut d'une livraison
-export const updateLivraisonStatus = createAsyncThunk(
-  'livraison/updateLivraisonStatus',
-  async ({ livraisonId, status, position }, { rejectWithValue }) => {
-    try {
-      console.log(`🔄 Mise à jour statut livraison ${livraisonId} vers ${status}...`);
-      
-      const response = await updateSomeUpdateLivraisonStatus(livraisonId, status, position);
-      
-      if (response.data && response.data.success) {
-        console.log('✅ Statut livraison mis à jour');
-        return {
-          livraisonId,
-          updatedLivraison: response.data.livraison
-        };
-      } else {
-        return rejectWithValue(response.data?.message || 'Erreur mise à jour statut');
-      }
-    } catch (error) {
-      console.error('❌ Erreur mise à jour statut livraison:', error.response?.data);
-      return rejectWithValue(
-        error.response?.data?.message || 'Impossible de mettre à jour le statut'
       );
     }
   }
@@ -676,32 +649,6 @@ const livraisonSlice = createSlice({
     
 
 
-      
-      // ✅ Mise à jour du statut d'une livraison
-      .addCase(updateLivraisonStatus.pending, (state, action) => {
-        state.updatingStatus = action.meta.arg.livraisonId;
-        state.error = null;
-      })
-      .addCase(updateLivraisonStatus.fulfilled, (state, action) => {
-        state.updatingStatus = null;
-        
-        const { livraisonId, updatedLivraison } = action.payload;
-        
-        // Mettre à jour dans la liste des livraisons actives
-        const index = state.activeLivraisons.findIndex(l => l.id === livraisonId);
-        if (index !== -1) {
-          state.activeLivraisons[index] = updatedLivraison;
-        }
-        
-        // Mettre à jour la livraison courante si c'est la même
-        if (state.currentLivraison?.id === livraisonId) {
-          state.currentLivraison = updatedLivraison;
-        }
-      })
-      .addCase(updateLivraisonStatus.rejected, (state, action) => {
-        state.updatingStatus = null;
-        state.error = action.payload;
-      })
       
       // ✅ Marquer comme livrée
       .addCase(markAsDelivered.pending, (state) => {

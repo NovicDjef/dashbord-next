@@ -1,248 +1,110 @@
 import apiService from "./Api";
 
-// Requetes GET
-  export const getchSomeRestaurant = () => {
-    return apiService.get('/restaurants')
-  }
-  export const getchSomeMenu = () => {
+// Helpers d'appel API réellement utilisés par les slices/écrans.
+// Les chemins doivent exister dans Backend_foodtech/routes/*.js.
+
+export const getchSomeMenu = () => {
     return apiService.get('/menus')
-  };
-  export const getchSomeRepas = () => {
-    return apiService.get('/plats');
-  };
-  // export const getchSomeUser = () => {
-  //   return apiService.get('/users')
-  // }
-  export const getchSomePriceCommande = () => {
-    return apiService.get('/prixcommande')
-  }
-
-  export const getSomeGasOrdersAsync = () => {
-    return apiService.get('/orders')
-  }
-
-  export const getLivreursAsync = () => {
-    return apiService.get('/livreurs')
-  }
-
-  export const createLivreurAsync = (livreurData) => {
-    return apiService.post('/livreur/signup', livreurData)
-  }
-
-  export const updateLivreurAsync = (livreurId, livreurData) => {
-    return apiService.put(`/livreur/${livreurId}`, livreurData)
-  }
-
-  // APIs pour les utilisateurs
-  export const getUsersAsync = () => {
-    return apiService.get('/users')
-  }
-
-  export const createUserAsync = (userData) => {
-    return apiService.post('/signup', userData)
-  }
-
-  export const updateUserAsync = (userId, userData) => {
-    return apiService.patch(`/users/${userId}`, userData)
-  }
-
-  export const resetUserPasswordAsync = (userId, newPassword) => {
-    return apiService.post(`/users/${userId}/reset-password`, { newPassword })
-  }
-
-    export const getSomeHoraireAsync = () => {
-    return apiService.get('/heures')
-  }
-
-  export const createSomeRestaurantAsync = (restaurantData) => {
-    return apiService.post('/restaurants', restaurantData)
-  }
-
-  // APIs d'authentification admin
-  export const adminSignInAsync = (email, password) => {
-    return apiService.post('/admin/login', { email, password })
-  }
-
-  // Récupérer les horaires d'un restaurant spécifique
-  export const getHorairesByRestaurant = (restaurantId) => {
-    return apiService.get(`/restaurants/${restaurantId}/heures`)
-  }
-
-  // Ajouter/Mettre à jour les horaires en bulk pour un restaurant
-  export const addHorairesBulk = (restaurantId, horaires) => {
-    return apiService.post(`/restaurants/${restaurantId}/heures/bulk`, { horaires })
-  }
-
-  // Mettre à jour un horaire spécifique
-  export const updateHoraire = (horaireId, horaireData) => {
-    return apiService.put(`/heures/${horaireId}`, horaireData)
-  }
-
-  // Supprimer un horaire
-  export const deleteHoraire = (horaireId) => {
-    return apiService.delete(`/heures/${horaireId}`)
-  }
-
-  export const getchSomeComplements = () => {
-    return apiService.get('/complements')
-  }
-
-  export const getchSomePriceColis = () => {
-    return apiService.get('/prixcolis')
-  }
-  export const getchSomeNotification = () => {
-    return apiService.get('/notifications')
-  }
-  export const getchSomeUser = ({phone}) => {
-    return apiService.post('/usersIdByPhone', { phone: phone})
-  }
- 
-  export const getchSomeslide = () => {
-    return apiService.get('/slides');
-  };
-  export const getchSomeGeolocation = () => {
-    return apiService.get("/geolocalisations")
-  }
-  export const getchSomeCategories = () => {
-    return apiService.get('/categories')
-  };
-  // export const getSomeCommande = (userId) => {
-  //   return apiService.get(`/commandes/${userId}`)
-  
-  // };
-  export const getSomeCommande = () => {
-    return apiService.get("/commandes")
-  };
-
-  export const getchSomeLivraisons = () => {
-    return apiService.get("/livraisons")
-  };
-  export const getchSomeVille = () => {
-    return apiService.get("/villes")
-  }
-
-  export const getchSomeSlide = () => {
-    return apiService.get("/slides")
-  }
-  export const getchSomeColis = () => {
-    return apiService.get("/colis")
-  }
-
-  export const getSomeGainsLivreur = (livreurId) => {
-    return apiService.get(`/livreur-gains/${livreurId}`)
-  }
-
-  export const getSomeGainsLivreurSummary = (livreurId) => {
-    return apiService.get(`/livreur-gains/${livreurId}/summary`)
-  }
-
-  // Nouvelles APIs de retrait
-  export const verifierEligibiliteRetrait = (livreurId) => {
-    return apiService.get(`/livreur/${livreurId}/retrait/verifier`)
-  }
-
-  export const effectuerRetrait = (livreurId, retraitData) => {
-    return apiService.post(`/livreur/${livreurId}/retrait`, retraitData)
-  }
-
-  export const getDetailedBalance = (livreurId) => {
-    return apiService.get(`/livreur-gains/${livreurId}/balance`)
-  }
-
-  export const calculSomeGainsLivreur = (gainData) => {
-    return apiService.post(`/gains/calculer`, gainData)
-  }
-
-  export const fetchSomeSendOtp = (email) => {
-    return apiService.post(`/send-otp`, { email })
-  }
-  export const fetchSomeVerifyOtp = (email, otp, newPassword) => {
-    return apiService.post('/verify-otp', {
-        email,
-        otp,
-        newPassword
-      });
-  }
-
-  // resquete POST :
-  
-  
-  export const fetchSomeGeolocation = (geolocationData) => {
-    return apiService.post('/geolocalisation', { geolocationData: geolocationData })
-  };
-
-  // const commande = cart.map(item => ({
-  //   quantity: item.quantity,
-  //   userId: userId, /* ID de l'utilisateur, à remplacer par la valeur réelle */
-  //   platsId: item.id, 
-    
-  // }));
-
-  export const fetchSomeLoginLivreur = (identifier, password) => {
-    const isEmail = identifier.includes('@');
-  
-  const loginData = {
-    password,
-    ...(isEmail ? { email: identifier } : { telephone: identifier })
-  };
-    
-    return apiService.post('/livreur/login', loginData)
-  }
-
-  export const fetchSomeRegisterLivreur = async (userData) => {
-    try {
-      const cleanData = {
-        username: userData.username,
-        prenom: userData.prenom,
-        email: userData.email,
-        password: userData.password,
-        telephone: userData.telephone
-      };
-    return apiService.post('/livreur/signup', cleanData)
-    } catch (error) {
-      console.error('Erreur lors de l\'inscription:', error);
-      throw error;
-    }
-  }
-
-  export const fetchSomeAcceptCommande = (commandeId, livreurId) => {
-    return apiService.post('/commandes/accept', {
-       commandeId: parseInt(commandeId), 
-       livreurId: parseInt(livreurId) 
-      })
-  }
-  export const fetchSomeRejectCommande = (commandeId, livreurId) => {
-    return apiService.post('/commandes/reject', {
-      commandeId: parseInt(commandeId),
-      livreurId: parseInt(livreurId)
-    })
-  }
-  export const fetchSomeUpdateLivreurStatus = (livreurId, disponible) => {
-    return apiService.put('/livreur/status', {
-      livreurId: parseInt(livreurId),
-      disponible: disponible
-    })
-  }
-export const getSomeDetailsLivraison = (livraisonId) => {
-  return apiService.get(`/livraison/${livraisonId}`)
-}
-
-export const postSomeLivraison = (livraisonData) => {
-  return apiService.post('/livraison', livraisonData);
 };
 
-export const getSomeLivraisonById = (livreurId) => {
-  return apiService.get(`/livreur/${livreurId}`)
-}
+export const getchSomeRepas = () => {
+    return apiService.get('/plats');
+};
 
+export const getchSomePriceCommande = () => {
+    return apiService.get('/prixcommande')
+};
+
+export const getSomeGasOrdersAsync = () => {
+    return apiService.get('/orders')
+};
+
+export const getLivreursAsync = () => {
+    return apiService.get('/livreurs')
+};
+
+export const createLivreurAsync = (livreurData) => {
+    return apiService.post('/livreur/signup', livreurData)
+};
+
+export const updateLivreurAsync = (livreurId, livreurData) => {
+    return apiService.patch(`/livreur/${livreurId}`, livreurData)
+};
+
+export const getUsersAsync = () => {
+    return apiService.get('/users')
+};
+
+export const createUserAsync = (userData) => {
+    return apiService.post('/signup', userData)
+};
+
+export const updateUserAsync = (userId, userData) => {
+    return apiService.patch(`/users/${userId}`, userData)
+};
+
+export const getSomeHoraireAsync = () => {
+    return apiService.get('/heures')
+};
+
+export const createSomeRestaurantAsync = (restaurantData) => {
+    return apiService.post('/restaurants', restaurantData)
+};
+
+export const adminSignInAsync = (email, password) => {
+    return apiService.post('/admin/login', { email, password })
+};
+
+export const getHorairesByRestaurant = (restaurantId) => {
+    return apiService.get(`/restaurants/${restaurantId}/heures`)
+};
+
+export const addHorairesBulk = (restaurantId, horaires) => {
+    return apiService.post(`/restaurants/${restaurantId}/heures/bulk`, { horaires })
+};
+
+export const updateHoraire = (horaireId, horaireData) => {
+    return apiService.put(`/heures/${horaireId}`, horaireData)
+};
+
+export const deleteHoraire = (horaireId) => {
+    return apiService.delete(`/heures/${horaireId}`)
+};
+
+export const getchSomeComplements = () => {
+    return apiService.get('/complements')
+};
+
+export const getchSomePriceColis = () => {
+    return apiService.get('/prixcolis')
+};
+
+export const getchSomeNotification = () => {
+    return apiService.get('/notifications')
+};
+
+export const getSomeCommande = () => {
+    return apiService.get("/commandes")
+};
+
+export const getchSomeSlide = () => {
+    return apiService.get("/slides")
+};
+
+export const calculSomeGainsLivreur = (gainData) => {
+    return apiService.post(`/gains/calculer`, gainData)
+};
+
+export const getSomeDetailsLivraison = (livraisonId) => {
+  return apiService.get(`/livraison/${livraisonId}`)
+};
 
 export const updateSomeCommandeLivred = (livraisonId, livreurId) => {
   return apiService.put('/commandes/delivered', {
     livraisonId: parseInt(livraisonId),
     livreurId: parseInt(livreurId)
   });
-}
-
+};
 
 export const updateSomeLivreurLocation = (livreurId, latitude, longitude) => {
   return apiService.put('/livreur/location', {
@@ -250,143 +112,38 @@ export const updateSomeLivreurLocation = (livreurId, latitude, longitude) => {
     latitude: parseFloat(latitude),
     longitude: parseFloat(longitude)
   })
-}
+};
 
 export const fetchSomeRegisterPushToken = (livreurId, pushToken) => {
   return apiService.post('/livreur/register-push-token', {
     livreurId: parseInt(livreurId),
     pushToken: pushToken
   })
-}
-
+};
 
 export const getSomeHistoriqueLivraisons = (livreurId, period) => {
   return apiService.get(`/livraisons/historique/${livreurId}?period=${period}`)
-}
+};
 
 export const getSomeActiveLivraisons = (livreurId) => {
   return apiService.get(`/livraisons/active/${livreurId}`)
-}
-
+};
 
 export const getSomeStatsLivreur = (livreurId) => {
   return apiService.get(`/livreur/${livreurId}/stats`)
-}
-
-export const getSomeDisponiblesCommandes = () => {
-  return apiService.get('/commandes/disponibles')
-}
-
-export const getSomeHistoriqueCommandes = () => {
-  return apiService.get('/commandes/historique')
-}
-
-// 
-export const updateSomeUpdateLivraisonStatus = (livraisonId, status, position = null) => {
-  return apiService.put(`/livraisons/${livraisonId}/status`, {
-    status,
-    position
-  });
-}
-
-export const accepterSomeCommande = (commandeId, livreurId) => {
-  return apiService.post(`/commandes/${commandeId}/accepter`, {
-    livreurId: parseInt(livreurId)
-  })
-}
-
-  export const fetchSomeVerifyToken = (token) => {
-    return apiService.post('/admin/verify', { token })
-  }
-  
-  export const addSomePayement = (paymentData) => {
-    console.debug("paymentDatafffff :", paymentData)
-      return apiService.post('/payement', {paymentData: paymentData})
-  }
-
-  export const addSomeCommande = (commandeData) => {
-    console.debug("paymentDatafffff :", commandeData)
-    return apiService.post("/commandes", {commandeData: commandeData})
-  }
-
-  export const fetchSomeAdressLivraison = (adresse) => {
-    console.debug("Adresse de livraion: ", adresse);
-    return apiService.post('/livraison', {adresse: adresse})
-  }
-
-  export const fetchSomeUser = () => {
-    return apiService.get('/users')
-  }
-
-  export const fetchSomePhone = ({username, phone}) => {
-    console.log("username, phone : ", phone, username)
-      return apiService.post('/signup', { username, phone });
-     
-  };
-
-  export const getSomeCommandeLivraison = (livraisonId) => {
-    return apiService.get(`/commandes/livraison/${livraisonId}`)
-  }
-  
-  // export const fetchSomePhone = async ({ username, phone }) => {
-  //   try {
-  //     const response = await apiService.post('/register', { username, phone });
-      
-  //     // Vérifiez le statut HTTP de la réponse
-  //     if (response.status >= 400) {
-  //       const errorData = await response.json();
-  //       console.error('Erreur dans fetchSomePhone:', errorData.message);
-  //       throw new Error(errorData.message || 'Une erreur s\'est produite');
-  //     }
-  
-  //     // Retourner les données si tout va bien
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error('Erreur dans fetchSomePhone:', error);
-  //     throw error; // Propagation de l'erreur pour qu'elle soit traitée dans le Redux action
-  //   }
-  // };
-  
-
-  export const fetchSomeValidateOTP = (otpCode, phone) => {
-    return apiService.post('/verify-otp', { code: otpCode, phone })
-  }
-  
-  export const fetchSomeGame = ({lotId, userId, selectedNumbers, isWinner}) => {
-    return apiService.post('./games', {lotId, userId, selectedNumbers, isWinner})
-  }
-
-  // Request UPDATE
-
-  export const updateSomePhone = (id, { username, phone }) => {
-    return apiService.patch(`/update-user/${id}`, { username, phone });
-  };
-
-
-  // Dans vos actions Redux, modifiez :
-export const updateSomeSatus = (id, status, livreurId) => {
-  return apiService.patch(`/commande/${id}`, { 
-    status, 
-    livreurId: parseInt(livreurId) // ✅ Conversion explicite
-  });
 };
 
-export const updateSomeColisSatus = (id, status, livreurId) => {
-  return apiService.patch(`/colis/${id}`, { 
-    status, 
-    livreurId: parseInt(livreurId) // ✅ Conversion explicite
-  });
+export const addSomeCommande = (commandeData) => {
+    return apiService.post("/commandes", {commandeData: commandeData})
 };
 
 export const updateSomeUser = async (userId, data) => {
   if (!userId || !data) throw new Error("userId et data sont requis");
   
-  // ✅ Extraire le token de l'objet ou utiliser directement si c'est une string
   const pushToken = typeof data === 'string' ? data : data.pushToken;
   
   if (!pushToken) throw new Error("pushToken est requis");
   
-  console.log("📤 Envoi au serveur:", { pushToken });
   
   return apiService.patch(`/user/${userId}/push-token`, { pushToken });
 };
@@ -394,7 +151,6 @@ export const updateSomeUser = async (userId, data) => {
 export const updateSomeUserInfo = async (userId, userData) => {
   if (!userId || !userData) throw new Error("userId et userData sont requis");
   
-  console.log("📤 Mise à jour utilisateur:", { userId, userData });
   
   return apiService.patch(`/users/${userId}`, userData);
 };
@@ -405,6 +161,3 @@ export const updateSomeGazSatus = (id, status, livreurId) => {
     livreurId: parseInt(livreurId) // ✅ Conversion explicite
   });
 };
-  
-  
-

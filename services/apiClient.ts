@@ -11,14 +11,15 @@ interface AuthTokens {
 const storage = {
   getToken: (): string | null => {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('userToken');
+    return localStorage.getItem('adminToken') || localStorage.getItem('userToken');
   },
   setToken: (token: string): void => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem('userToken', token);
+    localStorage.setItem('adminToken', token);
   },
   removeToken: (): void => {
     if (typeof window === 'undefined') return;
+    localStorage.removeItem('adminToken');
     localStorage.removeItem('userToken');
   },
   getRefreshToken: (): string | null => {

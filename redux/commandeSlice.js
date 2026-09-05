@@ -43,7 +43,9 @@ export const createCommandeAsync = createAsyncThunk(
     'commande/updateStatus',
     async ({ id, status }, { rejectWithValue }) => {
       try {
-        const response = await apiService.patch(`/commande/${id}`, { status });
+        const BACKEND_STATUS = { en_attente: 'EN_ATTENTE', confirmee: 'ACCEPTEE_RESTAURANT', preparee: 'EN_PREPARATION', prete: 'PRETE', en_livraison: 'PRETE', livree: 'LIVREE', annulee: 'ANNULEE' };
+        const backendStatus = BACKEND_STATUS[String(status).toLowerCase()] || String(status).toUpperCase();
+        const response = await apiService.patch(`/commande/${id}`, { status: backendStatus });
         return response.data.commande;
       } catch (error) {
         console.error("Erreur lors de la mise à jour du statut de la commande:", error.response?.data);

@@ -3,11 +3,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ------------------------------------------------------------------
+   Charte Koursier
+   Vert #29A066 (principal) · Orange #FBB344 · Jaune #FCCC44
+   Bleu nuit #33354E (encre) · Rouge #FC2626
+   Polices : Bricolage Grotesque (titres) · DM Sans (texte)
+------------------------------------------------------------------- */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,126 +45,252 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Couleurs de la charte, utilisables en classes (bg-brand-orange, text-brand-ink…) */
+  --color-brand-green: var(--brand-green);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-red: var(--brand-red);
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-cream: var(--brand-cream);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.147 0.004 49.25);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.216 0.006 56.043);
-  --primary-foreground: oklch(0.985 0.001 106.423);
-  --secondary: oklch(0.97 0.001 106.424);
-  --secondary-foreground: oklch(0.216 0.006 56.043);
-  --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: oklch(0.97 0.001 106.424);
-  --accent-foreground: oklch(0.216 0.006 56.043);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
-  --input: oklch(0.923 0.003 48.717);
-  --ring: oklch(0.709 0.01 56.259);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.001 106.423);
-  --sidebar-foreground: oklch(0.147 0.004 49.25);
-  --sidebar-primary: oklch(0.216 0.006 56.043);
-  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.97 0.001 106.424);
-  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
-  --sidebar-border: oklch(0.923 0.003 48.717);
-  --sidebar-ring: oklch(0.709 0.01 56.259);
+  --radius: 0.875rem;
+
+  --brand-green: #29a066;
+  --brand-orange: #fbb344;
+  --brand-yellow: #fccc44;
+  --brand-ink: #33354e;
+  --brand-red: #fc2626;
+  --brand-mint: #eaf5ee;
+  --brand-cream: #fff5e3;
+
+  --background: #ffffff;
+  --foreground: #1d1f33;
+  --card: #ffffff;
+  --card-foreground: #1d1f33;
+  --popover: #ffffff;
+  --popover-foreground: #1d1f33;
+  --primary: #29a066;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf5ee;
+  --secondary-foreground: #1b5e3b;
+  --muted: #f3f5f3;
+  --muted-foreground: #5f6673;
+  --accent: #eaf5ee;
+  --accent-foreground: #1b5e3b;
+  --destructive: #e03a33;
+  --border: #e2e7e3;
+  --input: #dfe5e0;
+  --ring: #29a066;
+  --chart-1: #29a066;
+  --chart-2: #fbb344;
+  --chart-3: #33354e;
+  --chart-4: #fccc44;
+  --chart-5: #7cc8a2;
+  --sidebar: #f7f9f7;
+  --sidebar-foreground: #1d1f33;
+  --sidebar-primary: #29a066;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf5ee;
+  --sidebar-accent-foreground: #1b5e3b;
+  --sidebar-border: #e2e7e3;
+  --sidebar-ring: #29a066;
 }
 
 .dark {
-  /* Background principal - Plus doux et moderne (#1a1625) */
-  --background: oklch(0.135 0.028 295); /* Fond principal doux */
-  --foreground: oklch(0.95 0.005 280); /* Texte clair mais pas blanc pur */
+  --brand-mint: #1f3a2e;
+  --brand-cream: #3a3020;
 
-  /* Cards, sections, popovers - Contraste subtil (#221b2e) */
-  --card: oklch(0.16 0.032 295); /* Cards légèrement plus claires que le fond */
-  --card-foreground: oklch(0.95 0.005 280);
-  --popover: oklch(0.17 0.033 295);
-  --popover-foreground: oklch(0.95 0.005 280);
-
-  /* Primary colors - Violet moderne et élégant */
-  --primary: oklch(0.6 0.19 280); /* Violet plus doux et visible */
-  --primary-foreground: oklch(0.98 0.002 280);
-
-  /* Secondary - Gris-violet harmonieux */
-  --secondary: oklch(0.22 0.025 295);
-  --secondary-foreground: oklch(0.95 0.005 280);
-
-  /* Muted - Pour les backgrounds secondaires */
-  --muted: oklch(0.19 0.03 295);
-  --muted-foreground: oklch(0.65 0.015 280); /* Meilleur contraste */
-
-  /* Accent - Subtil mais visible */
-  --accent: oklch(0.24 0.035 295);
-  --accent-foreground: oklch(0.95 0.005 280);
-
-  --destructive: oklch(0.65 0.25 25); /* Rouge plus visible */
-
-  /* Bordures - Plus visibles et élégantes */
-  --border: oklch(0.28 0.04 295 / 55%);
-  --input: oklch(0.22 0.03 295);
-  --ring: oklch(0.6 0.19 280);
-
-  /* Charts - Couleurs vibrantes mais harmonieuses */
-  --chart-1: oklch(0.6 0.19 280); /* Violet */
-  --chart-2: oklch(0.65 0.18 200); /* Cyan */
-  --chart-3: oklch(0.7 0.16 140); /* Vert */
-  --chart-4: oklch(0.68 0.20 40); /* Jaune-orange */
-  --chart-5: oklch(0.62 0.22 340); /* Rose */
-
-  /* Sidebar - Contraste élégant */
-  --sidebar: oklch(0.15 0.03 295);
-  --sidebar-foreground: oklch(0.9 0.008 280);
-  --sidebar-primary: oklch(0.6 0.19 280);
-  --sidebar-primary-foreground: oklch(0.98 0.002 280);
-  --sidebar-accent: oklch(0.2 0.032 295);
-  --sidebar-accent-foreground: oklch(0.95 0.005 280);
-  --sidebar-border: oklch(0.25 0.035 295 / 50%);
-  --sidebar-ring: oklch(0.6 0.19 280);
+  --background: #121422;
+  --foreground: #eef0f5;
+  --card: #1a1d30;
+  --card-foreground: #eef0f5;
+  --popover: #1a1d30;
+  --popover-foreground: #eef0f5;
+  --primary: #3dbb7c;
+  --primary-foreground: #0c1a12;
+  --secondary: #1f3a2e;
+  --secondary-foreground: #bfe8d1;
+  --muted: #232740;
+  --muted-foreground: #a3a9ba;
+  --accent: #1f3a2e;
+  --accent-foreground: #bfe8d1;
+  --destructive: #f05a55;
+  --border: #2b3049;
+  --input: #2f3450;
+  --ring: #3dbb7c;
+  --chart-1: #3dbb7c;
+  --chart-2: #fbb344;
+  --chart-3: #8b90b8;
+  --chart-4: #fccc44;
+  --chart-5: #6fcf9a;
+  --sidebar: #161930;
+  --sidebar-foreground: #eef0f5;
+  --sidebar-primary: #3dbb7c;
+  --sidebar-primary-foreground: #0c1a12;
+  --sidebar-accent: #232740;
+  --sidebar-accent-foreground: #eef0f5;
+  --sidebar-border: #2b3049;
+  --sidebar-ring: #3dbb7c;
 }
 
 @layer base {
   * {
-    border-color: oklch(var(--border));
-    outline-color: oklch(var(--ring) / 0.5);
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-foreground;
+    /* Le motif Koursier est rendu par la couche animée .pattern-layer (components/site/pattern-layer.tsx) */
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Le contenu des espaces admin / restaurant garde le motif derrière les cartes */
+  [data-slot="sidebar-inset"] {
+    background-image: url("/brand/koursier-pattern.svg");
+    background-size: 560px 560px;
+  }
+  .dark [data-slot="sidebar-inset"] {
+    background-image: url("/brand/koursier-pattern-dark.svg");
+  }
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  h1, h2 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 }
 
-/* Missing Tailwind classes compatibility */
-.border-border {
-  border-color: oklch(var(--border));
+/* Compatibilité avec d'anciennes classes utilisées dans les pages admin */
+.border-border { border-color: var(--border); }
+.bg-muted\/50 { background-color: color-mix(in srgb, var(--muted) 50%, transparent); }
+.hover\:bg-muted\/50:hover { background-color: color-mix(in srgb, var(--muted) 50%, transparent); }
+
+/* ---------- Fond animé Koursier ---------- */
+.pattern-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.pattern-layer-svg { position: absolute; left: 0; top: 0; }
+.kp-green { stroke: var(--brand-green); }
+.kp-orange { stroke: var(--brand-orange); }
+.kp-icon {
+  opacity: .22;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: kp-wiggle 26s ease-in-out infinite;
+}
+.dark .kp-icon { opacity: .13; }
+/* Immobile presque tout le temps, puis un petit frémissement d'une seconde et demie */
+@keyframes kp-wiggle {
+  0%, 88%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: .22; }
+  90% { transform: translateY(-8px) rotate(-7deg) scale(1.12); opacity: .5; }
+  93% { transform: translateY(3px) rotate(5deg) scale(1.06); }
+  96% { transform: translateY(-3px) rotate(-3deg) scale(1.02); }
+}
+.dark .kp-icon { animation-name: kp-wiggle-dark; }
+@keyframes kp-wiggle-dark {
+  0%, 88%, 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: .13; }
+  90% { transform: translateY(-8px) rotate(-7deg) scale(1.12); opacity: .35; }
+  93% { transform: translateY(3px) rotate(5deg) scale(1.06); }
+  96% { transform: translateY(-3px) rotate(-3deg) scale(1.02); }
+}
+/* Le scooter qui traverse le bas de l'écran toutes les 48 s */
+.pattern-rider {
+  position: absolute;
+  bottom: 6vh;
+  left: 0;
+  color: var(--brand-green);
+  opacity: .32;
+  transform: translateX(-140px);
+  animation: kp-ride 48s linear infinite;
+}
+.pattern-rider svg { stroke: currentColor; animation: kp-bump .5s ease-in-out infinite; }
+@keyframes kp-ride {
+  0%, 62% { transform: translateX(-140px); }
+  100% { transform: translateX(calc(100vw + 140px)); }
+}
+@keyframes kp-bump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .kp-icon, .pattern-rider, .pattern-rider svg { animation: none; }
+  .pattern-rider { display: none; }
 }
 
-.bg-muted\/50 {
-  background-color: oklch(var(--muted) / 0.5);
+/* Motif clair pour les sections sombres (bleu nuit, vert) */
+.pattern-on-dark {
+  background-image: url("/brand/koursier-pattern-white.svg");
+  background-size: 560px 560px;
+}
+/* Motif vert sur les fonds teintés (menthe, gris) */
+.pattern-on-tint {
+  background-image: url("/brand/koursier-pattern.svg");
+  background-size: 640px 640px;
 }
 
-.hover\:bg-muted\/50:hover {
-  background-color: oklch(var(--muted) / 0.5);
+/* ---------- Site public ---------- */
+.site-container { width: 100%; max-width: 76rem; margin-inline: auto; padding-inline: 1.25rem; }
+@media (min-width: 640px) { .site-container { padding-inline: 2rem; } }
+
+/* Scooter qui parcourt l'itinéraire de l'estimateur */
+.route-rider {
+  offset-path: path("M 44 118 C 100 40, 160 176, 214 96 S 320 30, 376 88");
+  offset-rotate: 0deg;
+  animation: route-ride 9s cubic-bezier(.45,.05,.55,.95) infinite;
+}
+@keyframes route-ride {
+  0% { offset-distance: 0%; }
+  8% { offset-distance: 0%; }
+  82% { offset-distance: 100%; }
+  100% { offset-distance: 100%; }
+}
+.route-dash { stroke-dasharray: 6 8; animation: route-dash 1.6s linear infinite; }
+@keyframes route-dash { to { stroke-dashoffset: -28; } }
+.ping-soft { animation: ping-soft 2.2s ease-out infinite; }
+@keyframes ping-soft { 0% { transform: scale(1); opacity: .55 } 100% { transform: scale(2.6); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) {
+  .route-rider { animation: none; offset-distance: 60%; }
+  .route-dash, .ping-soft { animation: none; }
 }
 
+/* Curseur de distance de l'estimateur */
+.fare-range { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--primary) var(--fill, 20%), var(--border) var(--fill, 20%)); outline: none; }
+.fare-range::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 3px solid var(--primary); box-shadow: 0 2px 10px rgba(41,160,102,.35); cursor: pointer; }
+.fare-range::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 3px solid var(--primary); box-shadow: 0 2px 10px rgba(41,160,102,.35); cursor: pointer; }
+.fare-range:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--ring); outline-offset: 3px; }
 
-body {
-  @apply overscroll-none bg-transparent;
-}
+/* Surlignage orange sous un mot du titre */
+.mark-orange { background: linear-gradient(transparent 62%, var(--brand-orange) 62%, var(--brand-orange) 92%, transparent 92%); padding-inline: .06em; }
+
+/* Accordéon FAQ */
+details.faq > summary { list-style: none; cursor: pointer; }
+details.faq > summary::-webkit-details-marker { display: none; }
+details.faq[open] .faq-plus { transform: rotate(45deg); }
+.faq-plus { transition: transform .2s ease; }
 
 :root {
   --font-sans: var(--font-inter);
@@ -2186,4 +2320,14 @@ body {
 /* Focus Management for Accessibility */
 .koursier-focus-visible:focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+
+}
+
+/* ---------- Espace client « Commander » ---------- */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+/* Reçu imprimable : on ne garde que le détail de la commande */
+@media print {
+  header, nav, aside.sticky, .pattern-layer { display: none !important; }
+  body { background: #fff !important; }
 }

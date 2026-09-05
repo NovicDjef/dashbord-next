@@ -70,11 +70,11 @@ import { Textarea } from "@/components/ui/textarea";
 interface Repas {
   id: number;
   name: string;
-  price: number;
+  prix: number;
   description: string;
   image?: string;
   imageUrl?: string;
-  categoryId: number;
+  categorieId: number;
   restaurantId: number;
   disponible: boolean;
   createdAt: string;
@@ -92,9 +92,9 @@ interface Repas {
 interface RepasFormData {
   name: string;
   description: string;
-  price: number;
+  prix: number;
   image?: string;
-  categoryId: number;
+  categorieId: number;
   restaurantId: number;
   disponible: boolean;
 }
@@ -127,9 +127,9 @@ export default function RepasPage() {
   const [formData, setFormData] = useState<RepasFormData>({
     name: "",
     description: "",
-    price: 0,
+    prix: 0,
     image: "",
-    categoryId: 0,
+    categorieId: 0,
     restaurantId: 0,
     disponible: true
   });
@@ -144,7 +144,7 @@ export default function RepasPage() {
     // Enrichir les repas avec les noms des restaurants
     const enrichedRepas = repasArray.map(repas => {
       // Trouver le restaurant via la catégorie
-      const category = categoriesArray.find(cat => cat.id === repas.categoryId);
+      const category = categoriesArray.find(cat => cat.id === repas.categorieId);
       const restaurant = category ? restaurantsArray.find(rest => rest.id === category.restaurantId) : null;
 
       return {
@@ -175,9 +175,9 @@ export default function RepasPage() {
       const repasData = {
         name: formData.name,
         description: formData.description,
-        price: formData.price,
+        prix: formData.prix,
         image: formData.image,
-        categoryId: formData.categoryId,
+        categorieId: formData.categorieId,
         restaurantId: formData.restaurantId,
         disponible: formData.disponible
       };
@@ -229,9 +229,9 @@ export default function RepasPage() {
     setFormData({
       name: "",
       description: "",
-      price: 0,
+      prix: 0,
       image: "",
-      categoryId: 0,
+      categorieId: 0,
       restaurantId: 0,
       disponible: true
     });
@@ -254,7 +254,7 @@ export default function RepasPage() {
     }
 
     // Sinon, chercher via la catégorie
-    const category = categoriesArray.find(cat => cat.id === repas.categoryId);
+    const category = categoriesArray.find(cat => cat.id === repas.categorieId);
     if (category?.restaurantId) {
       const restaurant = restaurantsArray.find(rest => rest.id === category.restaurantId);
       if (restaurant?.name) {
@@ -338,7 +338,7 @@ export default function RepasPage() {
             <div>
               <div className="koursier-stats-value text-purple-600">
                 {repasArray.length > 0
-                  ? (repasArray.reduce((sum, r) => sum + (r.price || 0), 0) / repasArray.length).toFixed(0) + " F"
+                  ? (repasArray.reduce((sum, r) => sum + (r.prix || 0), 0) / repasArray.length).toFixed(0) + " F"
                   : "0 F"
                 }
               </div>
@@ -424,12 +424,12 @@ export default function RepasPage() {
                 </td>
                 <td>
                   <div className="koursier-label font-semibold">
-                    {repas.price ? repas.price.toFixed(0) : "0"} F
+                    {repas.prix ? repas.prix.toFixed(0) : "0"} F
                   </div>
                 </td>
                 <td>
                   <Badge variant="outline" className="koursier-badge koursier-badge-info">
-                    {repas.category?.name || `Catégorie ${repas.categoryId}`}
+                    {repas.category?.name || `Catégorie ${repas.categorieId}`}
                   </Badge>
                 </td>
                 <td>
@@ -525,19 +525,19 @@ export default function RepasPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="text-sm font-medium flex items-center gap-1">
+                  <Label htmlFor="prix" className="text-sm font-medium flex items-center gap-1">
                     Prix (F) *
                     <span className="text-red-500">•</span>
                   </Label>
                   <div className="relative">
                     <IconCoin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="price"
+                      id="prix"
                       type="number"
                       step="0.01"
                       min="0"
-                      value={formData.price || ""}
-                      onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                      value={formData.prix || ""}
+                      onChange={(e) => setFormData({...formData, prix: parseFloat(e.target.value) || 0})}
                       placeholder="12.50"
                       className="pl-10 transition-all focus:ring-2 focus:ring-primary/20"
                     />
@@ -575,11 +575,11 @@ export default function RepasPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="categoryId" className="text-sm font-medium flex items-center gap-1">
+                  <Label htmlFor="categorieId" className="text-sm font-medium flex items-center gap-1">
                     Catégorie *
                     <span className="text-red-500">•</span>
                   </Label>
-                  <Select value={formData.categoryId.toString()} onValueChange={(value) => setFormData({...formData, categoryId: parseInt(value)})}>
+                  <Select value={formData.categorieId.toString()} onValueChange={(value) => setFormData({...formData, categorieId: parseInt(value)})}>
                     <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
                       <SelectValue placeholder="Sélectionner une catégorie" />
                     </SelectTrigger>
@@ -699,7 +699,7 @@ export default function RepasPage() {
                   <p className="text-sm font-medium">Informations</p>
                   <div className="space-y-1 text-sm text-muted-foreground">
                     <p>• Nom: {formData.name || "Non défini"}</p>
-                    <p>• Prix: {formData.price ? `${formData.price.toFixed(2)} F` : "Non défini"}</p>
+                    <p>• Prix: {formData.prix ? `${formData.prix.toFixed(2)} F` : "Non défini"}</p>
                     <p>• Statut: {formData.disponible ? "Disponible" : "Indisponible"}</p>
                   </div>
                 </div>
@@ -708,14 +708,14 @@ export default function RepasPage() {
                   <p className="text-sm font-medium">Validation</p>
                   <div className="flex items-center gap-2">
                     <div className="flex-shrink-0">
-                      {formData.name && formData.price > 0 && formData.categoryId && formData.restaurantId ? (
+                      {formData.name && formData.prix > 0 && formData.categorieId && formData.restaurantId ? (
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       ) : (
                         <div className="w-2 h-2 bg-destructive rounded-full"></div>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {formData.name && formData.price > 0 && formData.categoryId && formData.restaurantId
+                      {formData.name && formData.prix > 0 && formData.categorieId && formData.restaurantId
                         ? "Formulaire valide, prêt à être soumis"
                         : "Veuillez remplir tous les champs obligatoires"}
                     </p>
@@ -739,7 +739,7 @@ export default function RepasPage() {
             </Button>
             <Button 
               onClick={handleCreateOrUpdate} 
-              disabled={submitLoading || !formData.name || formData.price <= 0 || !formData.categoryId || !formData.restaurantId}
+              disabled={submitLoading || !formData.name || formData.prix <= 0 || !formData.categorieId || !formData.restaurantId}
               className="min-w-[120px] transition-all"
             >
               {submitLoading ? (
@@ -825,13 +825,13 @@ export default function RepasPage() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Prix</Label>
                   <div className="text-lg font-semibold text-green-600">
-                    {repasToView.price ? repasToView.price.toFixed(0) : "0"} F
+                    {repasToView.prix ? repasToView.prix.toFixed(0) : "0"} F
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-muted-foreground">Catégorie</Label>
-                  <div className="text-base">{repasToView.category?.name || `Catégorie ${repasToView.categoryId}`}</div>
+                  <div className="text-base">{repasToView.category?.name || `Catégorie ${repasToView.categorieId}`}</div>
                 </div>
 
                 <div className="space-y-2">

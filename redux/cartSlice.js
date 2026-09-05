@@ -1,18 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import apiService from '../services/Api'; // Assurez-vous que ce chemin est correct
-
-export const saveCartToServer = createAsyncThunk(
-  'cart/saveToServer',
-  async (cartItems, { rejectWithValue }) => {
-    try {
-      // Remplacez ceci par un vrai appel API quand vous serez prêt
-      const response = await apiService.post('/cart', { items: cartItems });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || 'Une erreur est survenue');
-    }
-  }
-);
+import { createSlice } from '@reduxjs/toolkit';
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -93,22 +79,7 @@ const cartSlice = createSlice({
         state.totalPrice += complement.price;
       }
     }
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(saveCartToServer.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(saveCartToServer.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        // Vous pouvez ajouter ici une logique supplémentaire si nécessaire
-      })
-      .addCase(saveCartToServer.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
-      });
-  },
-});
+  },});
 
 export const { 
   addToCart, 

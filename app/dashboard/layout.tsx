@@ -18,7 +18,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <AdminDashboardLayout>
+    <AdminDashboardLayout requiredRole="SUPER_ADMIN">
       <SidebarProvider
         style={
           {

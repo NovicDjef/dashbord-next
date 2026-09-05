@@ -2,8 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { 
   getUsersAsync as getUsersAPI, 
   createUserAsync as createUserAPI, 
-  updateUserAsync as updateUserAPI,
-  resetUserPasswordAsync as resetUserPasswordAPI 
+  updateUserAsync as updateUserAPI
 } from '../services/routeApi';
 import { signUpUser, resetPassword } from './actions/authAction';
 
@@ -51,22 +50,6 @@ export const updateUserAsync = createAsyncThunk(
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'utilisateur:", error.response?.data);
       return rejectWithValue(error.response?.data || { message: "Impossible de mettre à jour l'utilisateur" });
-    }
-  }
-);
-
-// Action pour réinitialiser le mot de passe d'un utilisateur
-export const resetUserPasswordAsync = createAsyncThunk(
-  'users/resetPassword',
-  async ({ userId, newPassword }, { rejectWithValue }) => {
-    try {
-      console.log("Réinitialisation du mot de passe pour l'utilisateur:", userId);
-      const response = await resetUserPasswordAPI(userId, newPassword);
-      console.log("Réponse API - Mot de passe réinitialisé:", response.data);
-      return { userId, message: response.data.message };
-    } catch (error) {
-      console.error("Erreur lors de la réinitialisation du mot de passe:", error.response?.data);
-      return rejectWithValue(error.response?.data || { message: "Impossible de réinitialiser le mot de passe" });
     }
   }
 );
@@ -146,20 +129,6 @@ const usersSlice = createSlice({
       .addCase(updateUserAsync.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload?.message || "Impossible de mettre à jour l'utilisateur";
-      })
-
-      // Réinitialisation de mot de passe
-      .addCase(resetUserPasswordAsync.pending, (state) => {
-        state.resetPasswordStatus = 'loading';
-        state.resetPasswordError = null;
-      })
-      .addCase(resetUserPasswordAsync.fulfilled, (state, action) => {
-        state.resetPasswordStatus = 'succeeded';
-        state.resetPasswordError = null;
-      })
-      .addCase(resetUserPasswordAsync.rejected, (state, action) => {
-        state.resetPasswordStatus = 'failed';
-        state.resetPasswordError = action.payload?.message || "Impossible de réinitialiser le mot de passe";
       });
   },
 });

@@ -27,7 +27,7 @@ const apiService = axios.create({
 apiService.interceptors.request.use(
   async (config) => {
     try {
-      const token = await webStorage.getItem('userToken');
+      const token = (await webStorage.getItem('adminToken')) || (await webStorage.getItem('userToken'));
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`; 

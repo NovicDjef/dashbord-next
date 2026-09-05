@@ -7,8 +7,8 @@ export const fetchRestaurantsData = createAsyncThunk(
   'restaurants/fetchRestaurants',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiService.get('/restaurants');
-      console.log('Réponse de l\'API:', response.data); 
+      // Liste complète pour l'administration (tous statuts de validation), pas la liste publique filtrée sur APPROVED
+      const response = await apiService.get('/admin/restaurants');
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

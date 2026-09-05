@@ -20,14 +20,15 @@ const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz'
       || (item.client?.prenom && item.client?.nom ? `${item.client.prenom} ${item.client.nom}` : null)
       || item.expediteur
       || item.nomClient
-      || `Client ${index + 1}`;
+      || item.user?.username
+      || '—';
 
     // Extraction intelligente du téléphone du client
     const clientTelephone = item.client?.telephone
       || item.client?.phone
       || item.telephone
       || item.phoneNumber
-      || `+237 6${String(Math.floor(Math.random() * 100000000)).padStart(8, '0')}`;
+      || '—';
 
     // Extraction intelligente de l'adresse du client
     const clientAdresse = item.adresseLivraison
@@ -35,7 +36,8 @@ const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz'
       || item.client?.address
       || item.adresse
       || item.deliveryAddress
-      || `Adresse ${index + 1}`;
+      || item.position
+      || '—';
 
     // Extraction intelligente du nom du restaurant
     const restaurantNom = item.restaurant?.nom
@@ -60,8 +62,9 @@ const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz'
         telephone: clientTelephone,
         adresse: clientAdresse
       },
-      montant: item.montant || item.prix || item.total || Math.random() * 50000 + 5000,
-      commission: item.commission || ((item.montant || item.prix || 25000) * 0.1), // 10% de commission par défaut
+      montant: (Number(item.prix) || 0) + (Number(item.deliveryPrice) || 0),
+      commission: item.commission ?? Math.round((Number(item.deliveryPrice) || 0) * 0.35),
+      statutBackend: item.status,
       statut: mapStatus(item.statut || item.status) as any,
       dateCommande: item.createdAt || item.dateCommande || new Date().toISOString(),
       dateLivraison: item.dateLivraison,
@@ -87,28 +90,21 @@ const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz'
 
 // Mapper les statuts vers notre format uniforme
 const mapStatus = (status: string) => {
+  // Statuts backend (enum CommandeStatus) → clés de l'écran
   const statusMap: { [key: string]: string } = {
-    'pending': 'en_attente',
-    'en_attente': 'en_attente',
-    'confirmed': 'confirmee',
-    'confirme': 'confirmee',
-    'confirmee': 'confirmee',
-    'preparing': 'preparee',
-    'prepare': 'preparee',
-    'preparee': 'preparee',
-    'ready': 'preparee',
-    'shipping': 'en_livraison',
-    'en_livraison': 'en_livraison',
-    'delivered': 'livree',
-    'livre': 'livree',
-    'livree': 'livree',
-    'completed': 'livree',
-    'cancelled': 'annulee',
-    'annule': 'annulee',
-    'annulee': 'annulee'
+    EN_ATTENTE: 'en_attente',
+    ACCEPTEE_RESTAURANT: 'confirmee',
+    EN_PREPARATION: 'preparee',
+    PRETE: 'preparee',
+    VALIDER: 'en_livraison',
+    ASSIGNEE: 'en_livraison',
+    RECUPEREE: 'en_livraison',
+    EN_COURS: 'en_livraison',
+    LIVREE: 'livree',
+    ANNULEE: 'annulee',
+    REFUSEE_RESTAURANT: 'annulee',
   };
-  
-  return statusMap[status?.toLowerCase()] || 'en_attente';
+  return statusMap[String(status || '').toUpperCase()] || 'en_attente';
 };
 
 export default function CommandePage() {

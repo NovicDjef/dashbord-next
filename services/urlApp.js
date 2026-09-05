@@ -2,7 +2,7 @@
 // Basculez entre développement local et production en commentant/décommentant les lignes appropriées
 
 // === CONFIGURATION PRODUCTION ===
-export const BASE_URL = 'https://api.novic.dev';
+export const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.novic.dev').replace(/\/+$/, '');
 export const PAYMENT_API_URL = 'https://api.notchpay.co';
 
 // === CONFIGURATION DÉVELOPPEMENT LOCAL ===

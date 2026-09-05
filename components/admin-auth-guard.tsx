@@ -2,48 +2,47 @@
 
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
 import { checkAdminAuth } from "@/redux/adminAuthSlice";
 import { AdminLoginForm } from "./admin-login-form";
 
+export type AdminRole = 'SUPER_ADMIN' | 'RESTAURATEUR';
+
 interface AdminAuthGuardProps {
   children: React.ReactNode;
+  /** Rôle exigé pour voir le contenu. Sans valeur : tout compte connecté. */
+  requiredRole?: AdminRole;
 }
 
-export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
+export const homeForRole = (role?: string) => (role === 'RESTAURATEUR' ? '/restaurant' : '/dashboard');
+
+export function AdminAuthGuard({ children, requiredRole }: AdminAuthGuardProps) {
   const dispatch = useDispatch();
-  const { isAuthenticated, isLoading, isInitialized } = useSelector(
-    (state: any) => state.adminAuth
-  );
+  const router = useRouter();
+  const { isAuthenticated, isLoading, isInitialized, admin } = useSelector((state: any) => state.adminAuth);
+  const role: string | undefined = admin?.role;
+  const wrongRole = isAuthenticated && requiredRole && role && role !== requiredRole;
 
   useEffect(() => {
-    // Vérifier l'état d'authentification au démarrage
-    if (!isInitialized) {
-      dispatch(checkAdminAuth());
-    }
+    if (!isInitialized) dispatch(checkAdminAuth() as any);
   }, [dispatch, isInitialized]);
 
-  // Afficher un loader pendant la vérification initiale
-  if (!isInitialized || isLoading) {
+  useEffect(() => {
+    if (wrongRole) router.replace(homeForRole(role));
+  }, [wrongRole, role, router]);
+
+  if (!isInitialized || isLoading || wrongRole) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-green-200 border-t-green-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">
-            Vérification de l'authentification...
-          </h2>
-          <p className="text-gray-500 text-sm">
-            Veuillez patienter un instant
-          </p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-muted border-t-primary" />
+          <p className="text-sm text-muted-foreground">Vérification de la session…</p>
         </div>
       </div>
     );
   }
 
-  // Si non authentifié, afficher le formulaire de connexion
-  if (!isAuthenticated) {
-    return <AdminLoginForm />;
-  }
+  if (!isAuthenticated) return <AdminLoginForm />;
 
-  // Si authentifié, afficher le contenu protégé
   return <>{children}</>;
 }
