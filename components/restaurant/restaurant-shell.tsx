@@ -6,8 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
 import { IconClipboardList, IconToolsKitchen2, IconClock, IconBuildingStore, IconLogout, IconAlertTriangle, IconHourglass, IconCircleCheck, IconExternalLink, IconChartBar, IconUsers } from "@tabler/icons-react";
-import { ROLE_LABEL, type RestaurantRole } from "@/services/api/restaurateur.service";
-import { signOutAdmin } from "@/redux/adminAuthSlice";
+import { ROLE_LABEL, restaurateurService, type RestaurantRole } from "@/services/api/restaurateur.service";
+import { setRestaurants, signOutAdmin } from "@/redux/adminAuthSlice";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarGroup, SidebarGroupContent, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -67,6 +67,22 @@ export function RestaurantShell({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const { admin } = useSelector((s: any) => s.adminAuth);
   const resto = useMyRestaurant();
+
+  // POST /admin/login renvoie déjà les restaurants possédés ET ceux où le compte
+  // est membre d'équipe, mais avec un select réduit (ni adresse, ni horaires, ni
+  // motif de refus) et figé au moment de la connexion. GET /restaurateur/me
+  // renvoie la même liste complète et à jour : on la recharge au montage pour
+  // que GERANT et CAISSE trouvent leur restaurant même après un rechargement.
+  useEffect(() => {
+    if (!admin?.id) return;
+    let cancelled = false;
+    restaurateurService
+      .me()
+      .then((r) => { if (!cancelled && r?.restaurants?.length) dispatch(setRestaurants(r.restaurants)); })
+      .catch(() => { /* super admin ou API indisponible : on garde la liste du login */ });
+    return () => { cancelled = true; };
+  }, [admin?.id, dispatch]);
+
   const role = useMyRole();
   const nav = NAV.filter((n) => n.roles.includes(role));
   const current = NAV.find((n) => n.url === pathname);
