@@ -64,7 +64,10 @@ export function PlatDialog({ plat, restaurant, complements, open, onOpenChange, 
 
   useEffect(() => { if (open) { setQty(1); setSel({}); setNote(""); } }, [open, plat?.id]);
 
-  const chosen: CartComplement[] = useMemo(() => complements.filter((c) => (sel[c.id] || 0) > 0).map((c) => ({ id: c.id, name: c.name, price: Number(c.price) || 0, quantity: sel[c.id] })), [complements, sel]);
+  // Le backend refuse une commande contenant un complément indisponible
+  // (409 COMPLEMENT_INDISPONIBLE) : on ne propose que ceux marqués `enVente`.
+  const disponibles = useMemo(() => (complements || []).filter((c) => c.enVente !== false), [complements]);
+  const chosen: CartComplement[] = useMemo(() => disponibles.filter((c) => (sel[c.id] || 0) > 0).map((c) => ({ id: c.id, name: c.name, price: Number(c.price) || 0, quantity: sel[c.id] })), [disponibles, sel]);
   const unit = (Number(plat?.prix) || 0) + chosen.reduce((s, c) => s + c.price * c.quantity, 0);
   const total = unit * qty;
 
@@ -104,14 +107,14 @@ export function PlatDialog({ plat, restaurant, complements, open, onOpenChange, 
                   <p className="font-display text-xl font-bold tabular-nums">{formatFcfa(plat.prix)}</p>
                 </DialogHeader>
 
-                {complements.length > 0 && (
+                {disponibles.length > 0 && (
                   <section>
                     <div className="mb-2 flex items-baseline justify-between">
                       <h4 className="font-display font-bold">Compléments</h4>
                       <span className="text-xs text-muted-foreground">Facultatif</span>
                     </div>
                     <ul className="divide-y rounded-xl border">
-                      {complements.map((c) => {
+                      {disponibles.map((c) => {
                         const q = sel[c.id] || 0;
                         return (
                           <li key={c.id} className="flex items-center justify-between gap-3 px-3 py-2.5">

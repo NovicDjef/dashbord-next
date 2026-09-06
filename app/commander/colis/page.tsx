@@ -97,11 +97,16 @@ export default function ColisPage() {
       fd.append("adresseDepart", from.label.trim());
       fd.append("adresseArrivee", to.label.trim());
       if (distanceKm != null) fd.append("distance", distanceKm.toFixed(2));
-      fd.append("prix", String(servicePrice));
-      fd.append("deliveryPrice", String(fee ?? 0));
+      // `prix` et `deliveryPrice` sont calculés par le serveur (poids + distance) :
+      // tout montant envoyé par le client est ignoré.
       if (image) fd.append("imageColis", image);
       const r = await api.createColis(fd);
-      toast.success("Colis enregistré. Un livreur proche va le prendre en charge.");
+      const montant = Number(r?.colis?.deliveryPrice ?? r?.tarification?.total);
+      toast.success(
+        Number.isFinite(montant) && montant > 0
+          ? `Colis enregistré · ${formatFcfa(montant)} à régler au livreur.`
+          : "Colis enregistré. Un livreur proche va le prendre en charge."
+      );
       router.replace(r?.colis?.id ? `/commander/colis/${r.colis.id}` : "/commander/commandes?tab=colis");
     } catch (err) {
       toast.error(apiError(err, "L’envoi n’a pas pu être enregistré. Réessayez."));
@@ -187,7 +192,7 @@ export default function ColisPage() {
               <div className="flex justify-between"><dt className="text-muted-foreground">Course{distanceKm != null ? ` · ${formatKm(distanceKm)}` : ""}</dt><dd className="tabular-nums">{fee != null ? formatFcfa(fee) : "…"}</dd></div>
               <div className="flex items-baseline justify-between border-t pt-2"><dt className="font-semibold">Total</dt><dd className="font-display text-2xl font-extrabold tabular-nums">{formatFcfa(total)}</dd></div>
             </dl>
-            <p className="mt-2 text-xs text-muted-foreground">{distanceKm == null ? "Placez le départ et l’arrivée sur la carte pour le prix exact." : "Payé en espèces au livreur à la remise."}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{distanceKm == null ? "Placez le départ et l’arrivée sur la carte pour le prix exact." : "Estimation : le montant définitif est calculé par le serveur à l’enregistrement, puis payé en espèces au livreur."}</p>
             <Button type="submit" disabled={submitting} className="mt-4 h-12 w-full rounded-full text-base font-semibold shadow-[0_10px_24px_-12px_rgba(41,160,102,.9)]">{submitting ? "Enregistrement…" : auth.user ? "Envoyer le colis" : "Se connecter pour envoyer"}</Button>
           </div>
         </aside>

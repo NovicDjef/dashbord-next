@@ -29,8 +29,13 @@ function Empty({ icon: Icon, title, text, href, cta }: { icon: React.ElementType
 }
 
 function CommandeRow({ c }: { c: Commande }) {
-  const img = imageUrl(c.plat?.image);
+  // `restaurant`, `livreur` et `items` sont inclus par GET /users/:id/commandes.
+  const img = imageUrl(c.restaurant?.image || c.plat?.image);
   const live = !TERMINAL.includes(c.status);
+  const lignes = c.items?.length
+    ? c.items.map((i) => `${i.quantity}× ${i.nom || i.plat?.name || "Plat"}`).join(", ")
+    : c.plat ? `${c.quantity}× ${c.plat.name}` : `${c.quantity} article${c.quantity > 1 ? "s" : ""}`;
+  const livreurName = c.livreur ? [c.livreur.prenom, c.livreur.username].filter(Boolean).join(" ") : null;
   return (
     <Link href={`/commander/commandes/${c.id}`} className={`flex items-center gap-4 rounded-[1.25rem] border bg-card p-3 transition-colors hover:border-primary/50 ${live ? "border-primary/30" : ""}`}>
       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">{img ? <img src={img} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-muted-foreground"><IconToolsKitchen2 className="h-6 w-6" /></div>}</div>
@@ -39,8 +44,9 @@ function CommandeRow({ c }: { c: Commande }) {
           <p className="font-display font-bold">Commande n°{c.id}</p>
           <StatusBadge status={c.status} />
         </div>
-        <p className="mt-0.5 truncate text-sm text-muted-foreground">{c.items?.length ? c.items.map((i) => `${i.quantity}× ${i.nom}`).join(", ") : c.plat ? `${c.quantity}× ${c.plat.name}` : `${c.quantity} article${c.quantity > 1 ? "s" : ""}`}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{fmtDate(c.createdAt)} · {c.position}</p>
+        {c.restaurant?.name && <p className="mt-0.5 truncate text-sm font-medium">{c.restaurant.name}</p>}
+        <p className="mt-0.5 truncate text-sm text-muted-foreground">{lignes}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{fmtDate(c.createdAt)} · {c.position}{livreurName ? ` · livreur ${livreurName}` : ""}</p>
       </div>
       <div className="shrink-0 text-right">
         <p className="font-display font-bold tabular-nums">{formatFcfa((c.prix || 0) + (c.deliveryPrice || 0))}</p>
@@ -63,7 +69,8 @@ function ColisRow({ c }: { c: Colis }) {
         <p className="mt-0.5 truncate text-xs text-muted-foreground">{fmtDate(c.createdAt)} · {c.adresseDepart} → {c.adresseArrivee}</p>
       </div>
       <div className="shrink-0 text-right">
-        <p className="font-display font-bold tabular-nums">{formatFcfa((c.prix || 0) + (c.deliveryPrice || 0))}</p>
+        {/* Le backend stocke le même montant dans `prix` et `deliveryPrice`. */}
+        <p className="font-display font-bold tabular-nums">{formatFcfa(c.deliveryPrice || c.prix)}</p>
         <IconChevronRight className="ml-auto mt-1 h-4 w-4 text-muted-foreground" />
       </div>
     </Link>

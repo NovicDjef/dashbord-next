@@ -18,6 +18,7 @@ import { CANCELLABLE, OrderTimeline, StatusBadge, TERMINAL, WITH_LIVREUR, routeP
 import { RouteProgress } from "@/components/commander/route-line";
 import { LiveMap } from "@/components/commander/live-map";
 import { usePolling } from "@/hooks/use-polling";
+import { useCommandeSocket } from "@/hooks/use-commande-socket";
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 
@@ -41,7 +42,9 @@ function Inner() {
   const auth = useClientAuth();
 
   const [commande, setCommande] = useState<Commande | null>(null);
-  const [tracking, setTracking] = useState<Tracking["livraison"] | null>(null);
+  const [tracking, setTracking] = useState<Tracking | null>(null);
+  // Le suivi peut échouer sans que la commande soit perdue : on le signale discrètement.
+  const [trackingFailed, setTrackingFailed] = useState(false);
   const [code, setCode] = useState<string | null>(null);
   const [paiement, setPaiement] = useState<{ mode: string; status: string; payee: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +67,9 @@ function Inner() {
       setCommande(c);
       setError(null);
       if (WITH_LIVREUR.includes(c.status)) {
-        api.tracking(cid).then((t) => setTracking(t.livraison)).catch(() => {});
+        api.tracking(cid)
+          .then((t) => { setTracking(t); setTrackingFailed(false); if (t.commande?.validationCode) setCode(t.commande.validationCode); })
+          .catch(() => setTrackingFailed(true));
         if (!code) api.validationCode(cid).then((r: unknown) => { const v = (r as { commande?: { validationCode?: string } })?.commande?.validationCode; if (v) setCode(v); }).catch(() => {});
       }
       if (c.status === "LIVREE" && !code) api.validationCode(cid).then((r: unknown) => { const v = (r as { commande?: { validationCode?: string } })?.commande?.validationCode; if (v) setCode(v); }).catch(() => {});
@@ -75,18 +80,39 @@ function Inner() {
   };
   usePolling(refresh, terminal ? 60000 : 8000, !!auth.user);
 
+  // Temps réel : le backend pousse `commande:statut` et `livreur:position` dans
+  // la room `commande:<id>`. Le polling ci-dessus reste le repli.
+  useCommandeSocket(
+    Number.isFinite(cid) ? cid : null,
+    {
+      onStatut: (e) => {
+        setCommande((c) => (c && e.status ? { ...c, status: e.status as typeof c.status } : c));
+        refresh();
+      },
+      onPosition: (e) => {
+        setTracking((t) => (t && t.livreur ? { ...t, livreur: { ...t.livreur, position: { latitude: e.latitude, longitude: e.longitude } } } : t));
+      },
+    },
+    !!auth.user && !terminal,
+  );
+
   useEffect(() => {
     if (status === "LIVREE" && auth.user) api.avis(cid).then((a) => { if (a?.restaurant || a?.livreur) { setAvisDone(true); setNoteR(a.restaurant?.overallRating || 0); setNoteL(a.livreur?.overallRating || 0); } }).catch(() => {});
   }, [status, cid, auth.user]);
 
   const total = (commande?.prix || 0) + (commande?.deliveryPrice || 0);
-  const restoPos = tracking?.restaurant && Number.isFinite(tracking.restaurant.latitude) ? { lat: tracking.restaurant.latitude, lng: tracking.restaurant.longitude } : null;
+  // Le suivi est la source la plus fraîche ; à défaut on retombe sur les
+  // relations incluses dans GET /commandes/:id.
+  const resto = tracking?.restaurant || commande?.restaurant || null;
+  const livreur = tracking?.livreur || commande?.livreur || null;
+  const restoPos = resto && Number.isFinite(Number(resto.latitude)) ? { lat: Number(resto.latitude), lng: Number(resto.longitude) } : null;
   const clientPos = commande?.clientLatitude != null && commande?.clientLongitude != null ? { lat: Number(commande.clientLatitude), lng: Number(commande.clientLongitude) } : null;
   const livreurPos = useMemo(() => {
-    const p = tracking?.positionActuelle || tracking?.livreur?.positionActuelle;
+    const p = tracking?.livreur?.position;
     return p && Number.isFinite(Number(p.latitude)) ? { lat: Number(p.latitude), lng: Number(p.longitude) } : null;
   }, [tracking]);
-  const livreurName = tracking?.livreur ? [tracking.livreur.prenom, tracking.livreur.nom || tracking.livreur.username].filter(Boolean).join(" ") : null;
+  const livreurName = livreur ? [livreur.prenom, livreur.username].filter(Boolean).join(" ") : null;
+  const etaMin = tracking?.etaMin ?? null;
 
   const cancel = async () => {
     setCancelling(true);
@@ -132,7 +158,7 @@ function Inner() {
 
   if (!commande) return <div className="mx-auto max-w-4xl space-y-4"><div className="h-8 w-1/3 animate-pulse rounded bg-muted" /><div className="h-40 animate-pulse rounded-[1.5rem] bg-muted" /><div className="h-80 animate-pulse rounded-[1.5rem] bg-muted" /></div>;
 
-  const items = commande.items?.length ? commande.items.map((i) => ({ nom: i.nom, q: i.quantity, pu: i.prixUnitaire, comp: (i.complements || []).map((c) => `${c.quantity > 1 ? `${c.quantity}× ` : ""}${c.name}`) }))
+  const items = commande.items?.length ? commande.items.map((i) => ({ nom: i.nom || i.plat?.name || "Plat", q: i.quantity, pu: i.prixUnitaire, comp: (i.complements || []).map((c) => `${c.quantity > 1 ? `${c.quantity}× ` : ""}${c.name}`) }))
     : [{ nom: commande.plat?.name || "Plat", q: commande.quantity, pu: commande.plat?.prix || 0, comp: (commande.complements || []).map((c) => `${c.quantity > 1 ? `${c.quantity}× ` : ""}${c.name}`) }];
   const showMap = WITH_LIVREUR.includes(commande.status) || commande.status === "LIVREE";
 
@@ -142,7 +168,7 @@ function Inner() {
         <div>
           <Link href="/commander/commandes" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"><IconArrowLeft className="h-4 w-4" />Mes commandes</Link>
           <h1 className="flex flex-wrap items-center gap-3 font-display text-2xl font-extrabold text-brand-ink sm:text-3xl dark:text-foreground">Commande n°{commande.id} <StatusBadge status={commande.status} className="text-sm" /></h1>
-          <p className="mt-1 text-sm text-muted-foreground">Passée le {fmtDate(commande.createdAt)}{tracking?.restaurant?.name ? ` · ${tracking.restaurant.name}` : ""}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Passée le {fmtDate(commande.createdAt)}{resto?.name ? ` · ${resto.name}` : ""}</p>
         </div>
         <button type="button" onClick={() => window.print()} className="inline-flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-semibold hover:border-primary/60"><IconPrinter className="h-4 w-4" />Reçu</button>
       </div>
@@ -157,8 +183,8 @@ function Inner() {
       {/* Trajet */}
       {!(commande.status === "ANNULEE" || commande.status === "REFUSEE_RESTAURANT") && (
         <section className="rounded-[1.5rem] border bg-card p-5 print:hidden">
-          <RouteProgress progress={routeProgress(commande.status)} from={tracking?.restaurant?.name || "Restaurant"} to={commande.position || "Chez vous"} />
-          <p className="mt-3 text-sm"><b>{ORDER_STATUS_LABEL[commande.status]}</b>{tracking?.tempsEstime ? <span className="text-muted-foreground"> · arrivée estimée dans ~{Math.round(tracking.tempsEstime)} min</span> : commande.distanceKm ? <span className="text-muted-foreground"> · {formatKm(commande.distanceKm)} entre le restaurant et vous</span> : null}</p>
+          <RouteProgress progress={routeProgress(commande.status)} from={resto?.name || "Restaurant"} to={commande.position || "Chez vous"} />
+          <p className="mt-3 text-sm"><b>{ORDER_STATUS_LABEL[commande.status]}</b>{etaMin ? <span className="text-muted-foreground"> · arrivée estimée dans ~{Math.round(etaMin)} min</span> : commande.distanceKm ? <span className="text-muted-foreground"> · {formatKm(commande.distanceKm)} entre le restaurant et vous</span> : null}</p>
         </section>
       )}
 
@@ -168,17 +194,22 @@ function Inner() {
           {showMap && (
             <section className="overflow-hidden rounded-[1.5rem] border bg-card print:hidden">
               <LiveMap restaurant={restoPos} client={clientPos} livreur={livreurPos} height={300} />
-              {tracking?.livreur && (
+              {livreur && (
                 <div className="flex items-center gap-3 p-4">
                   <span className="inline-flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-brand-mint font-display font-bold text-primary">
-                    {imageUrl(tracking.livreur.photo) ? <img src={imageUrl(tracking.livreur.photo)!} alt="" className="h-full w-full object-cover" /> : (livreurName?.[0] || "L")}
+                    {imageUrl(livreur.image) ? <img src={imageUrl(livreur.image)!} alt="" className="h-full w-full object-cover" /> : (livreurName?.[0] || "L")}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">{livreurName || "Votre livreur"}</p>
                     <p className="text-xs text-muted-foreground">{livreurPos ? "Position mise à jour en direct" : "En attente de sa position"}</p>
                   </div>
-                  {tracking.livreur.telephone && <a href={`tel:${tracking.livreur.telephone}`} className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"><IconPhone className="h-4 w-4" />Appeler</a>}
+                  {livreur.telephone && <a href={`tel:${livreur.telephone}`} className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground"><IconPhone className="h-4 w-4" />Appeler</a>}
                 </div>
+              )}
+              {trackingFailed && !livreur && (
+                <p className="px-4 py-3 text-xs text-muted-foreground">
+                  La position en direct n’est pas disponible pour le moment. Les étapes ci-dessous restent à jour.
+                </p>
               )}
             </section>
           )}
@@ -225,6 +256,7 @@ function Inner() {
               <p className="text-sm">Commande n°{commande.id} · {fmtDate(commande.createdAt)}</p>
             </div>
             <h2 className="font-display text-lg font-bold print:hidden">Détail</h2>
+            {resto?.name && <p className="mt-0.5 text-sm text-muted-foreground">{resto.name}{resto.adresse ? ` · ${resto.adresse}` : ""}</p>}
             <ul className="mt-3 divide-y text-sm">
               {items.map((it, i) => (
                 <li key={i} className="flex justify-between gap-3 py-2">

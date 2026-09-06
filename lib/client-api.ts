@@ -47,9 +47,9 @@ export type ClientUser = { id: number; username: string; phone: string; avatar?:
 
 export type Horaire = { jour: string; heures: string };
 
-export type CategorieLite = { id: number; name: string; image?: string | null; description?: string | null };
+export type CategorieLite = { id: number; name: string; image?: string | null; description?: string | null; visible?: boolean };
 
-export type Complement = { id: number; name: string; price: number; restaurantId?: number };
+export type Complement = { id: number; name: string; price: number; restaurantId?: number; disponible?: boolean; stock?: number | null; enVente?: boolean };
 
 export type RestaurantNearby = {
   id: number; name: string; phone?: string | null; adresse: string; image: string; description: string; ratings: number;
@@ -89,21 +89,42 @@ export type Commande = {
   validationCode?: string | null; createdAt: string; updatedAt: string;
   acceptedAt?: string | null; readyAt?: string | null; assignedAt?: string | null; pickedUpAt?: string | null; deliveredAt?: string | null; cancelledAt?: string | null; cancelReason?: string | null;
   plat?: { id: number; name: string; image: string; prix: number; categorie?: { id: number; name: string; restaurantId: number } | null } | null;
-  items?: { id: number; nom: string; prixUnitaire: number; quantity: number; complements?: { complementId: number; name: string; price: number; quantity: number }[] | null }[];
+  items?: { id: number; nom: string; prixUnitaire: number; quantity: number; plat?: { id: number; name: string; prix: number; image: string } | null; complements?: { complementId: number; name: string; price: number; quantity: number }[] | null }[];
+  // Inclus par GET /commandes/:id et GET /users/:id/commandes (COMMANDE_LIST_INCLUDE)
+  restaurant?: RestaurantLite | null;
+  livreur?: LivreurLite | null;
   complements?: { id: number; name: string; price: number; quantity: number }[];
   payment?: { id: number; amount: number; mode_payement: string; status: string; reference: string; authorization_url?: string | null } | null;
   livraison?: unknown[];
 };
 
+export type RestaurantLite = {
+  id: number; name: string; adresse?: string | null; image?: string | null;
+  latitude?: number | null; longitude?: number | null; phone?: string | null; telephone?: string | null;
+  delaiPreparationMin?: number | null;
+};
+
+export type LivreurLite = {
+  id: number; username?: string | null; prenom?: string | null; telephone?: string | null;
+  image?: string | null; note?: number | null; typeVehicule?: string | null; plaqueVehicule?: string | null;
+};
+
+/** Réponse de `GET /commandes/:id/tracking` (services/trackingService.js du backend). */
 export type Tracking = {
   success: boolean;
-  livraison: {
-    id?: number; status: CommandeStatus;
-    livreur?: { id: number; nom?: string; prenom?: string; username?: string; telephone?: string; photo?: string | null; positionActuelle?: { latitude: number; longitude: number; timestamp?: string } | null } | null;
-    positionActuelle?: { latitude: number; longitude: number } | null;
-    tempsEstime?: number | null;
-    restaurant?: { name: string; latitude: number; longitude: number } | null;
+  commande: {
+    id: number; status: CommandeStatus; prix: number; deliveryPrice: number;
+    distanceKm?: number | null; position?: string | null; validationCode?: string | null;
+    dispatchStatus?: string | null; dispatchRound?: number | null; cancelReason?: string | null;
+    timestamps?: Partial<Record<'createdAt' | 'acceptedAt' | 'readyAt' | 'assignedAt' | 'pickedUpAt' | 'deliveredAt' | 'cancelledAt', string | null>>;
+    items?: { id: number; nom: string; prixUnitaire: number; quantity: number }[];
   };
+  restaurant: RestaurantLite | null;
+  client?: { latitude?: number | null; longitude?: number | null; position?: string | null } | null;
+  livreur: (LivreurLite & { position: { latitude: number; longitude: number } | null; lastOnlineAt?: string | null }) | null;
+  distanceLivreurCibleKm?: number | null;
+  etaMin: number | null;
+  socket?: { room: string; events: string[] };
 };
 
 export type Colis = {
@@ -128,7 +149,14 @@ export const api = {
     clientApi.get<{ restaurants: RestaurantNearby[]; total: number }>('/restaurants/nearby', { params: { lat: p.lat, lng: p.lng, radius: p.radius ?? 15, q: p.q || undefined, limit: p.limit ?? 60, openOnly: p.openOnly ? 'true' : undefined } }).then((r) => r.data),
   platsNearby: (p: { lat: number; lng: number; radius?: number; q?: string; limit?: number; restaurantId?: number; categorieId?: number }) =>
     clientApi.get<{ plats: PlatNearby[]; total: number }>('/plats/nearby', { params: { lat: p.lat, lng: p.lng, radius: p.radius ?? 15, q: p.q || undefined, limit: p.limit ?? 120, restaurantId: p.restaurantId, categorieId: p.categorieId } }).then((r) => r.data),
-  restaurant: (id: number) => clientApi.get<RestaurantFull>(`/restaurants/${id}`).then((r) => r.data),
+  // Le backend calcule `enVente` sur chaque complément et porte `visible` sur
+  // chaque catégorie : on n'expose au client public que ce qui est commandable,
+  // sinon la commande est refusée (409 COMPLEMENT_INDISPONIBLE).
+  restaurant: (id: number) => clientApi.get<RestaurantFull>(`/restaurants/${id}`).then((r) => ({
+    ...r.data,
+    categories: (r.data.categories || []).filter((c) => c.visible !== false),
+    complements: (r.data.complements || []).filter((c) => c.enVente !== false),
+  })),
   platsByCategorie: (id: number) => clientApi.get<PlatNearby[]>(`/categories/${id}/plats`).then((r) => r.data),
 
   // Tarification et commande
@@ -146,7 +174,8 @@ export const api = {
   // Suivi
   mesCommandes: (userId: number) => clientApi.get<Commande[]>(`/users/${userId}/commandes`).then((r) => r.data),
   commande: (id: number) => clientApi.get<Commande>(`/commandes/${id}`).then((r) => r.data),
-  tracking: (id: number) => clientApi.get<Tracking>(`/tracking/${id}`).then((r) => r.data),
+  // Route de suivi officielle (propriétaire, livreur assigné, restaurant, admin)
+  tracking: (id: number) => clientApi.get<Tracking>(`/commandes/${id}/tracking`).then((r) => r.data),
   validationCode: (id: number) => clientApi.get<{ validationCode?: string; code?: string }>(`/commandes/${id}/validation-code`).then((r) => r.data),
   annuler: (id: number, raison: string) => clientApi.patch(`/commande/${id}`, { status: 'ANNULEE', raison }).then((r) => r.data),
 
@@ -165,7 +194,8 @@ export const api = {
 
   // Colis
   prixColis: () => clientApi.get<{ id: number; montant: number; description?: string; status?: number | boolean }[]>('/prixcolis').then((r) => r.data),
-  createColis: (form: FormData) => clientApi.post<{ colis: Colis }>('/colis', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data),
+  // `prix` et `deliveryPrice` sont calculés par le serveur : ne rien envoyer.
+  createColis: (form: FormData) => clientApi.post<{ success: boolean; colis: Colis; tarification?: { total: number } }>('/colis', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data),
   mesColis: (userId: number) => clientApi.get<Colis[]>(`/users/${userId}/colis`).then((r) => r.data),
   colis: (id: number) => clientApi.get<Colis & { livraison?: unknown[] }>(`/colis/${id}`).then((r) => r.data),
 };

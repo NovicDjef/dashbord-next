@@ -100,10 +100,11 @@ export default function ColisDetailPage() {
               <div><dt className="text-xs uppercase tracking-[.12em] text-muted-foreground">Expéditeur</dt><dd className="font-medium">{colis.usernameSend}</dd></div>
               <div><dt className="text-xs uppercase tracking-[.12em] text-muted-foreground">Destinataire</dt><dd className="font-medium">{colis.usernamRecive} · <a href={`tel:+237${colis.phoneRecive}`} className="inline-flex items-center gap-1 text-primary"><IconPhone className="h-3.5 w-3.5" />{String(colis.phoneRecive)}</a></dd></div>
             </dl>
+            {/* Le serveur calcule un montant unique (poids + distance) et le stocke
+                dans `prix` comme dans `deliveryPrice` : ne l'afficher qu'une fois. */}
             <dl className="mt-4 space-y-1.5 border-t pt-3">
-              {colis.prix > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">Service</dt><dd className="tabular-nums">{formatFcfa(colis.prix)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-muted-foreground">Course</dt><dd className="tabular-nums">{formatFcfa(colis.deliveryPrice)}</dd></div>
-              <div className="flex items-baseline justify-between border-t pt-2"><dt className="font-semibold">Total</dt><dd className="font-display text-xl font-extrabold tabular-nums">{formatFcfa((colis.prix || 0) + (colis.deliveryPrice || 0))}</dd></div>
+              <div className="flex items-baseline justify-between"><dt className="font-semibold">Course</dt><dd className="font-display text-xl font-extrabold tabular-nums">{formatFcfa(colis.deliveryPrice || colis.prix)}</dd></div>
+              <p className="text-xs text-muted-foreground">Montant calculé par Koursier, à régler en espèces au livreur.</p>
             </dl>
           </section>
         </aside>
