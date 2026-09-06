@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiService from '../services/Api';
-import { createSomeRestaurantAsync } from '@/services/routeApi';
 
 // Fetch all restaurants
 export const fetchRestaurantsData = createAsyncThunk(
@@ -16,14 +15,35 @@ export const fetchRestaurantsData = createAsyncThunk(
   }
 );
 
-// Create restaurant
+// Create restaurant.
+// `POST /restaurants` lit l'image dans `req.file` : on envoie donc un multipart
+// dès qu'un fichier est fourni. `adminId` vient du jeton côté backend.
 export const createRestaurant = createAsyncThunk(
   'restaurants/createRestaurant',
-  async (restaurantData, { rejectWithValue }) => {
+  async ({ image, heuresOuverture, ...restaurantData }, { rejectWithValue }) => {
     try {
-      const response = await createSomeRestaurantAsync(restaurantData);
-      console.log('Réponse de la création redux:', response.data);
-      return response.data;
+      let response;
+      if (image instanceof File) {
+        const form = new FormData();
+        Object.entries(restaurantData).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') form.append(k, String(v));
+        });
+        form.append('image', image);
+        response = await apiService.post('/restaurants', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      } else {
+        response = await apiService.post('/restaurants', restaurantData);
+      }
+      const restaurant = response.data?.restaurant || response.data;
+
+      // Les horaires ne sont pas gérés par POST /restaurants : appel dédié.
+      if (restaurant?.id && Array.isArray(heuresOuverture) && heuresOuverture.length > 0) {
+        try {
+          await apiService.post(`/restaurants/${restaurant.id}/heures/bulk`, { horaires: heuresOuverture });
+        } catch (e) {
+          console.error('Restaurant créé mais horaires non enregistrés:', e);
+        }
+      }
+      return restaurant;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

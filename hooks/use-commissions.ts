@@ -43,6 +43,42 @@ export interface CommissionStats {
   };
 }
 
+/**
+ * Historique global de la plateforme : `GET /historique/admin` (super admin).
+ * La réponse expose `financials` / `actors` ; on la ramène ici à la forme
+ * `earnings` / `details` utilisée par les écrans wallet et commissions.
+ */
+export async function fetchAdminDeliveries(period: 'week' | 'month' | 'year' | 'all' = 'all'): Promise<DeliveryHistory[]> {
+  try {
+    const response = await apiService.get('/historique/admin', { params: { period, limit: 200 } });
+    const rows = response.data?.livraisons || [];
+    return rows.map((l: any) => ({
+      id: l.id,
+      status: l.status,
+      typeLivraison: l.typeLivraison,
+      createdAt: l.createdAt,
+      heureLivraison: l.heureLivraison,
+      earnings: {
+        prixLivraison: l.financials?.prixLivraison ?? 0,
+        gainLivreur: l.financials?.gainLivreur ?? 0,
+        commissionAdmin: l.financials?.commissionAdmin ?? 0,
+        pourcentageCommission: l.financials?.pourcentageCommission ?? '0%',
+        prixCommande: l.financials?.prixCommande ?? 0,
+      },
+      details: {
+        ...(l.details || {}),
+        client: l.actors?.client || null,
+        livreur: l.actors?.livreur || null,
+        restaurant: l.details?.restaurant ? { name: l.details.restaurant } : null,
+        vendor: l.details?.vendor ? { name: l.details.vendor } : null,
+      },
+    }));
+  } catch (err) {
+    console.error("Erreur lors de la récupération de l'historique admin:", err);
+    return [];
+  }
+}
+
 export function useCommissions() {
   const [configs, setConfigs] = useState<CommissionConfig[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryHistory[]>([]);
@@ -63,29 +99,7 @@ export function useCommissions() {
     }
   };
 
-  const fetchAllDeliveries = async () => {
-    try {
-      // Essayez d'abord de récupérer toutes les livraisons
-      // Si l'endpoint n'existe pas, utilisez un livreur spécifique
-      let response;
-      try {
-        response = await apiService.get('/livraisons/historique/all');
-      } catch (error) {
-        // Si l'endpoint 'all' n'existe pas, utilisez un livreur spécifique
-        const livreurId = 1;
-        response = await apiService.get(`/livraisons/historique/${livreurId}`);
-      }
-      
-      if (response.data.success) {
-        return response.data.livraisons || [];
-      }
-      throw new Error('Erreur lors de la récupération des livraisons');
-    } catch (err: any) {
-      console.error('Erreur lors de la récupération des livraisons:', err);
-      // Retourner un tableau vide en cas d'erreur pour éviter les crashes
-      return [];
-    }
-  };
+  const fetchAllDeliveries = () => fetchAdminDeliveries();
 
   const calculateStats = (deliveries: DeliveryHistory[]): CommissionStats => {
     const totalCommissions = deliveries.reduce((sum, delivery) => sum + delivery.earnings.commissionAdmin, 0);

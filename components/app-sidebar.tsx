@@ -126,11 +126,6 @@ const data = {
           url: "/dashboard/livreurs",
           icon: IconMotorbike,
         },
-        {
-          title: "Tarifs",
-          url: "/dashboard/tarifs",
-          icon: IconCoin,
-        },
       ],
     },
     {

@@ -55,5 +55,6 @@ export const ISSUE_LABEL: Record<string, string> = {
 export const livreurPerformanceService = {
   list: (jours = 30) => apiClient.get<{ jours: number; resume: PerfResume; livreurs: LivreurPerf[] }>('/admin/livreurs/performance', { params: { jours } }),
   avis: (id: number) => apiClient.get<{ livreur: LivreurPerf; avis: AvisLivreur[] }>(`/admin/livreurs/${id}/avis`),
-  bloquer: (id: number) => apiClient.patch(`/livreur/${id}/bloquer`, {}),
+  // `bloque` explicite : le backend exige un booléen (PATCH /livreur/:id/bloquer)
+  bloquer: (id: number, bloque: boolean) => apiClient.patch<{ livreur: { id: number; bloque: boolean } }>(`/livreur/${id}/bloquer`, { bloque }),
 };

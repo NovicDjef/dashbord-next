@@ -78,7 +78,7 @@ export default function LivreurPerformancePage() {
     if (!confirm(`${l.bloque ? "Débloquer" : "Bloquer"} ${l.prenom} ${l.nom ?? l.username} ?`)) return;
     setBusy(l.id);
     try {
-      await livreurPerformanceService.bloquer(l.id);
+      await livreurPerformanceService.bloquer(l.id, !l.bloque);
       toast.success(l.bloque ? "Livreur débloqué" : "Livreur bloqué");
       await load();
     } catch (e) {

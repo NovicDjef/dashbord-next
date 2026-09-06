@@ -47,10 +47,6 @@ export const getSomeHoraireAsync = () => {
     return apiService.get('/heures')
 };
 
-export const createSomeRestaurantAsync = (restaurantData) => {
-    return apiService.post('/restaurants', restaurantData)
-};
-
 export const adminSignInAsync = (email, password) => {
     return apiService.post('/admin/login', { email, password })
 };

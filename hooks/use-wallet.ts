@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiService from '@/services/Api';
-import { DeliveryHistory, CommissionConfig } from './use-commissions';
+import { DeliveryHistory, CommissionConfig, fetchAdminDeliveries } from './use-commissions';
 
 export interface WalletTransaction {
   id: string;
@@ -50,21 +50,8 @@ export function useWallet() {
         configs = commissionsResponse.data.configs;
       }
 
-      // Récupérer l'historique des livraisons
-      let deliveries: DeliveryHistory[] = [];
-      try {
-        const deliveriesResponse = await apiService.get('/livraisons/historique/all');
-        if (deliveriesResponse.data.success) {
-          deliveries = deliveriesResponse.data.livraisons;
-        }
-      } catch (error) {
-        // Si l'endpoint 'all' n'existe pas, utilisez un livreur spécifique
-        const livreurId = 1;
-        const deliveriesResponse = await apiService.get(`/livraisons/historique/${livreurId}`);
-        if (deliveriesResponse.data.success) {
-          deliveries = deliveriesResponse.data.livraisons;
-        }
-      }
+      // Historique global de la plateforme (super admin)
+      const deliveries: DeliveryHistory[] = await fetchAdminDeliveries();
 
       // Calculer les statistiques wallet
       const totalBalance = deliveries.reduce((sum, d) => sum + d.earnings.commissionAdmin, 0);

@@ -41,6 +41,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateRestaurant, fetchRestaurantsData } from "@/redux/restaurantSlice";
 import { BASE_URL, getImageUrl } from "@/services/urlApp";
+import apiService from "@/services/Api";
 
 interface RestaurantEditFormProps {
   open: boolean;
@@ -194,22 +195,11 @@ export function RestaurantEditForm({ open, onOpenChange, restaurant }: Restauran
     ]);
   };
 
-  // Fonction pour sauvegarder les horaires via API
+  // Enregistrement des horaires sur l'API (client authentifié : Bearer adminToken)
   const saveHoraires = async (restaurantId: number) => {
     try {
-      const response = await fetch(`/api/restaurants/${restaurantId}/heures/bulk`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ horaires })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde des horaires');
-      }
-
-      return await response.json();
+      const response = await apiService.post(`/restaurants/${restaurantId}/heures/bulk`, { horaires });
+      return response.data;
     } catch (error) {
       console.error('Erreur API horaires:', error);
       throw error;

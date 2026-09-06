@@ -5,8 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { BASE_URL, baseImage } from "@/services/urlApp";
 import { 
   fetchRestaurantsData, 
-  createRestaurant, 
-  updateRestaurant, 
   deleteRestaurant,
   clearError 
 } from "@/redux/restaurantSlice";
@@ -145,42 +143,6 @@ export default function RestaurantPage() {
     }
   }, [error]);
 
-
-  const handleCreateOrUpdate = async (formData: any) => {
-    try {
-      // Préparer les données pour l'API
-      const restaurantData = {
-        name: formData.name,
-        phone: formData.phone,
-        adresse: formData.adresse,
-        description: formData.description,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        villeId: formData.villeId,
-        adminCommissionPercent: formData.adminCommissionPercent || 0.1,
-        restaurantCommissionPercent: formData.restaurantCommissionPercent || 0.9,
-        heuresOuverture: formData.heuresOuverture
-      };
-
-      if (selectedRestaurant) {
-        // Update restaurant
-        await dispatch(updateRestaurant({ id: selectedRestaurant.id, data: restaurantData }));
-      } else {
-        // Create restaurant
-        await dispatch(createRestaurant({
-          ...restaurantData,
-          adminId: 1 // ID de l'admin connecté
-        }));
-      }
-      
-      // Fermer le formulaire
-      setIsFormOpen(false);
-      setSelectedRestaurant(null);
-      
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  };
 
   const handleView = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);

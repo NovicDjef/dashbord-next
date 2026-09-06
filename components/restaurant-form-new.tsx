@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { 
   IconTag,
   IconPhone,
@@ -60,7 +60,6 @@ const formatCFA = (amount: number) => {
 
 export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
   const dispatch = useDispatch();
-  const { admin } = useSelector((state: any) => state.adminAuth);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -250,31 +249,7 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
 
     setLoading(true);
     try {
-      let imageUrl = "";
-      
-      // Upload de l'image si une image a été sélectionnée
-      if (selectedImageFile) {
-        console.log('📤 Upload de l\'image en cours...');
-        
-        const formDataImage = new FormData();
-        formDataImage.append('image', selectedImageFile);
-        
-        // TODO: Implémenter l'upload d'image vers votre serveur
-        // const uploadResponse = await fetch('/api/upload-image', {
-        //   method: 'POST',
-        //   body: formDataImage,
-        // });
-        // const uploadResult = await uploadResponse.json();
-        // imageUrl = uploadResult.imageUrl;
-        
-        // Simuler l'upload pour l'instant
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        imageUrl = `images/restaurant_${Date.now()}.jpg`; // URL simulée
-        
-        console.log('✅ Image uploadée:', imageUrl);
-      }
-
-      // Préparer les données pour l'API
+      // Le fichier image part en multipart ; `adminId` est déduit du jeton côté backend.
       const restaurantData = {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
@@ -283,22 +258,12 @@ export function RestaurantForm({ open, onOpenChange }: RestaurantFormProps) {
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
         villeId: parseInt(formData.villeId),
-        adminId: admin?.id || 1, // Utiliser l'ID de l'admin connecté
-        adminCommissionPercent: parseFloat(formData.adminCommissionPercent),
-        restaurantCommissionPercent: parseFloat(formData.restaurantCommissionPercent),
-        image: imageUrl, // Utiliser l'URL de l'image uploadée
+        image: selectedImageFile,
         heuresOuverture: horaires
       };
 
-      console.log('🔄 Création du restaurant:', restaurantData);
-      
-      // TODO: Implémenter l'appel API pour créer le restaurant
-      dispatch(createRestaurant(restaurantData));
-      // console.log('✅ Restaurant créé:', response.data);
+      await (dispatch as any)(createRestaurant(restaurantData)).unwrap();
 
-      // Simuler la création pour l'instant
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Réinitialiser le formulaire
       setFormData({
         name: "",
