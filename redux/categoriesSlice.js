@@ -21,7 +21,8 @@ export const createCategory = createAsyncThunk(
   async (categoryData, { rejectWithValue }) => {
     try {
       const response = await apiService.post('/categories', categoryData);
-      return response.data;
+      // Le backend renvoie { message, categorie } : on ne garde que la catégorie.
+      return response.data?.categorie ?? response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -34,7 +35,8 @@ export const updateCategory = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await apiService.put(`/categories/${id}`, data);
-      return response.data;
+      // Le backend renvoie { message, categorie } : on ne garde que la catégorie.
+      return response.data?.categorie ?? response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

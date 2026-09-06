@@ -20,7 +20,8 @@ export const createRepas = createAsyncThunk(
   async (repasData, { rejectWithValue }) => {
     try {
       const response = await apiService.post('/plats', repasData);
-      return response.data;
+      // Le backend renvoie { message, plat } : on ne garde que le plat.
+      return response.data?.plat ?? response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -33,7 +34,8 @@ export const updateRepas = createAsyncThunk(
   async ({ id, data }, { rejectWithValue }) => {
     try {
       const response = await apiService.put(`/plats/${id}`, data);
-      return response.data;
+      // Le backend renvoie { message, plat } : on ne garde que le plat.
+      return response.data?.plat ?? response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

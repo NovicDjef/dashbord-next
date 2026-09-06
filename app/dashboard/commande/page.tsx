@@ -4,60 +4,44 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IconShoppingCart, IconTrendingUp } from "@tabler/icons-react";
 import { OrderManagement } from "@/components/order-management";
-import { 
-  getCommandesAsync, 
-  updateCommandeStatusAsync 
+import {
+  getCommandesAsync,
+  updateCommandeStatusAsync,
+  fetchLivreursDisponiblesAsync,
+  assignLivreurAsync
 } from "@/redux/commandeSlice";
 
-// Transformer les données de commande en format uniforme
+// Transformer les données de commande en format uniforme.
+// GET /commandes inclut désormais `user`, `restaurant`, `livreur` et `items`
+// (COMMANDE_LIST_INCLUDE côté backend) : on lit ces champs tels quels.
 const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz') => {
   return commandes.map((item, index) => {
-    // Extraction intelligente du nom du client
-    const clientNom = item.customerName
-      || item.client?.nom
-      || item.client?.name
-      || item.client?.prenom
-      || (item.client?.prenom && item.client?.nom ? `${item.client.prenom} ${item.client.nom}` : null)
-      || item.expediteur
-      || item.nomClient
-      || item.user?.username
-      || '—';
+    // Client : User public { id, username, phone, image, createdAt }
+    const clientNom = item.user?.username || '—';
+    const clientTelephone = item.user?.phone || item.telephone || '—';
+    const clientAdresse = item.position || '—';
 
-    // Extraction intelligente du téléphone du client
-    const clientTelephone = item.client?.telephone
-      || item.client?.phone
-      || item.telephone
-      || item.phoneNumber
-      || '—';
-
-    // Extraction intelligente de l'adresse du client
-    const clientAdresse = item.adresseLivraison
-      || item.client?.adresse
-      || item.client?.address
-      || item.adresse
-      || item.deliveryAddress
-      || item.position
-      || '—';
-
-    // Extraction intelligente du nom du restaurant
-    const restaurantNom = item.restaurant?.nom
-      || item.restaurant?.name
-      || item.restaurantName
-      || item.nomRestaurant
+    // Restaurant : { id, name, adresse, image, latitude, longitude, phone, telephone }
+    const restaurantNom = item.restaurant?.name
       || (type === 'repas' ? 'Restaurant partenaire' : null);
+    const restaurantAdresse = item.restaurant?.adresse || 'Adresse non spécifiée';
 
-    // Extraction intelligente de l'adresse du restaurant
-    const restaurantAdresse = item.restaurant?.adresse
-      || item.restaurant?.address
-      || item.restaurantAdresse
-      || 'Adresse non spécifiée';
+    // Lignes de la commande : { id, quantity, prixUnitaire, nom, plat: {...} }
+    const items = Array.isArray(item.items)
+      ? item.items.map((l: any) => ({
+          id: l.id,
+          nom: l.nom || l.plat?.name || 'Plat',
+          quantity: Number(l.quantity) || 1,
+          prixUnitaire: Number(l.prixUnitaire) || Number(l.plat?.prix) || 0,
+        }))
+      : [];
 
     return {
       id: item.id?.toString() || `${type}-${index}`,
       numeroCommande: item.numeroCommande || `${type.toUpperCase()}-${String(item.id || index).padStart(4, '0')}`,
       type,
       client: {
-        id: item.clientId?.toString() || item.client?.id?.toString() || `client-${index}`,
+        id: item.user?.id?.toString() || item.userId?.toString() || `client-${index}`,
         nom: clientNom,
         telephone: clientTelephone,
         adresse: clientAdresse
@@ -65,25 +49,27 @@ const transformCommandeData = (commandes: any[], type: 'repas' | 'colis' | 'gaz'
       montant: (Number(item.prix) || 0) + (Number(item.deliveryPrice) || 0),
       commission: item.commission ?? Math.round((Number(item.deliveryPrice) || 0) * 0.35),
       statutBackend: item.status,
-      statut: mapStatus(item.statut || item.status) as any,
-      dateCommande: item.createdAt || item.dateCommande || new Date().toISOString(),
-      dateLivraison: item.dateLivraison,
+      statut: mapStatus(item.status) as any,
+      dateCommande: item.createdAt || new Date().toISOString(),
+      dateLivraison: item.deliveredAt || undefined,
+      // Livreur public : { id, username, prenom, telephone, image, note, ... }
       livreur: item.livreur ? {
-        id: item.livreur.id?.toString() || 'livreur-1',
-        nom: item.livreur.nom || item.livreur.name || item.livreurNom || 'Livreur assigné',
-        telephone: item.livreur.telephone || item.livreur.phone || '+237 6XX XX XX XX'
+        id: item.livreur.id?.toString() || '',
+        nom: [item.livreur.prenom, item.livreur.username].filter(Boolean).join(' ') || 'Livreur assigné',
+        telephone: item.livreur.telephone || ''
       } : undefined,
       restaurant: restaurantNom ? {
-        id: item.restaurant?.id?.toString() || item.restaurantId?.toString() || 'restaurant-1',
+        id: item.restaurant?.id?.toString() || item.restaurantId?.toString() || '',
         nom: restaurantNom,
         adresse: restaurantAdresse
       } : undefined,
+      items,
       details: {
-        items: item.items || item.plats || [],
-        instructions: item.instructions || item.notes,
-        ...item
+        recommandation: item.recommandation || null,
+        distanceKm: item.distanceKm ?? null,
+        paiement: item.payment ? { mode: item.payment.mode_payement, statut: item.payment.status } : null,
       },
-      notes: item.notes || item.commentaire
+      notes: item.recommandation || undefined
     };
   });
 };
@@ -108,7 +94,8 @@ const mapStatus = (status: string) => {
 };
 
 export default function CommandePage() {
-  const dispatch = useDispatch();
+  // Le store est en JS non typé : `dispatch` reste souple pour les thunks.
+  const dispatch: any = useDispatch();
   const { commandes, status, error } = useSelector((state: any) => state.commande);
   
   const [orders, setOrders] = useState<any[]>([]);
@@ -125,15 +112,8 @@ export default function CommandePage() {
 
   // Traitement des commandes depuis Redux
   useEffect(() => {
-    console.log("=== DEBUG COMMANDES ===");
-    console.log("Type de commandes:", typeof commandes);
-    console.log("Est un tableau?", Array.isArray(commandes));
-    console.log("Valeur de commandes:", commandes);
-    console.log("======================");
-
     // Vérifier que commandes est bien un tableau
     if (!commandes) {
-      console.log("Commandes est null ou undefined");
       setOrders([]);
       return;
     }
@@ -148,26 +128,13 @@ export default function CommandePage() {
     }
 
     if (commandesArray.length === 0) {
-      console.log("Aucune commande disponible");
       setOrders([]);
       return;
     }
 
-    console.log("=== TOUTES LES COMMANDES ===");
-    console.log("Total commandes:", commandesArray.length);
-    console.log("Exemples de commandes:", commandesArray.slice(0, 3));
-    console.log("============================");
-
     // Pour le moment, afficher TOUTES les commandes sans filtre
     // Vous pourrez filtrer par type plus tard une fois qu'on aura identifié le bon champ
     const repasOrders = transformCommandeData(commandesArray, 'repas');
-
-    console.log("=== COMMANDES TRANSFORMÉES ===");
-    console.log("Nombre transformées:", repasOrders.length);
-    if (repasOrders.length > 0) {
-      console.log("Première commande transformée:", repasOrders[0]);
-    }
-    console.log("==============================");
 
     // Trier par date (plus récent en premier)
     const sortedOrders = repasOrders.sort((a, b) =>
@@ -177,29 +144,28 @@ export default function CommandePage() {
     setOrders(sortedOrders);
   }, [commandes]);
 
+  // `newStatus` vient de la table des transitions admin : c'est déjà un statut
+  // de l'enum backend, on le transmet tel quel.
   const handleOrderUpdate = async (orderId: string, newStatus: string, notes?: string) => {
-    try {
-      console.log(`Mise à jour commande ${orderId} vers ${newStatus}`, { notes });
-      
-      // Si c'est une vraie commande (pas gaz simulée), utiliser Redux
-      if (!orderId.startsWith('gaz-')) {
-        await dispatch(updateCommandeStatusAsync({ id: orderId, status: newStatus }));
-      }
-      
-      // Mettre à jour localement pour les commandes simulées
-      setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.id === orderId 
-            ? { ...order, statut: newStatus, notes: notes || order.notes }
-            : order
-        )
-      );
-      
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
-      throw error;
+    const res: any = await dispatch(
+      (updateCommandeStatusAsync as any)({ id: orderId, status: newStatus, raison: notes || undefined })
+    );
+    if (res?.error) {
+      throw new Error(res.payload?.message || "Le changement de statut a été refusé.");
     }
+    await loadOrders();
+  };
+
+  const handleLoadLivreurs = async () => {
+    const res: any = await dispatch(fetchLivreursDisponiblesAsync());
+    if (res?.error) throw new Error(res.payload?.message || "Livreurs disponibles indisponibles.");
+    return res.payload || [];
+  };
+
+  const handleAssignLivreur = async (orderId: string, livreurId: number) => {
+    const res: any = await dispatch((assignLivreurAsync as any)({ id: orderId, livreurId }));
+    if (res?.error) throw new Error(res.payload?.message || "L'affectation a échoué.");
+    await loadOrders();
   };
 
   useEffect(() => {
@@ -235,10 +201,12 @@ export default function CommandePage() {
       </div>
 
       {/* Composant de gestion des commandes */}
-      <OrderManagement 
+      <OrderManagement
         orders={orders}
         onOrderUpdate={handleOrderUpdate}
         onRefresh={loadOrders}
+        onLoadLivreurs={handleLoadLivreurs}
+        onAssignLivreur={handleAssignLivreur}
       />
     </div>
   );

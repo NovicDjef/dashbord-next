@@ -4,7 +4,6 @@ import { BASE_URL } from './urlApp';
 // Types pour l'authentification
 interface AuthTokens {
   token: string;
-  refreshToken?: string;
 }
 
 // Utility pour le storage
@@ -22,23 +21,10 @@ const storage = {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userToken');
   },
-  getRefreshToken: (): string | null => {
-    if (typeof window === 'undefined') return null;
-    return localStorage.getItem('refreshToken');
-  },
-  setRefreshToken: (token: string): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('refreshToken', token);
-  },
 };
 
 class ApiClient {
   private client: AxiosInstance;
-  private isRefreshing: boolean = false;
-  private failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (reason?: any) => void;
-  }> = [];
 
   constructor() {
     this.client = axios.create({
@@ -68,59 +54,14 @@ class ApiClient {
     );
 
     // Response interceptor
+    // Le backend n'expose pas de route de rafraîchissement de jeton : un 401
+    // signifie que la session est terminée, on déconnecte directement.
     this.client.interceptors.response.use(
       (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-
-        // Si erreur 401 et pas déjà en refresh
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          if (this.isRefreshing) {
-            // Mettre en queue les requêtes en attente
-            return new Promise((resolve, reject) => {
-              this.failedQueue.push({ resolve, reject });
-            })
-              .then((token) => {
-                originalRequest.headers.Authorization = `Bearer ${token}`;
-                return this.client(originalRequest);
-              })
-              .catch((err) => Promise.reject(err));
-          }
-
-          originalRequest._retry = true;
-          this.isRefreshing = true;
-
-          const refreshToken = storage.getRefreshToken();
-
-          if (!refreshToken) {
-            this.handleLogout();
-            return Promise.reject(error);
-          }
-
-          try {
-            const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-              refreshToken,
-            });
-
-            const { token } = response.data;
-            storage.setToken(token);
-
-            // Résoudre toutes les requêtes en attente
-            this.failedQueue.forEach((prom) => prom.resolve(token));
-            this.failedQueue = [];
-
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return this.client(originalRequest);
-          } catch (refreshError) {
-            this.failedQueue.forEach((prom) => prom.reject(refreshError));
-            this.failedQueue = [];
-            this.handleLogout();
-            return Promise.reject(refreshError);
-          } finally {
-            this.isRefreshing = false;
-          }
+      (error) => {
+        if (error.response?.status === 401) {
+          this.handleLogout();
         }
-
         return Promise.reject(error);
       }
     );
@@ -174,16 +115,10 @@ class ApiClient {
   // Méthodes pour gérer les tokens
   setAuthTokens(tokens: AuthTokens): void {
     storage.setToken(tokens.token);
-    if (tokens.refreshToken) {
-      storage.setRefreshToken(tokens.refreshToken);
-    }
   }
 
   clearAuthTokens(): void {
     storage.removeToken();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('refreshToken');
-    }
   }
 
   // Accès direct au client axios pour cas spéciaux

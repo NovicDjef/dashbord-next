@@ -46,6 +46,18 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Pagination } from "@/components/pagination";
+import { ADMIN_TRANSITIONS, ASSIGNABLE_FROM, ORDER_STATUS_LABEL, isOrderStatus, type OrderStatus } from "@/lib/order-status";
+
+export interface LivreurDisponible {
+  id: number;
+  username: string;
+  prenom?: string | null;
+  typeVehicule?: string | null;
+  note?: number | null;
+  totalLivraisons?: number | null;
+  isOnline?: boolean;
+  hasPosition?: boolean;
+}
 
 interface Order {
   id: string;
@@ -60,6 +72,8 @@ interface Order {
   montant: number;
   commission: number;
   statut: 'en_attente' | 'confirmee' | 'preparee' | 'en_livraison' | 'livree' | 'annulee';
+  // Statut réel de l'enum backend : c'est lui qui pilote les actions possibles.
+  statutBackend?: string;
   dateCommande: string;
   dateLivraison?: string;
   livreur?: {
@@ -72,48 +86,28 @@ interface Order {
     nom: string;
     adresse: string;
   };
+  // Lignes de la commande (`items` renvoyé par le backend depuis la phase 1)
+  items?: { id: number | string; nom: string; quantity: number; prixUnitaire: number }[];
   details: any;
   notes?: string;
 }
 
 const statutsConfig = {
-  en_attente: {
-    label: 'En attente',
-    color: 'bg-yellow-100 text-yellow-800',
-    icon: IconClock,
-    nextStatuts: ['confirmee', 'annulee']
-  },
-  confirmee: {
-    label: 'Confirmée',
-    color: 'bg-blue-100 text-blue-800',
-    icon: IconCheck,
-    nextStatuts: ['preparee', 'annulee']
-  },
-  preparee: {
-    label: 'Préparée',
-    color: 'bg-orange-100 text-orange-800',
-    icon: IconClock,
-    nextStatuts: ['en_livraison', 'annulee']
-  },
-  en_livraison: {
-    label: 'En livraison',
-    color: 'bg-purple-100 text-purple-800',
-    icon: IconTruck,
-    nextStatuts: ['livree']
-  },
-  livree: {
-    label: 'Livrée',
-    color: 'bg-green-100 text-green-800',
-    icon: IconCheck,
-    nextStatuts: []
-  },
-  annulee: {
-    label: 'Annulée',
-    color: 'bg-red-100 text-red-800',
-    icon: IconX,
-    nextStatuts: []
-  }
+  en_attente: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800', icon: IconClock },
+  confirmee: { label: 'Confirmée', color: 'bg-blue-100 text-blue-800', icon: IconCheck },
+  preparee: { label: 'Préparée', color: 'bg-orange-100 text-orange-800', icon: IconClock },
+  en_livraison: { label: 'En livraison', color: 'bg-purple-100 text-purple-800', icon: IconTruck },
+  livree: { label: 'Livrée', color: 'bg-green-100 text-green-800', icon: IconCheck },
+  annulee: { label: 'Annulée', color: 'bg-red-100 text-red-800', icon: IconX }
 };
+
+// Statuts backend atteignables par un admin depuis l'état courant.
+const nextStatutsOf = (order: Order): OrderStatus[] =>
+  isOrderStatus(order.statutBackend) ? ADMIN_TRANSITIONS[order.statutBackend] : [];
+
+// Une affectation manuelle n'a de sens que tant qu'aucun livreur n'a pris la commande.
+const canAssign = (order: Order): boolean =>
+  isOrderStatus(order.statutBackend) && ASSIGNABLE_FROM.includes(order.statutBackend);
 
 const typeConfig = {
   repas: { label: 'Repas', color: 'bg-orange-100 text-orange-800', icon: '🍽️' },
@@ -123,11 +117,16 @@ const typeConfig = {
 
 interface OrderManagementProps {
   orders?: Order[];
+  /** `newStatus` est un statut de l'enum backend (CommandeStatus). */
   onOrderUpdate?: (orderId: string, newStatus: string, notes?: string) => Promise<void>;
   onRefresh?: () => Promise<void>;
+  /** Charge les livreurs disponibles (GET /livreurs/available). */
+  onLoadLivreurs?: () => Promise<LivreurDisponible[]>;
+  /** PATCH /commande/:id { status: 'ASSIGNEE', livreurId }. */
+  onAssignLivreur?: (orderId: string, livreurId: number) => Promise<void>;
 }
 
-export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: OrderManagementProps) {
+export function OrderManagement({ orders = [], onOrderUpdate, onRefresh, onLoadLivreurs, onAssignLivreur }: OrderManagementProps) {
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
@@ -138,6 +137,12 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
   const [newStatus, setNewStatus] = useState<string>("");
   const [statusNotes, setStatusNotes] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [livreurs, setLivreurs] = useState<LivreurDisponible[]>([]);
+  const [livreursLoading, setLivreursLoading] = useState(false);
+  const [selectedLivreur, setSelectedLivreur] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setFilteredOrders(orders);
@@ -188,20 +193,22 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
 
     try {
       setUpdating(true);
+      setActionError(null);
       await onOrderUpdate(selectedOrder.id, newStatus, statusNotes);
-      
+
       // Fermer le dialog
       setStatusDialogOpen(false);
       setNewStatus("");
       setStatusNotes("");
       setSelectedOrder(null);
-      
+
       // Rafraîchir les données
       if (onRefresh) {
         await onRefresh();
       }
     } catch (error) {
       console.error("Erreur lors du changement de statut:", error);
+      setActionError((error as Error)?.message || "Le backend a refusé ce changement de statut.");
     } finally {
       setUpdating(false);
     }
@@ -211,7 +218,44 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
     setSelectedOrder(order);
     setNewStatus("");
     setStatusNotes(order.notes || "");
+    setActionError(null);
     setStatusDialogOpen(true);
+  };
+
+  const openAssignDialog = async (order: Order) => {
+    setSelectedOrder(order);
+    setSelectedLivreur("");
+    setActionError(null);
+    setAssignDialogOpen(true);
+    if (!onLoadLivreurs) return;
+    try {
+      setLivreursLoading(true);
+      setLivreurs(await onLoadLivreurs());
+    } catch (error) {
+      console.error("Erreur lors du chargement des livreurs disponibles:", error);
+      setLivreurs([]);
+      setActionError("Impossible de charger la liste des livreurs disponibles.");
+    } finally {
+      setLivreursLoading(false);
+    }
+  };
+
+  const handleAssign = async () => {
+    if (!selectedOrder || !selectedLivreur || !onAssignLivreur) return;
+    try {
+      setAssigning(true);
+      setActionError(null);
+      await onAssignLivreur(selectedOrder.id, Number(selectedLivreur));
+      setAssignDialogOpen(false);
+      setSelectedLivreur("");
+      setSelectedOrder(null);
+      if (onRefresh) await onRefresh();
+    } catch (error) {
+      console.error("Erreur lors de l'affectation du livreur:", error);
+      setActionError((error as Error)?.message || "L'affectation a été refusée par le backend.");
+    } finally {
+      setAssigning(false);
+    }
   };
 
   const openDetailsDialog = (order: Order) => {
@@ -464,14 +508,26 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
                           >
                             <IconEye className="h-4 w-4" />
                           </Button>
-                          {statutsConfig[order.statut].nextStatuts.length > 0 && (
+                          {nextStatutsOf(order).length > 0 && (
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => openStatusDialog(order)}
                               className="koursier-btn"
+                              title="Changer le statut"
                             >
                               <IconEdit className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onAssignLivreur && canAssign(order) && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openAssignDialog(order)}
+                              className="koursier-btn"
+                              title="Affecter un livreur"
+                            >
+                              <IconTruck className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -516,13 +572,18 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
                   <SelectValue placeholder="Choisir un statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedOrder && statutsConfig[selectedOrder.statut].nextStatuts.map((status) => (
+                  {selectedOrder && nextStatutsOf(selectedOrder).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {statutsConfig[status as keyof typeof statutsConfig].label}
+                      {ORDER_STATUS_LABEL[status]}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="koursier-caption mt-1 text-muted-foreground">
+                Seules les transitions autorisées par le backend depuis
+                {" "}<b>{selectedOrder && isOrderStatus(selectedOrder.statutBackend) ? ORDER_STATUS_LABEL[selectedOrder.statutBackend] : "l'état courant"}</b>{" "}
+                sont proposées. Pour mettre la commande en livraison, affectez d'abord un livreur.
+              </p>
             </div>
 
             <div>
@@ -537,6 +598,8 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
             </div>
           </div>
 
+          {actionError && <p className="koursier-caption text-destructive">{actionError}</p>}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusDialogOpen(false)}>
               Annuler
@@ -546,6 +609,56 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
               disabled={!newStatus || updating}
             >
               {updating ? "Modification..." : "Confirmer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog d'affectation d'un livreur */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Affecter un livreur</DialogTitle>
+            <DialogDescription>
+              Commande: {selectedOrder?.numeroCommande}
+              <br />
+              La commande passe en « Livreur affecté » et le livreur est notifié.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Label htmlFor="livreur">Livreur disponible</Label>
+            {livreursLoading ? (
+              <div className="koursier-skeleton h-10 rounded koursier-shimmer" />
+            ) : livreurs.length === 0 ? (
+              <p className="koursier-caption text-muted-foreground">
+                Aucun livreur disponible pour le moment.
+              </p>
+            ) : (
+              <Select value={selectedLivreur} onValueChange={setSelectedLivreur}>
+                <SelectTrigger id="livreur">
+                  <SelectValue placeholder="Choisir un livreur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {livreurs.map((l) => (
+                    <SelectItem key={l.id} value={String(l.id)}>
+                      {[l.prenom, l.username].filter(Boolean).join(" ")}
+                      {l.typeVehicule ? ` · ${l.typeVehicule}` : ""}
+                      {l.isOnline ? " · en ligne" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {actionError && <p className="koursier-caption text-destructive">{actionError}</p>}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleAssign} disabled={!selectedLivreur || assigning}>
+              {assigning ? "Affectation..." : "Affecter"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -602,6 +715,20 @@ export function OrderManagement({ orders = [], onOrderUpdate, onRefresh }: Order
                 <div>
                   <Label className="text-sm font-medium">Notes</Label>
                   <p className="bg-muted p-3 rounded-lg">{selectedOrder.notes}</p>
+                </div>
+              )}
+
+              {selectedOrder.items && selectedOrder.items.length > 0 && (
+                <div>
+                  <Label className="text-sm font-medium">Plats commandés</Label>
+                  <ul className="mt-1 divide-y rounded-lg border">
+                    {selectedOrder.items.map((it) => (
+                      <li key={it.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                        <span className="min-w-0 truncate">{it.quantity}× {it.nom}</span>
+                        <span className="shrink-0 tabular-nums">{formatCurrency(it.prixUnitaire * it.quantity)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

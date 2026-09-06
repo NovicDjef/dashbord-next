@@ -39,17 +39,50 @@ export const createCommandeAsync = createAsyncThunk(
     }
   );
 
+  // `status` est un statut de l'enum backend (CommandeStatus) : la machine à
+  // états de services/orderStateMachine.js refuse tout ce qu'elle n'autorise pas
+  // au rôle admin (409). `raison` sert aux annulations et refus.
   export const updateCommandeStatusAsync = createAsyncThunk(
     'commande/updateStatus',
-    async ({ id, status }, { rejectWithValue }) => {
+    async ({ id, status, raison }, { rejectWithValue }) => {
       try {
-        const BACKEND_STATUS = { en_attente: 'EN_ATTENTE', confirmee: 'ACCEPTEE_RESTAURANT', preparee: 'EN_PREPARATION', prete: 'PRETE', en_livraison: 'PRETE', livree: 'LIVREE', annulee: 'ANNULEE' };
-        const backendStatus = BACKEND_STATUS[String(status).toLowerCase()] || String(status).toUpperCase();
-        const response = await apiService.patch(`/commande/${id}`, { status: backendStatus });
+        const body = { status: String(status).toUpperCase() };
+        if (raison) body.raison = raison;
+        const response = await apiService.patch(`/commande/${id}`, body);
         return response.data.commande;
       } catch (error) {
         console.error("Erreur lors de la mise à jour du statut de la commande:", error.response?.data);
         return rejectWithValue(error.response?.data || { message: "Impossible de mettre à jour le statut de la commande" });
+      }
+    }
+  );
+
+  // Livreurs disponibles pour une affectation manuelle (GET /livreurs/available,
+  // réponse { success, livreurs, count }).
+  export const fetchLivreursDisponiblesAsync = createAsyncThunk(
+    'commande/fetchLivreursDisponibles',
+    async (_, { rejectWithValue }) => {
+      try {
+        const response = await apiService.get('/livreurs/available');
+        return response.data?.livreurs || [];
+      } catch (error) {
+        console.error("Erreur lors de la récupération des livreurs disponibles:", error.response?.data);
+        return rejectWithValue(error.response?.data || { message: "Impossible de récupérer les livreurs disponibles" });
+      }
+    }
+  );
+
+  // Affectation manuelle : seul l'admin peut passer une commande en ASSIGNEE, et
+  // le backend exige alors un `livreurId`.
+  export const assignLivreurAsync = createAsyncThunk(
+    'commande/assignLivreur',
+    async ({ id, livreurId }, { rejectWithValue }) => {
+      try {
+        const response = await apiService.patch(`/commande/${id}`, { status: 'ASSIGNEE', livreurId: Number(livreurId) });
+        return response.data.commande;
+      } catch (error) {
+        console.error("Erreur lors de l'affectation du livreur:", error.response?.data);
+        return rejectWithValue(error.response?.data || { message: "Impossible d'affecter ce livreur" });
       }
     }
   );
@@ -59,6 +92,7 @@ export const createCommandeAsync = createAsyncThunk(
     initialState: {
       currentCommande: null,
       commandes: [], // On ajoute un état pour stocker les commandes
+      livreursDisponibles: [],
       status: 'idle',
       error: null,
     },
@@ -109,6 +143,31 @@ export const createCommandeAsync = createAsyncThunk(
         .addCase(updateCommandeStatusAsync.rejected, (state, action) => {
           state.status = 'failed';
           state.error = action.payload?.message || "Impossible de mettre à jour le statut de la commande";
+        })
+
+        .addCase(fetchLivreursDisponiblesAsync.fulfilled, (state, action) => {
+          state.livreursDisponibles = action.payload;
+        })
+        .addCase(fetchLivreursDisponiblesAsync.rejected, (state) => {
+          state.livreursDisponibles = [];
+        })
+
+        .addCase(assignLivreurAsync.pending, (state) => {
+          state.status = 'loading';
+        })
+        .addCase(assignLivreurAsync.fulfilled, (state, action) => {
+          state.status = 'succeeded';
+          const index = state.commandes.findIndex(commande => commande.id === action.payload?.id);
+          if (index !== -1) {
+            state.commandes[index] = action.payload;
+          }
+          if (state.currentCommande && state.currentCommande.id === action.payload?.id) {
+            state.currentCommande = action.payload;
+          }
+        })
+        .addCase(assignLivreurAsync.rejected, (state, action) => {
+          state.status = 'failed';
+          state.error = action.payload?.message || "Impossible d'affecter ce livreur";
         });
     },
   });

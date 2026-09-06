@@ -36,3 +36,28 @@ export const ACTIVE_RESTAURANT_STATUSES: OrderStatus[] = ['EN_ATTENTE', 'ACCEPTE
 
 export const formatFcfa = (n: number | null | undefined) =>
   `${Math.round(Number(n) || 0).toLocaleString('fr-FR')} F`;
+
+// Transitions réellement autorisées au rôle « admin » par la machine à états du
+// backend (services/orderStateMachine.js). `VALIDER` et `ASSIGNEE` en sont
+// volontairement absents : ils exigent un livreur et passent par l'action
+// « Affecter un livreur » (PATCH /commande/:id { status: 'ASSIGNEE', livreurId }).
+export const ADMIN_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  EN_ATTENTE: ['ACCEPTEE_RESTAURANT', 'REFUSEE_RESTAURANT', 'ANNULEE'],
+  ACCEPTEE_RESTAURANT: ['EN_PREPARATION', 'PRETE', 'REFUSEE_RESTAURANT', 'ANNULEE'],
+  EN_PREPARATION: ['PRETE', 'ANNULEE'],
+  PRETE: ['ANNULEE'],
+  VALIDER: ['RECUPEREE', 'EN_COURS', 'LIVREE', 'ANNULEE'],
+  ASSIGNEE: ['RECUPEREE', 'EN_COURS', 'LIVREE', 'ANNULEE'],
+  RECUPEREE: ['EN_COURS', 'LIVREE'],
+  EN_COURS: ['LIVREE'],
+  LIVREE: [],
+  ANNULEE: [],
+  REFUSEE_RESTAURANT: [],
+};
+
+// Statuts depuis lesquels un admin peut affecter un livreur (DRIVER_ACCEPT_FROM
+// dans config/orderFlow.js côté backend).
+export const ASSIGNABLE_FROM: OrderStatus[] = ['EN_ATTENTE', 'ACCEPTEE_RESTAURANT', 'EN_PREPARATION', 'PRETE'];
+
+export const isOrderStatus = (v: unknown): v is OrderStatus =>
+  typeof v === 'string' && Object.prototype.hasOwnProperty.call(ORDER_STATUS_LABEL, v);
