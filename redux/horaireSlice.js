@@ -7,6 +7,12 @@ import {
   deleteHoraire 
 } from '../services/routeApi';
 
+// GET /heures et GET /restaurants/:id/heures renvoient 200 avec un tableau
+// (vide quand aucun horaire n'est enregistré) ; POST .../heures/bulk renvoie
+// { message, heures }. `toArray` absorbe ces deux formes.
+const toArray = (data) => (Array.isArray(data) ? data : data?.heures || data?.heuresOuverture || []);
+
+
 
 
 // Récupérer tous les horaires
@@ -15,7 +21,7 @@ export const fetchAllHoraires = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await getSomeHoraireAsync();
-      return response.data;
+      return toArray(response.data);
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -27,7 +33,7 @@ export const fetchHorairesByRestaurant = createAsyncThunk(
   async (restaurantId, { rejectWithValue }) => {
     try {
       const response = await getHorairesByRestaurant(restaurantId);
-      return { restaurantId, horaires: response.data };
+      return { restaurantId, horaires: toArray(response.data) };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -39,7 +45,7 @@ export const createHorairesForRestaurant = createAsyncThunk(
   async ({ restaurantId, horaires }, { rejectWithValue }) => {
     try {
       const response = await addHorairesBulk(restaurantId, horaires);
-      return { restaurantId, horaires: response.data };
+      return { restaurantId, horaires: toArray(response.data) };
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }

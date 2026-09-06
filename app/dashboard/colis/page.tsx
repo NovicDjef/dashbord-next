@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getColisAsync } from '@/redux/colisSlice';
+import { COLIS_STATUSES, type ColisStatus } from '@/lib/service-status';
 import { ColisDetailModal } from "@/components/colis-detail-modal";
 import { Pagination } from "@/components/pagination";
 
@@ -49,7 +50,8 @@ interface Colis {
   };
   prix: number;
   commission: number;
-  statut: 'en_attente' | 'confirme' | 'collecte' | 'en_transit' | 'en_livraison' | 'livre' | 'annule';
+  // Valeurs de l'enum ColisStatus (prisma/schema.prisma du backend)
+  statut: ColisStatus;
   livreur?: {
     id: string;
     nom: string;
@@ -62,14 +64,13 @@ interface Colis {
   valeurDeclaree?: number;
 }
 
-const statutConfig = {
-  en_attente: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
-  confirme: { label: 'Confirmé', color: 'bg-blue-100 text-blue-800' },
-  collecte: { label: 'En collecte', color: 'bg-purple-100 text-purple-800' },
-  en_transit: { label: 'En transit', color: 'bg-indigo-100 text-indigo-800' },
-  en_livraison: { label: 'En livraison', color: 'bg-orange-100 text-orange-800' },
-  livre: { label: 'Livré', color: 'bg-green-100 text-green-800' },
-  annule: { label: 'Annulé', color: 'bg-red-100 text-red-800' }
+const statutConfig: Record<ColisStatus, { label: string; color: string }> = {
+  EN_ATTENTE: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+  VALIDER: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800' },
+  ASSIGNEE: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800' },
+  EN_COURS: { label: 'En livraison', color: 'bg-orange-100 text-orange-800' },
+  LIVREE: { label: 'Livré', color: 'bg-green-100 text-green-800' },
+  ANNULEE: { label: 'Annulé', color: 'bg-red-100 text-red-800' }
 };
 
 export default function ColisPage() {
@@ -100,7 +101,7 @@ export default function ColisPage() {
         email: item.emailSend
       },
       destinataire: {
-        nom: item.usernameRecive || 'Destinataire inconnu',
+        nom: item.usernamRecive || 'Destinataire inconnu',
         telephone: item.phoneRecive || '',
         adresse: item.adresseArrivee || '',
         email: item.emailRecive
@@ -115,9 +116,10 @@ export default function ColisPage() {
       prix: parseFloat(item.prix) || 0,
       commission: (parseFloat(item.prix) || 0) * 0.15, // 15% de commission
       statut: mapStatus(item.status),
+      // Livreur public inclus par GET /colis : { id, username, prenom, telephone, ... }
       livreur: item.livreur ? {
         id: item.livreur.id?.toString() || '',
-        nom: item.livreur.nom || 'Livreur assigné',
+        nom: [item.livreur.prenom, item.livreur.username].filter(Boolean).join(' ') || 'Livreur assigné',
         telephone: item.livreur.telephone || ''
       } : undefined,
       dateCreation: item.createdAt || new Date().toISOString(),
@@ -128,36 +130,12 @@ export default function ColisPage() {
     }));
   };
 
-  // Mapper les statuts
-  const mapStatus = (status: string): Colis['statut'] => {
-    const statusMap: { [key: string]: Colis['statut'] } = {
-      'pending': 'en_attente',
-      'en_attente': 'en_attente',
-      'confirmed': 'confirme',
-      'confirme': 'confirme',
-      'pickup': 'collecte',
-      'collecte': 'collecte',
-      'transit': 'en_transit',
-      'en_transit': 'en_transit',
-      'shipping': 'en_livraison',
-      'en_livraison': 'en_livraison',
-      'delivered': 'livre',
-      'livre': 'livre',
-      'cancelled': 'annule',
-      'annule': 'annule',
-      'Done': 'livre'
-    };
-    
-    return statusMap[status?.toLowerCase()] || 'en_attente';
-  };
+  // Le backend renvoie directement une valeur de ColisStatus.
+  const mapStatus = (status: string): ColisStatus =>
+    COLIS_STATUSES.includes(status as ColisStatus) ? (status as ColisStatus) : 'EN_ATTENTE';
 
   // Utiliser les données transformées
   useEffect(() => {
-    console.log("=== DEBUG COLIS PAGE ===");
-    console.log("colisList type:", typeof colisList);
-    console.log("colisList isArray:", Array.isArray(colisList));
-    console.log("colisList value:", colisList);
-    console.log("=======================");
 
     // S'assurer que colisList est un tableau
     const colisArray = Array.isArray(colisList) ? colisList : (colisList?.data || colisList?.colis || []);
@@ -268,9 +246,9 @@ export default function ColisPage() {
 
   const calculateStats = () => {
     const total = filteredColis.length;
-    const enAttente = filteredColis.filter(c => c.statut === 'en_attente').length;
-    const enTransit = filteredColis.filter(c => c.statut === 'en_transit').length;
-    const livres = filteredColis.filter(c => c.statut === 'livre').length;
+    const enAttente = filteredColis.filter(c => c.statut === 'EN_ATTENTE').length;
+    const enTransit = filteredColis.filter(c => c.statut === 'EN_COURS').length;
+    const livres = filteredColis.filter(c => c.statut === 'LIVREE').length;
     const chiffreAffaires = filteredColis.reduce((sum, c) => sum + c.prix, 0);
     const commissionsTotal = filteredColis.reduce((sum, c) => sum + c.commission, 0);
     const poidsTotal = filteredColis.reduce((sum, c) => sum + c.poids, 0);
@@ -377,13 +355,9 @@ export default function ColisPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
-              <SelectItem value="en_attente">En attente</SelectItem>
-              <SelectItem value="confirme">Confirmé</SelectItem>
-              <SelectItem value="collecte">En collecte</SelectItem>
-              <SelectItem value="en_transit">En transit</SelectItem>
-              <SelectItem value="en_livraison">En livraison</SelectItem>
-              <SelectItem value="livre">Livré</SelectItem>
-              <SelectItem value="annule">Annulé</SelectItem>
+              {COLIS_STATUSES.map((st) => (
+                <SelectItem key={st} value={st}>{statutConfig[st].label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

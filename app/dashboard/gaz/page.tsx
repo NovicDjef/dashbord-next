@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getGasOrdersAsync } from "@/redux/gazSlice";
+import { GAS_ORDER_STATUSES, type GasOrderStatus } from "@/lib/service-status";
 import { GazDetailModal } from "@/components/gaz-detail-modal";
 import { Pagination } from "@/components/pagination";
 
@@ -46,18 +47,21 @@ interface CommandeGaz {
   quantite: number;
   prix: number;
   commission: number;
-  statut: 'en_attente' | 'confirme' | 'en_livraison' | 'livre' | 'annule';
+  // Valeurs de l'enum GasOrderStatus (prisma/schema.prisma du backend)
+  statut: GasOrderStatus;
   livreur?: string;
   dateCommande: string;
   dateLivraison?: string;
 }
 
-const statutConfig = {
-  en_attente: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
-  confirme: { label: 'Confirmée', color: 'bg-blue-100 text-blue-800' },
-  en_livraison: { label: 'En livraison', color: 'bg-orange-100 text-orange-800' },
-  livre: { label: 'Livrée', color: 'bg-green-100 text-green-800' },
-  annule: { label: 'Annulée', color: 'bg-red-100 text-red-800' }
+const statutConfig: Record<GasOrderStatus, { label: string; color: string }> = {
+  EN_ATTENTE: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800' },
+  VALIDER: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800' },
+  ASSIGNEE: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800' },
+  EN_COURS: { label: 'En livraison', color: 'bg-orange-100 text-orange-800' },
+  LIVREE: { label: 'Livrée', color: 'bg-green-100 text-green-800' },
+  ANNULEE: { label: 'Annulée', color: 'bg-red-100 text-red-800' },
+  REMBOURSE: { label: 'Remboursée', color: 'bg-zinc-200 text-zinc-800' }
 };
 
 const typeCommandeConfig = {
@@ -80,18 +84,9 @@ export default function GazPage() {
   const itemsPerPage = 20;
   const loading = status === 'loading';
 
-  // Fonction pour mapper les statuts de l'API vers le format local
-  const mapStatus = (status: string): CommandeGaz['statut'] => {
-    const statusMap: { [key: string]: CommandeGaz['statut'] } = {
-      'EN_ATTENTE': 'en_attente',
-      'CONFIRMEE': 'confirme',
-      'EN_PREPARATION': 'confirme',
-      'EN_LIVRAISON': 'en_livraison',
-      'LIVREE': 'livre',
-      'ANNULEE': 'annule',
-    };
-    return statusMap[status] || 'en_attente';
-  };
+  // Le backend renvoie directement une valeur de GasOrderStatus.
+  const mapStatus = (status: string): GasOrderStatus =>
+    GAS_ORDER_STATUSES.includes(status as GasOrderStatus) ? (status as GasOrderStatus) : 'EN_ATTENTE';
 
   // Fonction pour mapper le type de commande
   const mapOrderType = (orderType: string): 'recharge' | 'bouteille_complete' => {
@@ -227,9 +222,9 @@ export default function GazPage() {
 
   const calculateStats = () => {
     const total = filteredCommandes.length;
-    const enAttente = filteredCommandes.filter(c => c.statut === 'en_attente').length;
-    const enLivraison = filteredCommandes.filter(c => c.statut === 'en_livraison').length;
-    const livrees = filteredCommandes.filter(c => c.statut === 'livre').length;
+    const enAttente = filteredCommandes.filter(c => c.statut === 'EN_ATTENTE').length;
+    const enLivraison = filteredCommandes.filter(c => c.statut === 'EN_COURS').length;
+    const livrees = filteredCommandes.filter(c => c.statut === 'LIVREE').length;
     const chiffreAffaires = filteredCommandes.reduce((sum, c) => sum + c.prix, 0);
     const commissionsTotal = filteredCommandes.reduce((sum, c) => sum + c.commission, 0);
 
@@ -341,11 +336,9 @@ export default function GazPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En attente</SelectItem>
-                <SelectItem value="confirme">Confirmée</SelectItem>
-                <SelectItem value="en_livraison">En livraison</SelectItem>
-                <SelectItem value="livre">Livrée</SelectItem>
-                <SelectItem value="annule">Annulée</SelectItem>
+                {GAS_ORDER_STATUSES.map((st) => (
+                  <SelectItem key={st} value={st}>{statutConfig[st].label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

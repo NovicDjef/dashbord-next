@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { IconShoppingCart, IconTrendingUp } from "@tabler/icons-react";
+import { IconShoppingCart } from "@tabler/icons-react";
 import { OrderManagement } from "@/components/order-management";
 import {
   getCommandesAsync,
@@ -96,7 +96,7 @@ const mapStatus = (status: string) => {
 export default function CommandePage() {
   // Le store est en JS non typé : `dispatch` reste souple pour les thunks.
   const dispatch: any = useDispatch();
-  const { commandes, status, error } = useSelector((state: any) => state.commande);
+  const { commandes, status } = useSelector((state: any) => state.commande);
   
   const [orders, setOrders] = useState<any[]>([]);
   const loading = status === 'loading';

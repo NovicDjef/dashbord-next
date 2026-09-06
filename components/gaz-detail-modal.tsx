@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { type GasOrderStatus } from "@/lib/service-status";
 
 interface CommandeGaz {
   id: string;
@@ -40,7 +41,7 @@ interface CommandeGaz {
   quantite: number;
   prix: number;
   commission: number;
-  statut: 'en_attente' | 'confirme' | 'en_livraison' | 'livre' | 'annule';
+  statut: GasOrderStatus;
   livreur?: string;
   dateCommande: string;
   dateLivraison?: string;
@@ -52,12 +53,14 @@ interface GazDetailModalProps {
   commande: CommandeGaz | null;
 }
 
-const statutConfig = {
-  en_attente: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-  confirme: { label: 'Confirmée', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  en_livraison: { label: 'En livraison', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
-  livre: { label: 'Livrée', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  annule: { label: 'Annulée', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' }
+const statutConfig: Record<GasOrderStatus, { label: string; color: string; icon: string }> = {
+  EN_ATTENTE: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '⏳' },
+  VALIDER: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200', icon: '🛵' },
+  ASSIGNEE: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200', icon: '🛵' },
+  EN_COURS: { label: 'En livraison', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🚚' },
+  LIVREE: { label: 'Livrée', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '📦' },
+  ANNULEE: { label: 'Annulée', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: '❌' },
+  REMBOURSE: { label: 'Remboursée', color: 'bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200', icon: '↩️' }
 };
 
 const typeCommandeConfig = {
@@ -94,16 +97,7 @@ export function GazDetailModal({ open, onOpenChange, commande }: GazDetailModalP
     }).format(new Date(date));
   };
 
-  const getStatusIcon = (statut: string) => {
-    switch (statut) {
-      case 'en_attente': return '⏳';
-      case 'confirme': return '✅';
-      case 'en_livraison': return '🚚';
-      case 'livre': return '📦';
-      case 'annule': return '❌';
-      default: return '⏳';
-    }
-  };
+  const getStatusIcon = (statut: GasOrderStatus) => statutConfig[statut]?.icon || '⏳';
 
   const calculateMargin = () => {
     return ((commande.commission / commande.prix) * 100).toFixed(1);
@@ -311,7 +305,7 @@ export function GazDetailModal({ open, onOpenChange, commande }: GazDetailModalP
                   <div>
                     <div className="font-medium">{commande.livreur}</div>
                     <div className="text-sm text-muted-foreground">
-                      {commande.statut === 'en_livraison' ? 'En cours de livraison' : 'Livreur assigné'}
+                      {commande.statut === 'EN_COURS' ? 'En cours de livraison' : 'Livreur assigné'}
                     </div>
                   </div>
                 </div>

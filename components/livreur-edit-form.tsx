@@ -39,7 +39,6 @@ interface Livreur {
   telephone: string;
   email: string;
   disponible: boolean;
-  zone?: string;
   typeVehicule: string;
   plaqueVehicule?: string;
   note: number;
@@ -65,7 +64,6 @@ interface LivreurEditFormData {
   typeVehicule: string;
   plaqueVehicule: string;
   disponible: boolean;
-  zone: string;
 }
 
 export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditFormProps) {
@@ -81,7 +79,6 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
     typeVehicule: '',
     plaqueVehicule: '',
     disponible: true,
-    zone: ''
   });
 
   const [formErrors, setFormErrors] = useState<Partial<LivreurEditFormData>>({});
@@ -97,7 +94,6 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
         typeVehicule: livreur.typeVehicule || '',
         plaqueVehicule: livreur.plaqueVehicule || '',
         disponible: livreur.disponible ?? true,
-        zone: livreur.zone || ''
       });
       setFormErrors({});
     }
@@ -156,8 +152,8 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
       telephone: formData.telephone.trim(),
       typeVehicule: formData.typeVehicule,
       disponible: formData.disponible,
-      ...(formData.plaqueVehicule.trim() && { plaqueVehicule: formData.plaqueVehicule.trim() }),
-      ...(formData.zone.trim() && { zone: formData.zone.trim() })
+      // Pas de `zone` : PATCH /livreur/:id ne lit pas ce champ.
+      ...(formData.plaqueVehicule.trim() && { plaqueVehicule: formData.plaqueVehicule.trim() })
     };
 
     try {
@@ -233,20 +229,6 @@ export function LivreurEditForm({ open, onOpenChange, livreur }: LivreurEditForm
               )}
             </div>
 
-            {/* Zone */}
-            <div className="space-y-2">
-              <Label htmlFor="zone">Zone</Label>
-              <Input
-                id="zone"
-                value={formData.zone}
-                onChange={(e) => handleInputChange('zone', e.target.value)}
-                placeholder="Douala"
-                className={formErrors.zone ? 'border-red-500' : ''}
-              />
-              {formErrors.zone && (
-                <p className="text-sm text-red-500">{formErrors.zone}</p>
-              )}
-            </div>
           </div>
 
           {/* Email */}

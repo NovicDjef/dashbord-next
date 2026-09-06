@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { type ColisStatus } from "@/lib/service-status";
 
 interface Colis {
   id: string;
@@ -54,7 +55,7 @@ interface Colis {
   };
   prix: number;
   commission: number;
-  statut: 'en_attente' | 'confirme' | 'collecte' | 'en_transit' | 'en_livraison' | 'livre' | 'annule';
+  statut: ColisStatus;
   livreur?: {
     id: string;
     nom: string;
@@ -73,14 +74,13 @@ interface ColisDetailModalProps {
   colis: Colis | null;
 }
 
-const statutConfig = {
-  en_attente: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '⏳' },
-  confirme: { label: 'Confirmé', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '✅' },
-  collecte: { label: 'En collecte', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: '📥' },
-  en_transit: { label: 'En transit', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200', icon: '🚛' },
-  en_livraison: { label: 'En livraison', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🚚' },
-  livre: { label: 'Livré', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '📦' },
-  annule: { label: 'Annulé', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: '❌' }
+const statutConfig: Record<ColisStatus, { label: string; color: string; icon: string }> = {
+  EN_ATTENTE: { label: 'En attente', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', icon: '⏳' },
+  VALIDER: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200', icon: '🛵' },
+  ASSIGNEE: { label: 'Livreur affecté', color: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200', icon: '🛵' },
+  EN_COURS: { label: 'En livraison', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200', icon: '🚚' },
+  LIVREE: { label: 'Livré', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '📦' },
+  ANNULEE: { label: 'Annulé', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200', icon: '❌' }
 };
 
 export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModalProps) {
@@ -423,8 +423,7 @@ export function ColisDetailModal({ open, onOpenChange, colis }: ColisDetailModal
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium">
-                      {colis.statut === 'en_livraison' ? 'En cours de livraison' : 
-                       colis.statut === 'collecte' ? 'En collecte' : 'Assigné'}
+                      {colis.statut === 'EN_COURS' ? 'En cours de livraison' : 'Livreur affecté'}
                     </div>
                   </div>
                 </div>

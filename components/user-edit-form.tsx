@@ -44,8 +44,9 @@ export function UserEditForm({ open, onOpenChange, user }: UserEditFormProps) {
   useEffect(() => {
     if (user && open) {
       setFormData({
+        // GET /users renvoie `phone` (et non `telephone`).
         username: user.username || "",
-        telephone: user.telephone || ""
+        telephone: user.phone || ""
       });
     }
   }, [user, open]);

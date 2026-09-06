@@ -50,9 +50,12 @@ export const useHoraires = () => {
     dispatch(deleteHoraireById(id));
   };
 
-  // Obtenir les horaires d'un restaurant spécifique
+  // Obtenir les horaires d'un restaurant spécifique.
+  // Le backend renvoie 200 [] quand aucun horaire n'est enregistré : une liste
+  // vide est un état normal, pas une erreur.
   const getHorairesByRestaurant = (restaurantId: number): Horaire[] => {
-    return byRestaurant[restaurantId] || [];
+    const list = byRestaurant[restaurantId];
+    return Array.isArray(list) ? list : [];
   };
 
   // Obtenir le statut de chargement pour un restaurant
@@ -63,8 +66,8 @@ export const useHoraires = () => {
   // Formater les horaires pour l'affichage
   const formatHoraires = (horaires: Horaire[]) => {
     const jourOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    
-    return horaires
+
+    return [...(horaires || [])]
       .sort((a, b) => jourOrder.indexOf(a.jour) - jourOrder.indexOf(b.jour))
       .map(horaire => ({
         ...horaire,
@@ -105,9 +108,11 @@ export const useHoraires = () => {
     return currentTime >= ouverture && currentTime <= fermeture;
   };
 
+  const horaires: Horaire[] = Array.isArray(data) ? data : [];
+
   return {
     // Data
-    horaires: data,
+    horaires,
     horairesByRestaurant: byRestaurant,
     status,
     error,
@@ -128,6 +133,8 @@ export const useHoraires = () => {
     
     // Loading states
     isLoading: status === 'loading',
-    isError: status === 'failed'
+    // Une liste vide n'est pas une erreur : seul un vrai échec réseau/API l'est.
+    isError: status === 'failed',
+    isEmpty: status === 'succeeded' && horaires.length === 0
   };
 };
