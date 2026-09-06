@@ -47,7 +47,26 @@ export type ClientUser = { id: number; username: string; phone: string; avatar?:
 
 export type Horaire = { jour: string; heures: string };
 
-export type CategorieLite = { id: number; name: string; image?: string | null; description?: string | null; visible?: boolean };
+/**
+ * Menus programmés (phase 10 du backend) : `GET /restaurants/:id` décore chaque
+ * catégorie. Sans programmation, `programme` est faux et la catégorie reste au
+ * menu en permanence.
+ */
+export type PlanningInfo = {
+  programme: boolean;
+  proposeMaintenant: boolean;
+  /** Ex. « le mercredi de 11:00 à 15:00 » */
+  description: string | null;
+  /** Prochaine occurrence en ISO, quand la catégorie n'est pas proposée aujourd'hui */
+  prochaineDate: string | null;
+  /** Ex. « Proposé le mercredi. Prochaine fois : mercredi 9 septembre. » */
+  message: string | null;
+};
+
+export type CategorieLite = {
+  id: number; name: string; image?: string | null; description?: string | null; visible?: boolean;
+  programme?: boolean; proposeAujourdhui?: boolean; planning?: PlanningInfo | null;
+};
 
 export type Complement = { id: number; name: string; price: number; restaurantId?: number; disponible?: boolean; stock?: number | null; enVente?: boolean };
 
@@ -152,6 +171,9 @@ export const api = {
   // Le backend calcule `enVente` sur chaque complément et porte `visible` sur
   // chaque catégorie : on n'expose au client public que ce qui est commandable,
   // sinon la commande est refusée (409 COMPLEMENT_INDISPONIBLE).
+  // Les catégories programmées mais pas au menu du jour (`proposeAujourdhui`
+  // faux) sont conservées : la page les affiche grisées avec `planning.message`,
+  // ce qui vaut mieux qu'un menu qui disparaît sans explication.
   restaurant: (id: number) => clientApi.get<RestaurantFull>(`/restaurants/${id}`).then((r) => ({
     ...r.data,
     categories: (r.data.categories || []).filter((c) => c.visible !== false),

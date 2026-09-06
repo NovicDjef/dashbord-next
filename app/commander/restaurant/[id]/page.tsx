@@ -65,9 +65,18 @@ export default function RestaurantPage() {
     if (!resto || !plats) return [];
     const byCat = new Map<number, PlatRow[]>();
     plats.forEach((p) => { const k = p.categorieId ?? p.categorie?.id ?? -1; byCat.set(k, [...(byCat.get(k) || []), p]); });
-    const ordered = (resto.categories || []).map((c) => ({ id: c.id, name: c.name, plats: byCat.get(c.id) || [] })).filter((g) => g.plats.length > 0);
+    // Menus programmés : une catégorie sans programmation (`programme` faux ou
+    // absent) reste au menu en permanence. Sinon `proposeAujourdhui` tranche, et
+    // `planning.message` explique quand elle revient.
+    const ordered = (resto.categories || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      plats: byCat.get(c.id) || [],
+      horsPlanning: c.programme === true && c.proposeAujourdhui === false,
+      planningMessage: c.planning?.message || null,
+    })).filter((g) => g.plats.length > 0);
     const orphan = byCat.get(-1);
-    if (orphan?.length) ordered.push({ id: -1, name: "Autres plats", plats: orphan });
+    if (orphan?.length) ordered.push({ id: -1, name: "Autres plats", plats: orphan, horsPlanning: false, planningMessage: null });
     return ordered;
   }, [resto, plats]);
 
@@ -163,7 +172,7 @@ export default function RestaurantPage() {
           <div className="sticky top-16 z-30 -mx-4 mt-6 border-b bg-background/95 px-4 py-2 backdrop-blur-md sm:-mx-6 sm:px-6 md:top-16">
             <div className="no-scrollbar flex gap-2 overflow-x-auto">
               {groups.map((g) => (
-                <button key={g.id} type="button" onClick={() => scrollTo(g.id)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${activeCat === g.id ? "bg-brand-ink text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted hover:bg-muted/70"}`}>{g.name} <span className="ml-1 text-xs opacity-70">{g.plats.length}</span></button>
+                <button key={g.id} type="button" onClick={() => scrollTo(g.id)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${activeCat === g.id ? "bg-brand-ink text-white dark:bg-primary dark:text-primary-foreground" : "bg-muted hover:bg-muted/70"} ${g.horsPlanning ? "opacity-60" : ""}`}>{g.name} <span className="ml-1 text-xs opacity-70">{g.horsPlanning ? "pas aujourd’hui" : g.plats.length}</span></button>
               ))}
             </div>
           </div>
@@ -180,9 +189,13 @@ export default function RestaurantPage() {
             </div>
           ) : groups.map((g) => (
             <section key={g.id} ref={(el) => { sectionRefs.current[g.id] = el; }} data-cat={g.id} aria-labelledby={`cat-${g.id}`}>
-              <h2 id={`cat-${g.id}`} className="mb-3 font-display text-xl font-bold text-brand-ink dark:text-foreground">{g.name}</h2>
+              <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h2 id={`cat-${g.id}`} className="font-display text-xl font-bold text-brand-ink dark:text-foreground">{g.name}</h2>
+                {g.horsPlanning && <span className="rounded-full bg-brand-ink px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">Pas au menu aujourd’hui</span>}
+              </div>
+              {g.horsPlanning && <p className="mb-3 rounded-2xl bg-brand-cream px-4 py-3 text-sm text-brand-ink dark:text-foreground">{g.planningMessage || "Ce menu n’est pas proposé aujourd’hui."}</p>}
               <div className="grid gap-3 md:grid-cols-2">
-                {g.plats.map((p) => <PlatCard key={p.id} plat={p} onOpen={setDialogPlat} restaurant={{ id: resto.id, name: resto.name }} disabled={p.disponible === false} />)}
+                {g.plats.map((p) => <PlatCard key={p.id} plat={p} onOpen={setDialogPlat} restaurant={{ id: resto.id, name: resto.name }} disabled={g.horsPlanning || p.disponible === false} disabledLabel={g.horsPlanning ? "Pas aujourd’hui" : "Indisponible"} />)}
               </div>
             </section>
           ))}

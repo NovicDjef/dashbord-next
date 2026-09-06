@@ -96,11 +96,14 @@ export default function PanierPage() {
       router.replace(`/commander/commandes/${created.id}?nouvelle=1`);
     } catch (e) {
       const code = (e as { response?: { data?: { code?: string } } })?.response?.data?.code;
+      // Menus programmés : le backend renvoie un 409 PLAT_HORS_PLANNING avec un
+      // userMessage qui dit quand le plat revient — on l'affiche tel quel.
       const msg = code === "PLAT_INDISPONIBLE" ? "Un plat de votre panier n'est plus disponible. Retirez-le puis réessayez."
+        : code === "PLAT_HORS_PLANNING" ? apiError(e, "Un plat de votre panier n'est pas au menu aujourd'hui. Retirez-le puis réessayez.")
         : code === "RESTAURANT_NON_VALIDE" ? "Ce restaurant n'accepte pas encore de commandes."
         : code === "MULTI_RESTAURANT" ? "Une commande ne peut venir que d'un seul restaurant."
         : apiError(e, "La commande n'a pas pu être envoyée. Réessayez dans un instant.");
-      toast.error(msg);
+      toast.error(msg, code === "PLAT_HORS_PLANNING" ? { duration: 10000 } : undefined);
     } finally {
       setSubmitting(false);
     }
