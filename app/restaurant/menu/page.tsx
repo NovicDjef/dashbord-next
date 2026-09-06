@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { IconPlus, IconPencil, IconTrash, IconUpload } from "@tabler/icons-react";
+import { IconPlus, IconPencil, IconTrash, IconUpload, IconCalendarClock } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMyRestaurant } from "@/components/restaurant/restaurant-shell";
-import { restaurateurService, apiErrorMessage, type Categorie, type Plat, type Complement } from "@/services/api/restaurateur.service";
+import { restaurateurService, apiErrorMessage, type Categorie, type Plat, type Complement, type PlanningItem } from "@/services/api/restaurateur.service";
+import { PlanningBadge, PlanningDialog, type PlanningCible } from "@/components/restaurant/planning-dialog";
 import { formatFcfa } from "@/lib/order-status";
 import { getImageUrl } from "@/services/urlApp";
 
@@ -50,6 +51,19 @@ export default function MenuPage() {
   const [file, setFile] = useState<File | null>(null);
   const [toDelete, setToDelete] = useState<{ kind: "plat" | "cat" | "comp"; id: number; name: string } | null>(null);
   const [filterCat, setFilterCat] = useState<string>("all");
+  // Menus programmés : indexés par id pour poser un badge sur chaque carte.
+  const [planCats, setPlanCats] = useState<Record<number, PlanningItem>>({});
+  const [planPlats, setPlanPlats] = useState<Record<number, PlanningItem>>({});
+  const [planCible, setPlanCible] = useState<PlanningCible | null>(null);
+
+  const loadPlanning = useCallback(async () => {
+    if (!restaurantId) return;
+    try {
+      const r = await restaurateurService.planning(restaurantId);
+      setPlanCats(Object.fromEntries((r.categories || []).map((x) => [x.id, x])));
+      setPlanPlats(Object.fromEntries((r.plats || []).map((x) => [x.id, x])));
+    } catch { /* la programmation est un bonus : le menu reste utilisable sans */ }
+  }, [restaurantId]);
 
   const load = useCallback(async () => {
     if (!restaurantId) return;
@@ -70,6 +84,7 @@ export default function MenuPage() {
   }, [restaurantId]);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void loadPlanning(); }, [loadPlanning]);
 
   const catName = useMemo(() => Object.fromEntries(cats.map((c) => [c.id, c.name])), [cats]);
   const catHidden = useMemo(() => new Set(cats.filter((c) => c.visible === false).map((c) => c.id)), [cats]);
@@ -171,7 +186,7 @@ export default function MenuPage() {
         {loading ? <div className="h-48 animate-pulse rounded bg-muted" /> : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {visiblePlats.map((p) => (
-              <article key={p.id} className={`relative flex gap-3 rounded-lg border bg-card p-3 ${p.disponible && !(p.stock !== null && p.stock !== undefined && p.stock <= 0) && !(p.categorieId != null && catHidden.has(p.categorieId)) ? "" : "opacity-60 grayscale"}`}>
+              <article key={p.id} className={`relative flex gap-3 rounded-lg border bg-card p-3 ${p.disponible && !(p.stock !== null && p.stock !== undefined && p.stock <= 0) && !(p.categorieId != null && catHidden.has(p.categorieId)) && !(planPlats[p.id]?.programme && !planPlats[p.id]?.proposeAujourdhui) ? "" : "opacity-60 grayscale"}`}>
                 {stockLabel(p) && <span className={`absolute right-3 top-3 rounded-full px-2 py-0.5 text-[11px] font-semibold ${(p.stock ?? 1) <= 0 ? "bg-destructive/10 text-destructive" : (p.stock ?? 0) <= 3 ? "bg-brand-cream text-brand-ink" : "bg-secondary text-secondary-foreground"}`}>{stockLabel(p)}</span>}
                 {p.image ? <img src={getImageUrl(p.image) || ""} alt="" className="h-20 w-20 shrink-0 rounded object-cover" /> : <div className="h-20 w-20 shrink-0 rounded bg-muted" />}
                 <div className="min-w-0 flex-1">
@@ -183,9 +198,11 @@ export default function MenuPage() {
                     <b className={`tabular-nums ${stockLabel(p) ? "mr-16" : ""}`}>{formatFcfa(p.prix)}</b>
                   </div>
                   {p.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
+                  <PlanningBadge item={planPlats[p.id]} className="mt-1.5" />
                   <div className="mt-2 flex items-center justify-between">
                     <label className="flex items-center gap-2 text-xs"><Switch checked={!!p.disponible} onCheckedChange={() => toggleDispo(p)} />{p.disponible ? "Disponible" : "Rupture"}</label>
                     <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" aria-label="Programmer" title="Jours et heures où ce plat est proposé" onClick={() => setPlanCible({ kind: "plat", id: p.id, name: p.name })}><IconCalendarClock className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => { setFile(null); setPlatForm({ id: p.id, name: p.name, prix: String(p.prix), description: p.description || "", categorieId: String(p.categorieId ?? ""), disponible: !!p.disponible, stock: p.stock === null || p.stock === undefined ? "" : String(p.stock) }); }}><IconPencil className="h-4 w-4" /></Button>
                       <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => setToDelete({ kind: "plat", id: p.id, name: p.name })}><IconTrash className="h-4 w-4 text-destructive" /></Button>
                     </div>
@@ -200,18 +217,21 @@ export default function MenuPage() {
 
       {/* ---------------- Catégories ---------------- */}
       <TabsContent value="categories" className="space-y-3">
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">Programmez une catégorie entière (menu du midi, carte du week-end) avec l’icône calendrier.</p>
           <Button className="" onClick={() => { setFile(null); setCatForm({ name: "", description: "" }); }}><IconPlus className="mr-2 h-4 w-4" />Nouvelle catégorie</Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {cats.map((c) => (
-            <article key={c.id} className={`flex items-center gap-3 rounded-lg border bg-card p-3 ${c.visible === false ? "opacity-60 grayscale" : ""}`}>
+            <article key={c.id} className={`flex items-center gap-3 rounded-lg border bg-card p-3 ${c.visible === false || (planCats[c.id]?.programme && !planCats[c.id]?.proposeAujourdhui) ? "opacity-60 grayscale" : ""}`}>
               {c.image ? <img src={getImageUrl(c.image) || ""} alt="" className="h-14 w-14 rounded object-cover" /> : <div className="h-14 w-14 rounded bg-muted" />}
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{c.name}</div>
                 <div className="text-xs text-muted-foreground">{plats.filter((p) => p.categorieId === c.id).length} plat(s)</div>
+                <PlanningBadge item={planCats[c.id]} className="mt-1" />
                 <label className="mt-1 flex items-center gap-2 text-xs"><Switch checked={c.visible !== false} onCheckedChange={() => toggleCatVisible(c)} />{c.visible === false ? "Masquée pour les clients" : "Visible"}</label>
               </div>
+              <Button variant="ghost" size="icon" aria-label="Programmer" title="Jours et heures où cette catégorie est proposée" onClick={() => setPlanCible({ kind: "categorie", id: c.id, name: c.name })}><IconCalendarClock className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => { setFile(null); setCatForm({ id: c.id, name: c.name, description: c.description || "" }); }}><IconPencil className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => setToDelete({ kind: "cat", id: c.id, name: c.name })}><IconTrash className="h-4 w-4 text-destructive" /></Button>
             </article>
@@ -307,6 +327,8 @@ export default function MenuPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PlanningDialog cible={planCible} open={!!planCible} onOpenChange={(o) => !o && setPlanCible(null)} onChanged={loadPlanning} />
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>

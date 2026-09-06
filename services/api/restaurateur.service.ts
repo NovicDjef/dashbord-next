@@ -36,6 +36,97 @@ export interface Plat { id: number; name: string; image?: string | null; descrip
 export interface Complement { id: number; name: string; price: number; restaurantId: number; stock?: number | null; disponible?: boolean }
 export interface Horaire { id?: number; jour: string; heures: string }
 
+/* ------------------------------------------------------------------ */
+/* Menus programmés (phase 10 du backend)                              */
+/* ------------------------------------------------------------------ */
+
+export const JOURS_SEMAINE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
+export type JourSemaine = (typeof JOURS_SEMAINE)[number];
+export const JOUR_LABEL: Record<JourSemaine, string> = {
+  LUNDI: 'Lundi', MARDI: 'Mardi', MERCREDI: 'Mercredi', JEUDI: 'Jeudi', VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche',
+};
+
+/**
+ * Une règle de disponibilité (`DisponibilitePlanifiee`).
+ * Le backend renvoie `dates`, `dateDebut` et `dateFin` en ISO (colonnes DATE à
+ * minuit UTC) alors qu'il les attend en « AAAA-MM-JJ » : voir `jourApi()`.
+ */
+export interface PlanningRegle {
+  id: number;
+  libelle?: string | null;
+  jours: JourSemaine[];
+  dates: string[];
+  dateDebut?: string | null;
+  dateFin?: string | null;
+  heureDebut?: string | null;
+  heureFin?: string | null;
+  actif: boolean;
+  /** Description lisible calculée par le backend, ex. « le mercredi de 11:00 à 15:00 » */
+  description?: string;
+  platsId?: number | null;
+  categorieId?: number | null;
+}
+
+/** Résumé renvoyé par le backend pour un plat ou une catégorie. */
+export interface PlanningResume {
+  programme: boolean;
+  proposeMaintenant: boolean;
+  description: string | null;
+  prochaineDate: string | null;
+  message: string | null;
+}
+
+/** Ligne de `GET /restaurateur/planning` (une catégorie ou un plat). */
+export interface PlanningItem {
+  id: number;
+  name: string;
+  visible?: boolean;
+  disponible?: boolean;
+  categorieId?: number | null;
+  /** true dès qu'au moins une règle active existe : l'article n'est plus permanent */
+  programme: boolean;
+  proposeAujourdhui: boolean;
+  planning: PlanningResume;
+  regles: PlanningRegle[];
+}
+
+export interface PlanningVueEnsemble { success: boolean; date: string; categories: PlanningItem[]; plats: PlanningItem[] }
+export interface PlanningListe {
+  success: boolean;
+  cible: { nom: string; platsId: number | null; categorieId: number | null };
+  plannings: PlanningRegle[];
+  resume: PlanningResume;
+}
+
+/** Corps accepté par POST / PATCH. Dates en « AAAA-MM-JJ », heures en « HH:MM ». */
+export type PlanningPayload = {
+  libelle?: string | null;
+  jours?: JourSemaine[];
+  dates?: string[];
+  dateDebut?: string | null;
+  dateFin?: string | null;
+  heureDebut?: string | null;
+  heureFin?: string | null;
+  actif?: boolean;
+};
+
+/** ISO renvoyé par l'API → « AAAA-MM-JJ ». Les colonnes DATE sont à minuit UTC. */
+export const jourApi = (iso?: string | null): string => {
+  if (!iso) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+};
+
+/** « AAAA-MM-JJ » ou ISO → « mercredi 9 septembre » (repli : chaîne vide). */
+export const jourLisible = (valeur?: string | null, avecAnnee = false): string => {
+  const cle = jourApi(valeur);
+  if (!cle) return '';
+  const [a, m, j] = cle.split('-').map(Number);
+  return new Date(a, m - 1, j).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', ...(avecAnnee ? { year: 'numeric' } : {}) });
+};
+
 export interface CommandeItem { id: number; nom: string; prixUnitaire: number; quantity: number; complements?: { name: string; price: number; quantity: number }[] | null }
 export interface Commande {
   id: number; orderNumber: string; status: OrderStatus; prix: number; deliveryPrice: number; distanceKm?: number | null;
@@ -124,6 +215,17 @@ export const restaurateurService = {
     image ? apiClient.put(`/plats/${id}`, multipart(data, image), mp) : apiClient.put(`/plats/${id}`, data),
   setPlatDisponible: (id: number, disponible: boolean) => apiClient.patch(`/plats/${id}/disponibilite`, { disponible }),
   deletePlat: (id: number) => apiClient.delete(`/plats/${id}`),
+  // --- Menus programmés : un plat ou une catégorie n'est proposé que certains
+  // jours / dates. Sans règle active, l'article reste permanent.
+  planning: (restaurantId?: number) => apiClient.get<PlanningVueEnsemble>('/restaurateur/planning', { params: restaurantId ? { restaurantId } : {} }),
+  planningPlat: (platsId: number) => apiClient.get<PlanningListe>(`/restaurateur/plats/${platsId}/planning`),
+  planningCategorie: (categorieId: number) => apiClient.get<PlanningListe>(`/restaurateur/categories/${categorieId}/planning`),
+  createPlanningPlat: (platsId: number, data: PlanningPayload) => apiClient.post<{ planning: PlanningRegle }>(`/restaurateur/plats/${platsId}/planning`, data),
+  createPlanningCategorie: (categorieId: number, data: PlanningPayload) => apiClient.post<{ planning: PlanningRegle }>(`/restaurateur/categories/${categorieId}/planning`, data),
+  /** Seuls les champs présents dans le corps sont modifiés : n'envoyer que ce qui change. */
+  updatePlanning: (id: number, data: PlanningPayload) => apiClient.patch<{ planning: PlanningRegle }>(`/restaurateur/planning/${id}`, data),
+  deletePlanning: (id: number) => apiClient.delete(`/restaurateur/planning/${id}`),
+
   complements: () => apiClient.get<Complement[]>('/complements'),
   createComplement: (data: { name: string; price: number; restaurantId: number; stock?: number | string | null; disponible?: boolean }) => apiClient.post('/complements', data),
   updateComplement: (id: number, data: { name?: string; price?: number; stock?: number | string | null; disponible?: boolean }) => apiClient.put(`/complements/${id}`, data),
@@ -147,9 +249,32 @@ export const tarifService = {
     apiClient.post<{ fraisLivraison: number; distanceKm: number | null; distanceConnue: boolean; detail: any }>('/tarifs/estimation', body),
 };
 
+/** Détail d'erreur de validation : chaîne simple ou { champ, message } (zod côté backend). */
+export type ApiFieldError = { champ?: string | null; message?: string };
+
+const detailErreur = (x: string | ApiFieldError): string => (typeof x === 'string' ? x : x?.message || '');
+
 /** Message d'erreur lisible depuis une erreur axios. */
 export const apiErrorMessage = (e: any, fallback = 'Une erreur est survenue') => {
   const d = e?.response?.data;
-  if (d?.errors?.length) return d.errors.join(' · ');
+  const errors: (string | ApiFieldError)[] | undefined = d?.errors;
+  if (errors?.length) {
+    const detail = errors.map(detailErreur).filter(Boolean).join(' · ');
+    if (detail) return detail;
+  }
   return d?.userMessage || d?.message || e?.message || fallback;
+};
+
+/** Erreurs 400 par champ (`errors: [{ champ, message }]`) pour les afficher sous les libellés. */
+export const apiFieldErrors = (e: unknown): Record<string, string> => {
+  const errors = (e as { response?: { data?: { errors?: (string | ApiFieldError)[] } } })?.response?.data?.errors;
+  if (!errors?.length) return {};
+  const out: Record<string, string> = {};
+  // Les erreurs globales (zod `refine` sans chemin) reviennent avec `champ: null` :
+  // on les range sous la clé vide pour les afficher au-dessus du formulaire.
+  errors.forEach((x) => {
+    if (typeof x === 'string' || !x?.message) return;
+    out[x.champ || ''] = x.message;
+  });
+  return out;
 };
