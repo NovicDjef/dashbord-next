@@ -9,6 +9,8 @@ import { ModeToggle } from "./ui/mode-toggle"
 const TITLES: Record<string, string> = {
   "/dashboard": "Vue d'ensemble",
   "/dashboard/validation": "Validation des restaurants",
+  "/dashboard/livreurs/validation": "Vérification d'identité des livreurs",
+  "/dashboard/livreurs/performance": "Performance des livreurs",
   "/dashboard/tarification": "Tarification de la livraison",
   "/dashboard/restaurant": "Restaurants",
   "/dashboard/categorie": "Catégories",

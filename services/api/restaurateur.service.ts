@@ -11,10 +11,16 @@ export interface Restaurant {
   enPause?: boolean; pauseMessage?: string | null; delaiFermetureCommandeMin?: number;
   heuresOuverture?: Horaire[];
   disponibilite?: Disponibilite;
+  /** Rôle du compte connecté sur ce restaurant */
+  monRole?: RestaurantRole;
   ville?: { id: number; name: string } | null;
   admin?: { id: number; username: string; email: string; phone?: string };
   _count?: { categories: number; commandes: number };
 }
+
+export type RestaurantRole = 'PROPRIETAIRE' | 'GERANT' | 'CAISSE';
+export const ROLE_LABEL: Record<RestaurantRole, string> = { PROPRIETAIRE: 'Propriétaire', GERANT: 'Gérant', CAISSE: 'Caisse' };
+export interface Membre { membreId?: number; id: number; username: string; email: string; phone?: string; role: 'GERANT' | 'CAISSE'; createdAt?: string }
 
 /** État de commande d'un restaurant (services/availability.js côté backend). */
 export interface Disponibilite {
@@ -25,16 +31,16 @@ export interface Disponibilite {
   closesAtHM?: string | null; opensAtHM?: string | null; ordersUntilHM?: string | null;
 }
 
-export interface Categorie { id: number; name: string; image?: string | null; description?: string | null; restaurantId: number }
+export interface Categorie { id: number; name: string; image?: string | null; description?: string | null; restaurantId: number; visible?: boolean }
 export interface Plat { id: number; name: string; image?: string | null; description?: string | null; prix: number; disponible: boolean; stock?: number | null; categorieId: number | null; categorie?: Categorie | null }
-export interface Complement { id: number; name: string; price: number; restaurantId: number }
+export interface Complement { id: number; name: string; price: number; restaurantId: number; stock?: number | null; disponible?: boolean }
 export interface Horaire { id?: number; jour: string; heures: string }
 
 export interface CommandeItem { id: number; nom: string; prixUnitaire: number; quantity: number; complements?: { name: string; price: number; quantity: number }[] | null }
 export interface Commande {
   id: number; orderNumber: string; status: OrderStatus; prix: number; deliveryPrice: number; distanceKm?: number | null;
   position: string; telephone: string; recommandation?: string | null; createdAt: string; updatedAt: string;
-  cancelReason?: string | null; validationCode?: string | null; deliveredAt?: string | null; cancelledAt?: string | null;
+  cancelReason?: string | null; validationCode?: string | null; deliveredAt?: string | null; cancelledAt?: string | null; arrivedAtRestaurantAt?: string | null;
   user?: { id: number; username: string; phone: string } | null;
   items?: CommandeItem[];
   livreur?: { id: number; username: string; prenom: string; telephone: string; typeVehicule: string } | null;
@@ -72,10 +78,18 @@ export const restaurateurService = {
     return apiClient.post('/restaurateur/signup', multipart(flat, image), mp);
   },
   me: () => apiClient.get<{ admin: any; restaurants: Restaurant[] }>('/restaurateur/me'),
+  /** Mot de passe oublié (restaurateur ou admin) : code à 6 chiffres envoyé par email, valable 15 min */
+  forgotPassword: (email: string) => apiClient.post<{ success: boolean; message: string; devCode?: string }>('/admin/password/forgot', { email }),
+  resetPassword: (email: string, code: string, newPassword: string) => apiClient.post<{ success: boolean; message: string }>('/admin/password/reset', { email, code, newPassword }),
 
   // --- Commandes du restaurant
   commandes: (params: { status?: string; since?: string; from?: string; to?: string; q?: string; restaurantId?: number; limit?: number; offset?: number } = {}) =>
     apiClient.get<{ commandes: Commande[]; total: number; offset: number; limit: number; enAttente: number; serverTime: string }>('/restaurateur/commandes', { params }),
+  // --- Équipe du restaurant
+  equipe: (restaurantId: number) => apiClient.get<{ proprietaire: { id: number; username: string; email: string; phone?: string } | null; membres: Membre[] }>('/restaurateur/equipe', { params: { restaurantId } }),
+  ajouterMembre: (restaurantId: number, data: { username: string; email: string; phone: string; password: string; role: 'GERANT' | 'CAISSE' }) => apiClient.post<{ membre: Membre; compteExistant: boolean; message: string }>('/restaurateur/equipe', { ...data, restaurantId }),
+  modifierMembre: (restaurantId: number, adminId: number, role: 'GERANT' | 'CAISSE') => apiClient.patch(`/restaurateur/equipe/${adminId}`, { role, restaurantId }),
+  retirerMembre: (restaurantId: number, adminId: number) => apiClient.delete(`/restaurateur/equipe/${adminId}`, { params: { restaurantId } }),
   /** Chiffre d'affaires et volumes sur une période (30 derniers jours par défaut) */
   stats: (params: { from?: string; to?: string; restaurantId?: number } = {}) => apiClient.get<RestaurantStats>('/restaurateur/stats', { params }),
   accepter: (id: number) => apiClient.post(`/restaurateur/commandes/${id}/accepter`),
@@ -101,6 +115,8 @@ export const restaurateurService = {
   updateCategorie: (id: number, data: { name?: string; description?: string }, image?: File | null) =>
     image ? apiClient.put(`/categories/${id}`, multipart(data, image), mp) : apiClient.put(`/categories/${id}`, data),
   deleteCategorie: (id: number) => apiClient.delete(`/categories/${id}`),
+  /** Masquer / réafficher toute une catégorie côté client */
+  setCategorieVisible: (id: number, visible: boolean) => apiClient.patch<{ categorie: Categorie }>(`/categories/${id}/visibilite`, { visible }),
   plats: () => apiClient.get<Plat[]>('/plats'),
   createPlat: (data: { name: string; prix: number; description?: string; categorieId: number; disponible?: boolean }, image?: File | null) =>
     apiClient.post('/plats', multipart(data, image), mp),
@@ -109,8 +125,8 @@ export const restaurateurService = {
   setPlatDisponible: (id: number, disponible: boolean) => apiClient.patch(`/plats/${id}/disponibilite`, { disponible }),
   deletePlat: (id: number) => apiClient.delete(`/plats/${id}`),
   complements: () => apiClient.get<Complement[]>('/complements'),
-  createComplement: (data: { name: string; price: number; restaurantId: number }) => apiClient.post('/complements', data),
-  updateComplement: (id: number, data: { name?: string; price?: number }) => apiClient.put(`/complements/${id}`, data),
+  createComplement: (data: { name: string; price: number; restaurantId: number; stock?: number | string | null; disponible?: boolean }) => apiClient.post('/complements', data),
+  updateComplement: (id: number, data: { name?: string; price?: number; stock?: number | string | null; disponible?: boolean }) => apiClient.put(`/complements/${id}`, data),
   deleteComplement: (id: number) => apiClient.delete(`/complements/${id}`),
 
   // --- Référentiels

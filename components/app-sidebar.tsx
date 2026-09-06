@@ -18,7 +18,9 @@ import {
   IconMotorbike,
   IconCoin,
   IconWallet,
-  IconClock
+  IconClock,
+  IconIdBadge2,
+  IconStar
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -44,6 +46,16 @@ const data = {
       title: "Validation restaurants",
       url: "/dashboard/validation",
       icon: IconChefHat,
+    },
+    {
+      title: "Vérification livreurs",
+      url: "/dashboard/livreurs/validation",
+      icon: IconIdBadge2,
+    },
+    {
+      title: "Performance livreurs",
+      url: "/dashboard/livreurs/performance",
+      icon: IconStar,
     },
     {
       title: "Tarification livraison",

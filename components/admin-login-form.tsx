@@ -55,7 +55,7 @@ export function AdminLoginForm() {
           {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Mot de passe</Label>
+          <div className="flex items-center justify-between"><Label htmlFor="password">Mot de passe</Label><Link href="/mot-de-passe-oublie" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Mot de passe oublié ?</Link></div>
           <div className="relative">
             <Input id="password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={formData.password} onChange={(e) => handleInputChange("password", e.target.value)} aria-invalid={!!errors.password} className="h-11 pr-11" disabled={isLoading} />
             <button type="button" className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => setShowPassword((s) => !s)} aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"} disabled={isLoading}>

@@ -53,8 +53,14 @@ function OrderCard({ c, onAction, busy }: { c: Commande; onAction: (action: "acc
       <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1"><IconPhone className="h-3 w-3" /><a href={`tel:${c.telephone}`} className="hover:underline">{c.telephone}</a></span>
         <span className="flex items-center gap-1"><IconMapPin className="h-3 w-3" />{c.position || "adresse non précisée"}{c.distanceKm != null ? ` · ${c.distanceKm} km` : ""}</span>
-        {c.livreur && <span className="flex items-center gap-1"><IconMotorbike className="h-3 w-3" />{c.livreur.prenom} {c.livreur.username} · {c.livreur.telephone}</span>}
+        {c.livreur && !c.arrivedAtRestaurantAt && <span className="flex items-center gap-1"><IconMotorbike className="h-3 w-3" />{c.livreur.prenom} {c.livreur.username} · {c.livreur.telephone}</span>}
       </div>
+      {c.arrivedAtRestaurantAt && c.status !== "RECUPEREE" && c.status !== "EN_COURS" && (
+        <div className="mb-2 flex items-center gap-2 rounded-lg bg-secondary px-2.5 py-1.5 text-xs font-semibold text-secondary-foreground">
+          <IconMotorbike className="h-4 w-4" />
+          <span>Livreur sur place{c.livreur ? ` · ${c.livreur.prenom} ${c.livreur.username}` : ""} · {timeAgo(c.arrivedAtRestaurantAt)}</span>
+        </div>
+      )}
       <div className="flex items-center justify-between border-t pt-2 text-sm">
         <span>Plats <b className="tabular-nums">{formatFcfa(c.prix)}</b> <span className="text-muted-foreground">+ livraison {formatFcfa(c.deliveryPrice)}</span></span>
         <b className="tabular-nums">{formatFcfa(total)}</b>
@@ -70,7 +76,7 @@ function OrderCard({ c, onAction, busy }: { c: Commande; onAction: (action: "acc
         </>)}
         {c.status === "EN_PREPARATION" && <Button size="sm" className="" disabled={busy} onClick={() => onAction("prete", c)}>Commande prête</Button>}
         {(c.status === "PRETE") && <span className="text-xs text-muted-foreground">En attente d’un livreur…</span>}
-        {(c.status === "VALIDER" || c.status === "ASSIGNEE") && c.validationCode && <span className="text-xs text-muted-foreground">Livreur en route vers vous</span>}
+        {(c.status === "VALIDER" || c.status === "ASSIGNEE") && c.validationCode && <span className="text-xs text-muted-foreground">{c.arrivedAtRestaurantAt ? "Remettez la commande au livreur" : "Livreur en route vers vous"}</span>}
       </div>
     </article>
   );
@@ -84,6 +90,7 @@ export default function RestaurantOrdersPage() {
   const [sound, setSound] = useState(true);
   const [refuse, setRefuse] = useState<{ c: Commande; raison: string } | null>(null);
   const knownIds = useRef<Set<number> | null>(null);
+  const arrivedIds = useRef<Set<number>>(new Set());
   const beep = useBeep();
 
   const load = useCallback(async () => {
@@ -95,6 +102,12 @@ export default function RestaurantOrdersPage() {
         if (sound) beep(3);
         toast.info(`${newOnes.length} nouvelle${newOnes.length > 1 ? "s" : ""} commande${newOnes.length > 1 ? "s" : ""}`);
       }
+      const arrivedNow = list.filter((c) => c.arrivedAtRestaurantAt && !arrivedIds.current.has(c.id) && !["RECUPEREE", "EN_COURS"].includes(c.status));
+      if (knownIds.current && arrivedNow.length > 0) {
+        if (sound) beep(1);
+        for (const c of arrivedNow) toast.success(`Livreur arrivé pour la commande #${c.id}${c.livreur ? ` (${c.livreur.prenom})` : ""}`);
+      }
+      for (const c of list) if (c.arrivedAtRestaurantAt) arrivedIds.current.add(c.id);
       knownIds.current = new Set(list.map((c) => c.id));
       setOrders(list);
     } catch (e) {

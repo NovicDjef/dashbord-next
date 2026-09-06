@@ -4,7 +4,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { IconClipboardList, IconToolsKitchen2, IconClock, IconBuildingStore, IconLogout, IconAlertTriangle, IconHourglass, IconCircleCheck, IconExternalLink, IconChartBar } from "@tabler/icons-react";
+import { useEffect } from "react";
+import { IconClipboardList, IconToolsKitchen2, IconClock, IconBuildingStore, IconLogout, IconAlertTriangle, IconHourglass, IconCircleCheck, IconExternalLink, IconChartBar, IconUsers } from "@tabler/icons-react";
+import { ROLE_LABEL, type RestaurantRole } from "@/services/api/restaurateur.service";
 import { signOutAdmin } from "@/redux/adminAuthSlice";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger, SidebarGroup, SidebarGroupContent, SidebarGroupLabel } from "@/components/ui/sidebar";
@@ -14,13 +16,20 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { getImageUrl } from "@/services/urlApp";
 import { AvailabilityBar } from "./availability-bar";
 
-const NAV = [
-  { title: "Commandes", description: "Tableau en temps réel", url: "/restaurant", icon: IconClipboardList },
-  { title: "Historique & chiffres", description: "Livrées, refusées, chiffre d’affaires", url: "/restaurant/historique", icon: IconChartBar },
-  { title: "Menu", description: "Plats, catégories, compléments", url: "/restaurant/menu", icon: IconToolsKitchen2 },
-  { title: "Horaires", description: "Jours et heures d'ouverture", url: "/restaurant/horaires", icon: IconClock },
-  { title: "Mon restaurant", description: "Photo, adresse, position", url: "/restaurant/profil", icon: IconBuildingStore },
+// Pages accessibles par rôle : CAISSE = commandes + historique ; GERANT = tout sauf l'équipe ; PROPRIETAIRE = tout
+const NAV: { title: string; description: string; url: string; icon: typeof IconClipboardList; roles: RestaurantRole[] }[] = [
+  { title: "Commandes", description: "Tableau en temps réel", url: "/restaurant", icon: IconClipboardList, roles: ["PROPRIETAIRE", "GERANT", "CAISSE"] },
+  { title: "Historique & chiffres", description: "Livrées, refusées, chiffre d’affaires", url: "/restaurant/historique", icon: IconChartBar, roles: ["PROPRIETAIRE", "GERANT", "CAISSE"] },
+  { title: "Menu", description: "Plats, catégories, compléments", url: "/restaurant/menu", icon: IconToolsKitchen2, roles: ["PROPRIETAIRE", "GERANT"] },
+  { title: "Horaires", description: "Jours et heures d'ouverture", url: "/restaurant/horaires", icon: IconClock, roles: ["PROPRIETAIRE", "GERANT"] },
+  { title: "Mon restaurant", description: "Photo, adresse, position", url: "/restaurant/profil", icon: IconBuildingStore, roles: ["PROPRIETAIRE", "GERANT"] },
+  { title: "Équipe", description: "Comptes gérant et caisse", url: "/restaurant/equipe", icon: IconUsers, roles: ["PROPRIETAIRE"] },
 ];
+
+export function useMyRole(): RestaurantRole {
+  const resto = useMyRestaurant();
+  return (resto?.monRole as RestaurantRole) || "PROPRIETAIRE";
+}
 
 export function useMyRestaurant() {
   const { restaurants } = useSelector((s: any) => s.adminAuth);
@@ -58,7 +67,11 @@ export function RestaurantShell({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
   const { admin } = useSelector((s: any) => s.adminAuth);
   const resto = useMyRestaurant();
+  const role = useMyRole();
+  const nav = NAV.filter((n) => n.roles.includes(role));
   const current = NAV.find((n) => n.url === pathname);
+  // Une page interdite pour ce rôle renvoie vers les commandes
+  useEffect(() => { if (current && !current.roles.includes(role)) router.replace("/restaurant"); }, [current, role, router]);
   const initials = (resto?.name || "R").split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase();
   const img = resto?.image ? getImageUrl(resto.image) : null;
 
@@ -78,7 +91,7 @@ export function RestaurantShell({ children }: { children: React.ReactNode }) {
             {img ? <img src={img} alt="" className="h-10 w-10 rounded-lg object-cover" /> : <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">{initials}</span>}
             <div className="min-w-0">
               <div className="truncate font-display text-sm font-bold leading-tight">{resto?.name || "Mon restaurant"}</div>
-              <div className="mt-0.5"><StatusPill status={resto?.validationStatus} /></div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-1"><StatusPill status={resto?.validationStatus} />{role !== "PROPRIETAIRE" && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold">{ROLE_LABEL[role]}</span>}</div>
             </div>
           </div>
         </SidebarHeader>
@@ -87,7 +100,7 @@ export function RestaurantShell({ children }: { children: React.ReactNode }) {
             <SidebarGroupLabel>Gestion</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV.map((item) => (
+                {nav.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title} className="h-auto py-2 data-[active=true]:bg-secondary data-[active=true]:text-secondary-foreground">
                       <Link href={item.url}>

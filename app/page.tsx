@@ -7,6 +7,8 @@ import {
 import { SiteNav } from "@/components/site/site-nav";
 import { SiteFooter } from "@/components/site/site-footer";
 import { FareEstimator } from "@/components/site/fare-estimator";
+import { PhoneFrame } from "@/components/site/phone-frame";
+import { LaptopFrame } from "@/components/site/laptop-frame";
 import { FARE, computeFare } from "@/lib/fare";
 import { AppBadges, ScooterIcon, CONTACT_PHONE, CONTACT_PHONE_HREF } from "@/components/site/brand";
 import { formatFcfa } from "@/lib/order-status";
@@ -63,6 +65,8 @@ const SERVICES = [
 ];
 
 const FARE_EXAMPLES = [1.5, 3.2, 6, 9.4];
+// À incrémenter quand les captures de public/apps changent, pour contourner le cache des navigateurs
+const APP_SHOTS_VERSION = "8";
 
 const RESTO_POINTS = [
   { icon: IconBellRinging, title: "Sonnerie à chaque commande", text: "Le tableau se met à jour tout seul. Vous acceptez, préparez, marquez prête." },
@@ -88,67 +92,6 @@ const FAQ = [
 /* ------------------------------------------------------------------ */
 /* Maquettes d'écran (HTML/CSS, données d'exemple)                     */
 /* ------------------------------------------------------------------ */
-
-function RestaurantBoardMock() {
-  const cols = [
-    { title: "Nouvelles", n: 2, tone: "bg-brand-orange/25 text-brand-ink", cards: [{ id: 184, who: "Aïcha", items: "2× Ndolé riz · 1× Jus", total: 7500, when: "à l'instant" }, { id: 183, who: "Brice", items: "1× Poulet DG", total: 5000, when: "il y a 2 min" }] },
-    { title: "En préparation", n: 1, tone: "bg-brand-mint text-secondary-foreground", cards: [{ id: 182, who: "Merveille", items: "3× Eru · 3× Water-fufu", total: 9000, when: "il y a 9 min" }] },
-    { title: "Prêtes", n: 1, tone: "bg-secondary text-secondary-foreground", cards: [{ id: 181, who: "Kevin", items: "1× Poisson braisé", total: 6000, when: "livreur en route" }] },
-  ];
-  return (
-    <div className="rounded-[1.5rem] border bg-card p-3 shadow-[0_30px_80px_-40px_rgba(51,53,78,.5)] sm:p-4" aria-label="Aperçu du tableau des commandes (exemple)">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground"><IconChefHat className="h-4 w-4" /></span>
-          <span className="font-display text-sm font-bold">Chez Mama Nguéa</span>
-          <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">Validé</span>
-        </div>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="h-2 w-2 rounded-full bg-primary" />Actualisé il y a 3 s</span>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        {cols.map((c) => (
-          <div key={c.title} className="min-w-0 rounded-xl bg-muted/70 p-2">
-            <div className="mb-2 flex items-center justify-between px-1 text-[11px] font-semibold"><span>{c.title}</span><span className={`rounded-full px-1.5 ${c.tone}`}>{c.n}</span></div>
-            <div className="space-y-2">
-              {c.cards.map((k) => (
-                <div key={k.id} className="rounded-lg border bg-card p-2 text-[11px] leading-snug">
-                  <div className="flex justify-between font-semibold"><span>#{k.id}</span><span className="text-muted-foreground font-normal">{k.when}</span></div>
-                  <div className="truncate text-muted-foreground">{k.who} · {k.items}</div>
-                  <div className="mt-1 flex items-center justify-between"><b className="tabular-nums">{formatFcfa(k.total)}</b>{c.title === "Nouvelles" && <span className="rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Accepter</span>}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProposalPhoneMock() {
-  return (
-    <div className="relative mx-auto w-[280px] rounded-[2.4rem] border-[6px] border-[#1c1e30] bg-[#0f1120] p-2 shadow-[0_40px_90px_-40px_rgba(0,0,0,.8)]" aria-label="Aperçu d'une proposition de course dans Koursier Go (exemple)">
-      <div className="mx-auto mb-2 h-5 w-24 rounded-full bg-black" />
-      <div className="overflow-hidden rounded-[1.8rem] bg-white text-brand-ink">
-        <div className="bg-primary px-4 pb-4 pt-5 text-white">
-          <div className="flex items-center justify-between text-[11px] font-medium opacity-90"><span>Koursier Go</span><span className="rounded-full bg-white/20 px-2 py-0.5">En ligne</span></div>
-          <p className="mt-3 font-display text-lg font-bold leading-tight">Nouvelle course</p>
-          <p className="text-xs opacity-90">à 1,3 km de vous</p>
-        </div>
-        <div className="space-y-3 px-4 py-4 text-[12px]">
-          <div className="flex items-start gap-2"><span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-brand-orange" /><div><div className="font-semibold">Chez Mama Nguéa</div><div className="text-muted-foreground">Bonapriso, rue Njo-Njo</div></div></div>
-          <div className="ml-2 h-4 border-l-2 border-dashed border-border" />
-          <div className="flex items-start gap-2"><span className="mt-0.5 h-4 w-4 shrink-0 rounded-full bg-primary" /><div><div className="font-semibold">Aïcha · 4,1 km</div><div className="text-muted-foreground">Akwa, face pharmacie du Wouri</div></div></div>
-          <div className="flex items-center justify-between rounded-xl bg-muted px-3 py-2"><span className="text-muted-foreground">Frais de course</span><b className="font-display text-base tabular-nums">{formatFcfa(computeFare(4.1))} CFA</b></div>
-          <div className="grid grid-cols-[1fr_2fr] gap-2 pt-1">
-            <span className="rounded-full border py-2 text-center font-semibold">Refuser</span>
-            <span className="rounded-full bg-primary py-2 text-center font-semibold text-white">Accepter · 27 s</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /* Page                                                               */
@@ -263,7 +206,10 @@ export default function HomePage() {
         {/* ---------------- Restaurants ---------------- */}
         <section id="restaurants" className="site-container scroll-mt-20 py-20 lg:py-28">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div className="order-2 lg:order-1"><RestaurantBoardMock /></div>
+            {/* Vraie capture de l'espace restaurant (tableau des commandes en temps réel) dans un cadre d'ordinateur portable */}
+            <div className="order-2 lg:order-1">
+              <LaptopFrame src={`/apps/espace-restaurant-commandes.jpg?v=${APP_SHOTS_VERSION}`} alt="Espace restaurant Koursier : tableau des commandes en temps réel avec les colonnes Nouvelles, Acceptées, En préparation, Prêtes et En livraison" />
+            </div>
             <div className="order-1 lg:order-2">
               <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-brand-orange">Pour les restaurants</p>
               <h2 className="mt-2 font-display text-3xl font-bold text-brand-ink sm:text-4xl dark:text-foreground">Vos commandes arrivent sur votre écran, vos livreurs aussi</h2>
@@ -350,7 +296,11 @@ export default function HomePage() {
             </div>
             <div className="relative isolate">
               <div className="pointer-events-none absolute inset-0 -z-10 m-auto h-64 w-64 rounded-full bg-primary/30 blur-3xl" aria-hidden="true" />
-              <div className="relative"><ProposalPhoneMock /></div>
+              {/* Vraies captures de Koursier Go dans un cadre de téléphone : la liste des courses devant, le tableau de bord derrière */}
+              <div className="relative mx-auto flex w-fit items-end justify-center">
+                <PhoneFrame src={`/apps/koursier-go-dashboard.png?v=`} alt="Tableau de bord du livreur dans Koursier Go : gains, répartition des livraisons, actions rapides" width={210} className="-mr-16 mb-6 hidden rotate-[-6deg] opacity-80 sm:block" />
+                <PhoneFrame src={`/apps/koursier-go-livraisons.png?v=`} alt="Écran Livraisons de Koursier Go : courses disponibles avec le gain, le restaurant, l’adresse du client et le bouton Accepter" width={290} className="relative z-10" />
+              </div>
             </div>
           </div>
         </section>
